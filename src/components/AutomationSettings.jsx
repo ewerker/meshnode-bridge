@@ -60,9 +60,10 @@ export default function AutomationSettings({ userSettings, onSettingsChanged }) 
       const user = await base44.auth.me();
       const list = await base44.entities.UserSettings.filter({ created_by: user.email });
       const settings = list[0] || {};
+      const channelToUse = settings.default_channel ?? channel ?? 2;
       const res = await base44.functions.invoke('mqttPoll', {
         region: settings.region || 'EU_868',
-        channel: settings.default_channel !== undefined ? settings.default_channel : 2,
+        channel: channelToUse,
         listenSeconds: Math.min(settings.bg_listen_seconds || 60, 120)
       });
       setPollResult({ type: 'success', msg: `${res.data.received} Nachricht(en) empfangen, ${res.data.saved} gespeichert.` });
