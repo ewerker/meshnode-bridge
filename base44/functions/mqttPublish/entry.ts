@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { text, channel, toNode, fromNode, psk } = body;
+    const { text, channel, toNode, fromNode, psk, region } = body;
 
     if (!text || !channel) {
       return Response.json({ error: 'text and channel are required' }, { status: 400 });
@@ -23,7 +23,8 @@ Deno.serve(async (req) => {
     }
 
     const nodeId = fromNode || '!gateway';
-    const topic = `msh/2/json/${channel}/${nodeId}`;
+    const regionStr = region || 'EU_868';
+    const topic = `msh/${regionStr}/2/json/${nodeId}`;
 
     const payload = {
       channel: 0,

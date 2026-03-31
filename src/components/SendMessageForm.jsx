@@ -6,6 +6,7 @@ export default function SendMessageForm({ onMessageSent }) {
   const [form, setForm] = useState({
     text: '',
     channel: 'LongFast',
+    region: 'EU_868',
     toNode: '^all',
     fromNode: '!gateway',
     psk: '',
@@ -34,8 +35,19 @@ export default function SendMessageForm({ onMessageSent }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
+            Region
+          </label>
+          <input
+            value={form.region}
+            onChange={(e) => setForm((f) => ({ ...f, region: e.target.value }))}
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
+            placeholder="EU_868"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
             <Radio className="inline w-3 h-3 mr-1" />
-            Kanal
+            Kanal (Info)
           </label>
           <input
             value={form.channel}

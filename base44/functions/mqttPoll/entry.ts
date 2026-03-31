@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const { channel, listenSeconds } = body;
+    const { channel, listenSeconds, region } = body;
     const listenTime = Math.min(listenSeconds || 5, 15) * 1000;
 
     const brokerUrl = Deno.env.get('MQTT_BROKER_URL');
@@ -19,8 +19,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'MQTT_BROKER_URL not configured' }, { status: 500 });
     }
 
-    const subscribeChannel = channel || '#';
-    const topic = `msh/2/json/${subscribeChannel}`;
+    const regionStr = region || 'EU_868';
+    const topic = `msh/${regionStr}/2/json/#`;
 
     const messages = await new Promise((resolve, reject) => {
       const collected = [];
