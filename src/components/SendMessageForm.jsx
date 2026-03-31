@@ -15,6 +15,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
       text: '',
       channel: savedChannel ? parseInt(savedChannel) : 2,
       region: localStorage.getItem(LS_REGION) || 'EU_868',
+      toNode: '^all',
     };
   });
   const [sending, setSending] = useState(false);
