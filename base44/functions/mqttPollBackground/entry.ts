@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
 
     const regionStr = settings.bg_region || settings.region || 'EU_868';
     const channelNum = settings.bg_channel !== undefined ? settings.bg_channel : (settings.default_channel !== undefined ? settings.default_channel : 2);
-    const listenTime = (settings.bg_listen_seconds || 298) * 1000;
+    const listenTime = (settings.bg_listen_seconds || 60) * 1000;
     const topic = `msh/${regionStr}/${channelNum}/json`;
     console.log('[BG] subscribing to topic:', topic, 'channel filter:', channelNum);
 
@@ -46,7 +46,8 @@ Deno.serve(async (req) => {
       const clientOpts = { clientId: `mesh_bg_${Date.now()}` };
       if (username) clientOpts.username = username;
       if (password) clientOpts.password = password;
-      clientOpts.connectTimeout = 10000;
+      clientOpts.connectTimeout = 5000;
+      clientOpts.keepalive = 30;
 
       const client = mqtt.connect(brokerUrl, clientOpts);
 
@@ -55,7 +56,7 @@ Deno.serve(async (req) => {
         resolve(collected);
       };
 
-      const timer = setTimeout(done, listenTime + 10000);
+      const timer = setTimeout(done, listenTime + 5000);
 
       client.on('connect', () => {
         client.subscribe(topic, { qos: 1 }, (err) => {
