@@ -58,7 +58,8 @@ Deno.serve(async (req) => {
         try {
           const raw = msgBuf.toString();
           const parsed = JSON.parse(raw);
-          if (parsed.type === 'text' && parsed.payload?.text) {
+          // Accept text messages: must have a from field and text in payload
+          if (parsed.from !== undefined && parsed.payload?.text) {
             collected.push({
               topic: t,
               payload: parsed,
@@ -82,13 +83,14 @@ Deno.serve(async (req) => {
     for (const msg of messages) {
       const p = msg.payload;
       const topicParts = msg.topic.split('/');
-      const channelName = topicParts[3] || 'unknown';
+      // topic: msh/{region}/{channelNum}/json
+      const channelNum = topicParts[2] || 'unknown';
 
       const record = await base44.entities.MeshMessage.create({
         direction: 'inbound',
-        text: p.payload?.text || '',
-        channel: channelName,
-        from_node: p.sender || String(p.from) || 'unknown',
+        text: p.payload.text,
+        channel: channelNum,
+        from_node: String(p.from),
         to_node: p.to === -1 ? '^all' : String(p.to),
         mqtt_topic: msg.topic,
         status: 'received',
