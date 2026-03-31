@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     const regionStr = settings.bg_region || settings.region || 'EU_868';
     const channelNum = settings.bg_channel !== undefined ? settings.bg_channel : (settings.default_channel !== undefined ? settings.default_channel : 2);
     const listenTime = (settings.bg_listen_seconds || 298) * 1000;
-    const topic = `msh/${regionStr}/#`;
+    const topic = `msh/${regionStr}/${channelNum}/json`;
     console.log('[BG] subscribing to topic:', topic, 'channel filter:', channelNum);
 
     const brokerUrl = Deno.env.get('MQTT_BROKER_URL');
@@ -75,15 +75,11 @@ Deno.serve(async (req) => {
       client.on('message', (t, msgBuf) => {
         try {
           const raw = msgBuf.toString();
-          console.log('[BG] msg topic:', t, '| data:', raw.substring(0, 200));
+          console.log('[BG] msg:', t, raw.substring(0, 300));
           const parsed = JSON.parse(raw);
-          const topicParts = t.split('/');
-          const topicChannel = topicParts[2];
-          if (String(topicChannel) !== String(channelNum)) return;
-          const text = parsed.payload?.text
-            || (parsed.payload && typeof parsed.payload === 'string' ? (() => { try { const d = JSON.parse(atob(parsed.payload)); return d?.text; } catch(_){return null;} })() : null);
+          const text = parsed.payload?.text;
           if (text) {
-            collected.push({ topic: t, payload: { ...parsed, _resolvedText: text }, receivedAt: new Date().toISOString() });
+            collected.push({ topic: t, payload: parsed, receivedAt: new Date().toISOString() });
           }
         } catch (_) {}
       });
@@ -110,7 +106,7 @@ Deno.serve(async (req) => {
 
       const record = await base44.asServiceRole.entities.MeshMessage.create({
         direction: 'inbound',
-        text: p._resolvedText || p.payload?.text || '',
+        text: p.payload?.text || '',
         channel: ch,
         from_node: String(p.from),
         to_node: p.to === -1 ? '^all' : String(p.to),
