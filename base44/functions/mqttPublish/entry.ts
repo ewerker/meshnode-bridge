@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
     await base44.entities.MeshMessage.create({
       direction: 'outbound',
       text,
-      channel,
+      channel: String(channelNum),
       from_node: nodeId,
       to_node: toNode || '^all',
       mqtt_topic: topic,
