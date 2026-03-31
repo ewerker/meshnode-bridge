@@ -21,7 +21,8 @@ Deno.serve(async (req) => {
 
     const regionStr = region || 'EU_868';
     const channelNum = channel !== undefined ? channel : 2;
-    const topic = `msh/${regionStr}/${channelNum}/json/#`;
+    const topic = `msh/${regionStr}/#`;
+    console.log('[MQTT] subscribing to topic:', topic);
 
     const messages = await new Promise((resolve, reject) => {
       const collected = [];
@@ -57,17 +58,27 @@ Deno.serve(async (req) => {
       client.on('message', (t, msgBuf) => {
         try {
           const raw = msgBuf.toString();
+          console.log('[MQTT] msg topic:', t, '| data:', raw.substring(0, 200));
           const parsed = JSON.parse(raw);
-          // Accept text messages: must have a from field and text in payload
-          if (parsed.from !== undefined && parsed.payload?.text) {
+          // Filter by channel number in topic path (position 2)
+          const topicParts = t.split('/');
+          const topicChannel = topicParts[2];
+          if (String(topicChannel) !== String(channelNum)) return;
+          // Accept TEXT_MESSAGE_APP portnum
+          const isTextMsg = parsed.portnum === 'TEXT_MESSAGE_APP' || parsed.payload?.portnum === 'TEXT_MESSAGE_APP';
+          const text = parsed.payload?.text
+            || (parsed.payload && typeof parsed.payload === 'string' ? (() => { try { const d = JSON.parse(atob(parsed.payload)); return d?.text; } catch(_){return null;} })() : null);
+          if (text) {
             collected.push({
               topic: t,
-              payload: parsed,
+              payload: { ...parsed, _resolvedText: text },
               receivedAt: new Date().toISOString(),
             });
+          } else {
+            console.log('[MQTT] skipped (no text):', t);
           }
-        } catch (_) {
-          // skip malformed
+        } catch (e) {
+          console.log('[MQTT] parse error:', e.message);
         }
       });
 
@@ -95,7 +106,7 @@ Deno.serve(async (req) => {
 
       const record = await base44.entities.MeshMessage.create({
         direction: 'inbound',
-        text: p.payload.text,
+        text: p._resolvedText || p.payload?.text || '',
         channel: channelNum,
         from_node: String(p.from),
         to_node: p.to === -1 ? '^all' : String(p.to),
