@@ -3,7 +3,6 @@ import { base44 } from '@/api/base44Client';
 import { Radio, RefreshCw, Activity, Layers } from 'lucide-react';
 import MessageList from '@/components/MessageList';
 import SendMessageForm from '@/components/SendMessageForm';
-import AutomationSettings from '@/components/AutomationSettings';
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
@@ -100,14 +99,7 @@ export default function Dashboard() {
           <SendMessageForm onMessageSent={fetchMessages} userSettings={userSettings} />
         </section>
 
-        {/* Automation Settings */}
-        <section className="bg-slate-900 rounded-2xl border border-slate-800 p-4">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <Layers className="w-4 h-4" />
-            Automatischer Abruf
-          </h2>
-          <AutomationSettings userSettings={userSettings} onSettingsChanged={setUserSettings} />
-        </section>
+
 
         {/* Message Log */}
         <section className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
