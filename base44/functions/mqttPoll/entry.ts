@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
 
     const regionStr = region || 'EU_868';
     const channelNum = channel !== undefined ? channel : 2;
-    const topic = `msh/${regionStr}/${channelNum}/json/#`;
+    const topic = `msh/${regionStr}/${channelNum}/json`;
 
     const messages = await new Promise((resolve, reject) => {
       const collected = [];
