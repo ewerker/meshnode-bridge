@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Send, Lock, Radio } from 'lucide-react';
+import { Send, Radio } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function SendMessageForm({ onMessageSent, userSettings }) {
   const [form, setForm] = useState({
     text: '',
-    channel: 'LongFast',
+    channel: 2,
     region: 'EU_868',
     toNode: '^all',
     fromNode: '!gateway',
-    psk: '',
   });
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -20,7 +19,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
         ...f,
         region: userSettings.region || f.region,
         fromNode: userSettings.from_node || f.fromNode,
-        channel: userSettings.default_channel || f.channel,
+        channel: userSettings.default_channel !== undefined ? userSettings.default_channel : f.channel,
       }));
     }
   }, [userSettings]);
@@ -58,41 +57,15 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
         <div>
           <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
             <Radio className="inline w-3 h-3 mr-1" />
-            Kanal
-          </label>
-          {userSettings?.channels?.length > 0 ? (
-            <select
-              value={form.channel}
-              onChange={(e) => {
-                const ch = userSettings.channels.find(c => c.name === e.target.value);
-                setForm(f => ({ ...f, channel: e.target.value, psk: ch?.psk || '' }));
-              }}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-            >
-              {userSettings.channels.map((ch, i) => (
-                <option key={i} value={ch.name}>{ch.name}</option>
-              ))}
-            </select>
-          ) : (
-            <input
-              value={form.channel}
-              onChange={(e) => setForm((f) => ({ ...f, channel: e.target.value }))}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-              placeholder="LongFast"
-            />
-          )}
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
-            <Lock className="inline w-3 h-3 mr-1" />
-            PSK (optional)
+            Kanal (0–9)
           </label>
           <input
-            value={form.psk}
-            onChange={(e) => setForm((f) => ({ ...f, psk: e.target.value }))}
-            type="password"
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
-            placeholder="Pre-Shared Key"
+            type="number"
+            min={0}
+            max={9}
+            value={form.channel}
+            onChange={(e) => setForm((f) => ({ ...f, channel: parseInt(e.target.value) || 0 }))}
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
           />
         </div>
         <div>

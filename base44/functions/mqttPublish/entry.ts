@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { text, channel, toNode, fromNode, psk, region } = body;
+    const { text, channel, toNode, fromNode, region } = body;
 
     if (!text || !channel) {
       return Response.json({ error: 'text and channel are required' }, { status: 400 });
@@ -23,14 +23,11 @@ Deno.serve(async (req) => {
     }
 
     const regionStr = region || 'EU_868';
-    const topic = `msh/${regionStr}/2/json`;
+    const channelNum = channel !== undefined ? channel : 2;
+    const topic = `msh/${regionStr}/${channelNum}/json`;
 
     const base64Text = btoa(unescape(encodeURIComponent(text)));
-    const payload = {
-      payload: base64Text,
-      portnum: 'TEXT_MESSAGE_APP',
-    };
-    const payloadStr = JSON.stringify(payload);
+    const payloadStr = base64Text;
 
     await new Promise((resolve, reject) => {
       const clientOpts = { clientId: `mesh_bridge_${Date.now()}` };

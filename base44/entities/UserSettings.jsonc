@@ -10,24 +10,9 @@
       "type": "string",
       "description": "Eigene Node-ID z.B. !abc1234"
     },
-    "channels": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "psk": {
-            "type": "string"
-          }
-        }
-      },
-      "description": "Gespeicherte Kan\u00e4le"
-    },
     "default_channel": {
-      "type": "string",
-      "description": "Standard-Kanal"
+      "type": "integer",
+      "description": "Standard-Kanal 0-9"
     }
   },
   "required": []
