@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Download, Wifi } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
+const REGIONS = ['EU_868', 'EU_433', 'US', 'ANZ', 'KR', 'TW', 'RU', 'IN', 'NZ_865', 'TH', 'LORA_24', 'UA_433', 'UA_868', 'MY_433', 'MY_919', 'SG_923'];
 const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 const LISTEN_OPTIONS = [
   { label: '10 Sek.', seconds: 10 },
@@ -23,8 +24,14 @@ export default function PollPanel({ onReceived, userSettings }) {
   const [listenSeconds, setListenSeconds] = useState(() => parseInt(localStorage.getItem(LS_LISTEN) ?? '60'));
 
   useEffect(() => {
-    if (userSettings?.region) setRegion(userSettings.region);
-    if (userSettings?.default_channel !== undefined) setChannel(userSettings.default_channel);
+    if (userSettings?.region) {
+      setRegion(userSettings.region);
+      localStorage.setItem(LS_REGION, userSettings.region);
+    }
+    if (userSettings?.default_channel !== undefined) {
+      setChannel(userSettings.default_channel);
+      localStorage.setItem(LS_CHANNEL, String(userSettings.default_channel));
+    }
   }, [userSettings]);
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
@@ -74,13 +81,14 @@ export default function PollPanel({ onReceived, userSettings }) {
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500 whitespace-nowrap">Region:</span>
-          <input
+          <select
             value={region}
             onChange={e => handleRegionChange(e.target.value)}
             disabled={polling}
-            className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 w-20"
-            placeholder="EU_868"
-          />
+            className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+          >
+            {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500 whitespace-nowrap">Kanal:</span>
