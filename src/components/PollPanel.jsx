@@ -7,7 +7,7 @@ const LS_CHANNEL = 'mesh_last_channel';
 
 export default function PollPanel({ onReceived, userSettings }) {
   const [region, setRegion] = useState(() => localStorage.getItem(LS_REGION) || 'EU_868');
-  const [channel, setChannel] = useState(() => parseInt(localStorage.getItem(LS_CHANNEL) ?? '2'));
+  const [channel, setChannel] = useState(() => parseInt(localStorage.getItem(LS_CHANNEL) ?? '0'));
 
   useEffect(() => {
     if (userSettings?.region) setRegion(userSettings.region);
@@ -30,6 +30,12 @@ export default function PollPanel({ onReceived, userSettings }) {
     }
   };
 
+  const handleChannelChange = (val) => {
+    const num = parseInt(val);
+    setChannel(num);
+    localStorage.setItem(LS_CHANNEL, String(num));
+  };
+
   return (
     <div className="flex items-center gap-3 flex-wrap">
       <div className="flex items-center gap-2">
@@ -38,7 +44,15 @@ export default function PollPanel({ onReceived, userSettings }) {
       </div>
       <div className="flex items-center gap-2">
         <span className="text-xs text-slate-500 whitespace-nowrap">Kanal:</span>
-        <span className="text-sm text-slate-300 font-mono">{channel}</span>
+        <select
+          value={channel}
+          onChange={(e) => handleChannelChange(e.target.value)}
+          className="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+        >
+          {Array.from({ length: 100 }, (_, i) => (
+            <option key={i} value={i}>Kanal {i}</option>
+          ))}
+        </select>
       </div>
       <button
         onClick={handlePoll}
