@@ -1,15 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Radio, RefreshCw, Activity, Layers, Settings } from 'lucide-react';
+import { Radio, RefreshCw, Activity, Layers } from 'lucide-react';
 import MessageList from '@/components/MessageList';
 import SendMessageForm from '@/components/SendMessageForm';
 import AutomationSettings from '@/components/AutomationSettings';
-import SettingsPanel from '@/components/SettingsPanel';
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('chat');
   const [userSettings, setUserSettings] = useState(null);
 
   const fetchMessages = useCallback(async () => {
@@ -86,29 +84,13 @@ export default function Dashboard() {
             >
               <RefreshCw className="w-4 h-4 text-slate-400" />
             </button>
-            <button
-              onClick={() => setTab(t => t === 'settings' ? 'chat' : 'settings')}
-              className={`p-2 rounded-lg transition-colors ${tab === 'settings' ? 'bg-cyan-700 text-cyan-200' : 'bg-slate-800 hover:bg-slate-700 text-slate-400'}`}
-              title="Einstellungen"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
+
           </div>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-
-        {tab === 'settings' ? (
-          <section className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
-            <h2 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Einstellungen
-            </h2>
-            <SettingsPanel onSettingsChanged={(s) => { setUserSettings(s); setTab('chat'); }} />
-          </section>
-        ) : (
-          <>
+        <>
         {/* Send Form */}
         <section className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
           <h2 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -146,7 +128,6 @@ export default function Dashboard() {
           )}
         </section>
         </>
-        )}
       </main>
     </div>
   );
