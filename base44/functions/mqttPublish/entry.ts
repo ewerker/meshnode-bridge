@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     const topic = `msh/${regionStr}/${channelNum}/json`;
 
     const base64Text = btoa(unescape(encodeURIComponent(text)));
-    const payloadStr = base64Text;
+    const payloadStr = JSON.stringify({ payload: base64Text, portnum: 'TEXT_MESSAGE_APP' });
 
     await new Promise((resolve, reject) => {
       const clientOpts = { clientId: `mesh_bridge_${Date.now()}` };
@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
       raw_payload: payloadStr,
     });
 
-    return Response.json({ success: true, topic, payload });
+    return Response.json({ success: true, topic, payload: payloadStr });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
