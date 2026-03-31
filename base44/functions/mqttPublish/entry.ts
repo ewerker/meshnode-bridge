@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     }
 
     const regionStr = region || 'EU_868';
-    const channelNum = channel !== undefined ? channel : 2;
+    const channelNum = typeof channel === 'string' ? parseInt(channel) : (channel !== undefined ? channel : 2);
     const topic = `msh/${regionStr}/${channelNum}/json`;
 
     const base64Text = btoa(unescape(encodeURIComponent(text)));
