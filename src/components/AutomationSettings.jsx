@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Save, Clock } from 'lucide-react';
+import { Save, Clock, RefreshCw } from 'lucide-react';
 
 const LISTEN_OPTIONS = [
   { label: '30 Sek.', seconds: 30 },
@@ -136,6 +136,7 @@ export default function AutomationSettings({ userSettings, onSettingsChanged }) 
             disabled={polling}
             className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white rounded-lg text-xs font-medium transition-colors"
           >
+            <RefreshCw className={`w-3.5 h-3.5 ${polling ? 'animate-spin' : ''}`} />
             {polling ? 'Lausche…' : 'Jetzt abrufen'}
           </button>
           <button
