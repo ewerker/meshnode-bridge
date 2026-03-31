@@ -20,7 +20,10 @@ const LS_LISTEN = 'mesh_poll_listen_seconds';
 
 export default function PollPanel({ onReceived, userSettings }) {
   const [region, setRegion] = useState(() => localStorage.getItem(LS_REGION) || 'EU_868');
-  const [channel, setChannel] = useState(() => parseInt(localStorage.getItem(LS_CHANNEL) ?? '2'));
+  const [channel, setChannel] = useState(() => {
+    const saved = localStorage.getItem(LS_CHANNEL);
+    return saved ? parseInt(saved) : 2;
+  });
   const [listenSeconds, setListenSeconds] = useState(() => parseInt(localStorage.getItem(LS_LISTEN) ?? '60'));
 
   useEffect(() => {
