@@ -32,14 +32,13 @@ export default function MessageList({ messages, onDelete }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
               <span className="text-xs font-mono text-slate-400">
-                {msg.direction === 'outbound' ? msg.from_node : msg.from_node}
+                {msg.mqtt_topic ? msg.mqtt_topic.split('/')[1] : '—'}
               </span>
-              <span className="text-slate-600">→</span>
-              <span className="text-xs font-mono text-slate-500">{msg.to_node || '^all'}</span>
-              <span className={`ml-auto text-xs px-1.5 py-0.5 rounded font-medium ${
+              <span className="text-slate-600">·</span>
+              <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                 msg.direction === 'outbound' ? 'bg-cyan-900/50 text-cyan-400' : 'bg-emerald-900/50 text-emerald-400'
               }`}>
-                {msg.channel}
+                Kanal {msg.channel}
               </span>
               {onDelete && (
                 <button
