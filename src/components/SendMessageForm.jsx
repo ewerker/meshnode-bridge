@@ -7,8 +7,6 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
     text: '',
     channel: 2,
     region: 'EU_868',
-    toNode: '^all',
-    fromNode: '!gateway',
   });
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -18,7 +16,6 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
       setForm(f => ({
         ...f,
         region: userSettings.region || f.region,
-        fromNode: userSettings.from_node || f.fromNode,
         channel: userSettings.default_channel !== undefined ? userSettings.default_channel : f.channel,
       }));
     }
@@ -68,28 +65,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
           />
         </div>
-        <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">
-            Von Node
-          </label>
-          <input
-            value={form.fromNode}
-            onChange={(e) => setForm((f) => ({ ...f, fromNode: e.target.value }))}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
-            placeholder="!gateway"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">
-            An Node
-          </label>
-          <input
-            value={form.toNode}
-            onChange={(e) => setForm((f) => ({ ...f, toNode: e.target.value }))}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
-            placeholder="^all oder !nodeId"
-          />
-        </div>
+
       </div>
 
       <div className="flex gap-3">
