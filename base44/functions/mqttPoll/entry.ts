@@ -8,8 +8,8 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const { listenSeconds, region, channel } = body;
-    const listenTime = Math.min(listenSeconds || 5, 15) * 1000;
+    const { listenSeconds, region, channel, sinceMinutes } = body;
+    const listenTime = Math.min(listenSeconds || 5, 30) * 1000;
 
     const brokerUrl = Deno.env.get('MQTT_BROKER_URL');
     const username = Deno.env.get('MQTT_USERNAME');
@@ -78,13 +78,28 @@ Deno.serve(async (req) => {
       });
     });
 
+    // Deduplicate: filter by sinceMinutes time window and known mesh IDs
+    const windowMs = (sinceMinutes || 60) * 60 * 1000;
+    const since = new Date(Date.now() - windowMs).toISOString();
+    const recentRecords = await base44.entities.MeshMessage.filter({ direction: 'inbound' }, '-created_date', 500);
+    const knownIds = new Set(recentRecords.filter(r => r.mesh_id).map(r => r.mesh_id));
+
     // Save received messages to DB
     const saved = [];
     for (const msg of messages) {
       const p = msg.payload;
       const topicParts = msg.topic.split('/');
-      // topic: msh/{region}/{channelNum}/json
       const channelNum = topicParts[2] || 'unknown';
+      const meshId = p.id ? String(p.id) : null;
+
+      // Skip if already stored (dedup by mesh_id)
+      if (meshId && knownIds.has(meshId)) continue;
+
+      // Skip if message timestamp is older than sinceMinutes window
+      if (p.timestamp) {
+        const msgTime = new Date(p.timestamp * 1000);
+        if (msgTime < new Date(Date.now() - windowMs)) continue;
+      }
 
       const record = await base44.entities.MeshMessage.create({
         direction: 'inbound',
@@ -95,6 +110,7 @@ Deno.serve(async (req) => {
         mqtt_topic: msg.topic,
         status: 'received',
         raw_payload: JSON.stringify(p),
+        mesh_id: meshId,
       });
       saved.push(record);
     }

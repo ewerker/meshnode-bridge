@@ -13,6 +13,8 @@ export default function PollPanel({ onReceived, userSettings }) {
     if (userSettings?.region) setRegion(userSettings.region);
     if (userSettings?.default_channel !== undefined) setChannel(userSettings.default_channel);
   }, [userSettings]);
+  const [listenSeconds, setListenSeconds] = useState(8);
+  const [sinceMinutes, setSinceMinutes] = useState(60);
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
 
@@ -20,7 +22,7 @@ export default function PollPanel({ onReceived, userSettings }) {
     setPolling(true);
     setResult(null);
     try {
-      const res = await base44.functions.invoke('mqttPoll', { region, channel, listenSeconds: 8 });
+      const res = await base44.functions.invoke('mqttPoll', { region, channel, listenSeconds, sinceMinutes });
       setResult({ type: 'success', msg: `${res.data.received} Nachricht(en) empfangen, ${res.data.saved} gespeichert.` });
       if (res.data.received > 0) onReceived?.();
     } catch (err) {
@@ -62,7 +64,7 @@ export default function PollPanel({ onReceived, userSettings }) {
         {polling ? (
           <>
             <Wifi className="w-4 h-4 text-cyan-400 animate-pulse" />
-            <span>Lausche… (8s)</span>
+            <span>Lausche… ({listenSeconds}s)</span>
           </>
         ) : (
           <>
@@ -76,6 +78,20 @@ export default function PollPanel({ onReceived, userSettings }) {
           {result.msg}
         </span>
       )}
+      <div className="flex items-center gap-2 ml-auto">
+        <label className="text-xs text-slate-500 whitespace-nowrap">Lausch-Zeit (s):</label>
+        <input
+          type="number" min={3} max={30} value={listenSeconds}
+          onChange={e => setListenSeconds(Math.min(30, Math.max(3, parseInt(e.target.value) || 8)))}
+          className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+        />
+        <label className="text-xs text-slate-500 whitespace-nowrap">Zeitfenster (min):</label>
+        <input
+          type="number" min={1} max={1440} value={sinceMinutes}
+          onChange={e => setSinceMinutes(Math.max(1, parseInt(e.target.value) || 60))}
+          className="w-16 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+        />
+      </div>
     </div>
   );
 }

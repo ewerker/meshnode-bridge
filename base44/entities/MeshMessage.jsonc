@@ -42,6 +42,10 @@
     "raw_payload": {
       "type": "string",
       "description": "Raw JSON payload"
+    },
+    "mesh_id": {
+      "type": "string",
+      "description": "Meshtastic message ID for deduplication"
     }
   },
   "required": [
