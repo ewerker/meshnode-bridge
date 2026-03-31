@@ -7,14 +7,12 @@ const LS_CHANNEL = 'mesh_last_channel';
 
 export default function PollPanel({ onReceived, userSettings }) {
   const [region, setRegion] = useState(() => localStorage.getItem(LS_REGION) || 'EU_868');
-  const [channel, setChannel] = useState(() => parseInt(localStorage.getItem(LS_CHANNEL) ?? '0'));
+  const [channel, setChannel] = useState(() => parseInt(localStorage.getItem(LS_CHANNEL) ?? '2'));
 
   useEffect(() => {
     if (userSettings?.region) setRegion(userSettings.region);
     if (userSettings?.default_channel !== undefined) setChannel(userSettings.default_channel);
   }, [userSettings]);
-  const [listenSeconds, setListenSeconds] = useState(() => parseInt(localStorage.getItem('mesh_listen_seconds') ?? '8'));
-  const [sinceMinutes, setSinceMinutes] = useState(() => parseInt(localStorage.getItem('mesh_since_minutes') ?? '60'));
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
 
@@ -22,7 +20,7 @@ export default function PollPanel({ onReceived, userSettings }) {
     setPolling(true);
     setResult(null);
     try {
-      const res = await base44.functions.invoke('mqttPoll', { region, channel, listenSeconds, sinceMinutes });
+      const res = await base44.functions.invoke('mqttPoll', { region, channel, listenSeconds: 8 });
       setResult({ type: 'success', msg: `${res.data.received} Nachricht(en) empfangen, ${res.data.saved} gespeichert.` });
       if (res.data.received > 0) onReceived?.();
     } catch (err) {
@@ -30,12 +28,6 @@ export default function PollPanel({ onReceived, userSettings }) {
     } finally {
       setPolling(false);
     }
-  };
-
-  const handleChannelChange = (val) => {
-    const num = parseInt(val);
-    setChannel(num);
-    localStorage.setItem(LS_CHANNEL, String(num));
   };
 
   return (
@@ -46,15 +38,7 @@ export default function PollPanel({ onReceived, userSettings }) {
       </div>
       <div className="flex items-center gap-2">
         <span className="text-xs text-slate-500 whitespace-nowrap">Kanal:</span>
-        <select
-          value={channel}
-          onChange={(e) => handleChannelChange(e.target.value)}
-          className="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-        >
-          {Array.from({ length: 100 }, (_, i) => (
-            <option key={i} value={i}>Kanal {i}</option>
-          ))}
-        </select>
+        <span className="text-sm text-slate-300 font-mono">{channel}</span>
       </div>
       <button
         onClick={handlePoll}
@@ -64,7 +48,7 @@ export default function PollPanel({ onReceived, userSettings }) {
         {polling ? (
           <>
             <Wifi className="w-4 h-4 text-cyan-400 animate-pulse" />
-            <span>Lausche… ({listenSeconds}s)</span>
+            <span>Lausche… (8s)</span>
           </>
         ) : (
           <>
@@ -78,20 +62,6 @@ export default function PollPanel({ onReceived, userSettings }) {
           {result.msg}
         </span>
       )}
-      <div className="flex items-center gap-2 ml-auto">
-        <label className="text-xs text-slate-500 whitespace-nowrap">Lausch-Zeit (s):</label>
-        <input
-          type="number" min={3} max={30} value={listenSeconds}
-          onChange={e => { const v = Math.min(30, Math.max(3, parseInt(e.target.value) || 8)); setListenSeconds(v); localStorage.setItem('mesh_listen_seconds', String(v)); }}
-          className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-        />
-        <label className="text-xs text-slate-500 whitespace-nowrap">Zeitfenster (min):</label>
-        <input
-          type="number" min={1} max={1440} value={sinceMinutes}
-          onChange={e => { const v = Math.max(1, parseInt(e.target.value) || 60); setSinceMinutes(v); localStorage.setItem('mesh_since_minutes', String(v)); }}
-          className="w-16 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-        />
-      </div>
     </div>
   );
 }
