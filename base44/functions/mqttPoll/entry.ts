@@ -61,8 +61,8 @@ Deno.serve(async (req) => {
           const raw = msgBuf.toString();
           console.log('[MQTT] msg:', t, raw.substring(0, 300));
           const parsed = JSON.parse(raw);
-          const text = parsed.payload?.text;
-          console.log('[MQTT] parsed payload.text:', text);
+          const text = typeof parsed.payload === 'string' ? parsed.payload : (parsed.payload?.text || '');
+          console.log('[MQTT] parsed text:', text);
           if (text) {
             collected.push({ topic: t, payload: parsed, receivedAt: new Date().toISOString() });
             console.log('[MQTT] added to collected, total:', collected.length);
