@@ -42,6 +42,10 @@
     "raw_payload": {
       "type": "string",
       "description": "Raw JSON payload"
+    },
+    "message_id": {
+      "type": "string",
+      "description": "Unique Meshtastic message ID to prevent duplicates"
     }
   },
   "required": [

@@ -78,13 +78,20 @@ Deno.serve(async (req) => {
       });
     });
 
-    // Save received messages to DB
+    // Save received messages to DB (skip duplicates by message_id)
     const saved = [];
     for (const msg of messages) {
       const p = msg.payload;
       const topicParts = msg.topic.split('/');
-      // topic: msh/{region}/{channelNum}/json
       const channelNum = topicParts[2] || 'unknown';
+
+      // Build a unique ID from the Meshtastic packet id field if available
+      const msgId = p.id !== undefined ? String(p.id) : null;
+
+      if (msgId) {
+        const existing = await base44.entities.MeshMessage.filter({ message_id: msgId });
+        if (existing.length > 0) continue; // already saved
+      }
 
       const record = await base44.entities.MeshMessage.create({
         direction: 'inbound',
@@ -95,6 +102,7 @@ Deno.serve(async (req) => {
         mqtt_topic: msg.topic,
         status: 'received',
         raw_payload: JSON.stringify(p),
+        message_id: msgId || undefined,
       });
       saved.push(record);
     }
