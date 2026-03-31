@@ -10,10 +10,15 @@ const LS_CHANNEL = 'mesh_last_channel';
 
 export default function SendMessageForm({ onMessageSent, userSettings }) {
   const [form, setForm] = useState(() => {
-    const savedChannel = localStorage.getItem(LS_CHANNEL);
+    const saved = localStorage.getItem(LS_CHANNEL);
+    let channel = 0;
+    if (saved !== null && saved !== 'null' && saved !== 'undefined') {
+      const parsed = parseInt(saved);
+      if (!isNaN(parsed)) channel = parsed;
+    }
     return {
       text: '',
-      channel: savedChannel ? parseInt(savedChannel) : 2,
+      channel,
       region: localStorage.getItem(LS_REGION) || 'EU_868',
       toNode: '^all',
     };
