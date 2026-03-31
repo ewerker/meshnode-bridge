@@ -35,9 +35,12 @@ export default function PollPanel({ onReceived, userSettings }) {
       setRegion(userSettings.region);
       localStorage.setItem(LS_REGION, userSettings.region);
     }
-    if (userSettings?.default_channel !== undefined) {
-      setChannel(userSettings.default_channel);
-      localStorage.setItem(LS_CHANNEL, String(userSettings.default_channel));
+    if (userSettings?.default_channel !== undefined && userSettings.default_channel !== null) {
+      const ch = parseInt(userSettings.default_channel);
+      if (!isNaN(ch)) {
+        setChannel(ch);
+        localStorage.setItem(LS_CHANNEL, String(ch));
+      }
     }
   }, [userSettings]);
   const [polling, setPolling] = useState(false);
