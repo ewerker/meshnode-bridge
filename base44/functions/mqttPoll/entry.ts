@@ -40,12 +40,14 @@ Deno.serve(async (req) => {
       const timer = setTimeout(done, listenTime + 10000);
 
       client.on('connect', () => {
+        console.log('[mqttPoll] Connected, subscribing to:', topic);
         client.subscribe(topic, { qos: 1 }, (err) => {
           if (err) {
             clearTimeout(timer);
             client.end(true);
             reject(err);
           } else {
+            console.log('[mqttPoll] Subscribed successfully, listening for', listenTime, 'ms');
             setTimeout(() => {
               clearTimeout(timer);
               done();
@@ -55,19 +57,21 @@ Deno.serve(async (req) => {
       });
 
       client.on('message', (t, msgBuf) => {
+        const raw = msgBuf.toString();
+        console.log('[mqttPoll] RAW message on topic:', t, '| payload:', raw.substring(0, 300));
         try {
-          const raw = msgBuf.toString();
           const parsed = JSON.parse(raw);
-          // Accept text messages: must have a from field and text in payload
           if (parsed.from !== undefined && parsed.payload?.text) {
             collected.push({
               topic: t,
               payload: parsed,
               receivedAt: new Date().toISOString(),
             });
+          } else {
+            console.log('[mqttPoll] Skipped - from:', parsed.from, 'payload.text:', parsed.payload?.text);
           }
         } catch (_) {
-          // skip malformed
+          console.log('[mqttPoll] JSON parse error for:', raw.substring(0, 100));
         }
       });
 
