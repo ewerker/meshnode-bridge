@@ -18,6 +18,11 @@ export default function Dashboard() {
     setLoading(false);
   }, []);
 
+  const handleDelete = async (id) => {
+    await base44.entities.MeshMessage.delete(id);
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
+
   useEffect(() => {
     fetchMessages();
     loadUserSettings();
@@ -132,7 +137,7 @@ export default function Dashboard() {
               <div className="w-6 h-6 border-2 border-slate-700 border-t-cyan-500 rounded-full animate-spin" />
             </div>
           ) : (
-            <MessageList messages={messages} />
+            <MessageList messages={messages} onDelete={handleDelete} />
           )}
         </section>
         </>

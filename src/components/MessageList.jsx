@@ -1,8 +1,8 @@
-import { ArrowUpRight, ArrowDownLeft, Radio } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Radio, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 
-export default function MessageList({ messages }) {
+export default function MessageList({ messages, onDelete }) {
   if (!messages || messages.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-slate-600">
@@ -41,6 +41,15 @@ export default function MessageList({ messages }) {
               }`}>
                 {msg.channel}
               </span>
+              {onDelete && (
+                <button
+                  onClick={() => onDelete(msg.id)}
+                  className="p-1 rounded hover:bg-red-900/40 text-slate-600 hover:text-red-400 transition-colors"
+                  title="Löschen"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              )}
             </div>
             <p className="text-sm text-slate-200 break-words">{msg.text}</p>
             <p className="text-xs text-slate-600 mt-1">
