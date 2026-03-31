@@ -1,0 +1,34 @@
+{
+  "name": "UserSettings",
+  "type": "object",
+  "properties": {
+    "region": {
+      "type": "string",
+      "description": "MQTT Region z.B. EU_868"
+    },
+    "from_node": {
+      "type": "string",
+      "description": "Eigene Node-ID z.B. !abc1234"
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "psk": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Gespeicherte Kan\u00e4le"
+    },
+    "default_channel": {
+      "type": "string",
+      "description": "Standard-Kanal"
+    }
+  },
+  "required": []
+}

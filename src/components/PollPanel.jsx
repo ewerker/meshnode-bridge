@@ -1,9 +1,13 @@
-import { useState } from 'react';
-import { Download, Wifi, WifiOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Download, Wifi } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-export default function PollPanel({ onReceived }) {
+export default function PollPanel({ onReceived, userSettings }) {
   const [region, setRegion] = useState('EU_868');
+
+  useEffect(() => {
+    if (userSettings?.region) setRegion(userSettings.region);
+  }, [userSettings]);
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
 

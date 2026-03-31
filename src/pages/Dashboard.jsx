@@ -1,13 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Radio, RefreshCw, Activity, Layers } from 'lucide-react';
+import { Radio, RefreshCw, Activity, Layers, Settings } from 'lucide-react';
 import MessageList from '@/components/MessageList';
 import SendMessageForm from '@/components/SendMessageForm';
 import PollPanel from '@/components/PollPanel';
+import SettingsPanel from '@/components/SettingsPanel';
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('chat');
+  const [userSettings, setUserSettings] = useState(null);
 
   const fetchMessages = useCallback(async () => {
     const data = await base44.entities.MeshMessage.list('-created_date', 100);
@@ -17,6 +20,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchMessages();
+    loadUserSettings();
     const unsub = base44.entities.MeshMessage.subscribe((event) => {
       if (event.type === 'create') {
         setMessages((prev) => [event.data, ...prev]);
@@ -24,6 +28,12 @@ export default function Dashboard() {
     });
     return unsub;
   }, [fetchMessages]);
+
+  const loadUserSettings = async () => {
+    const user = await base44.auth.me();
+    const list = await base44.entities.UserSettings.filter({ created_by: user.email });
+    if (list.length > 0) setUserSettings(list[0]);
+  };
 
   const stats = {
     total: messages.length,
@@ -63,18 +73,36 @@ export default function Dashboard() {
             >
               <RefreshCw className="w-4 h-4 text-slate-400" />
             </button>
+            <button
+              onClick={() => setTab(t => t === 'settings' ? 'chat' : 'settings')}
+              className={`p-2 rounded-lg transition-colors ${tab === 'settings' ? 'bg-cyan-700 text-cyan-200' : 'bg-slate-800 hover:bg-slate-700 text-slate-400'}`}
+              title="Einstellungen"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+
+        {tab === 'settings' ? (
+          <section className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
+            <h2 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Einstellungen
+            </h2>
+            <SettingsPanel onSettingsChanged={(s) => { setUserSettings(s); setTab('chat'); }} />
+          </section>
+        ) : (
+          <>
         {/* Send Form */}
         <section className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
           <h2 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4 flex items-center gap-2">
             <Radio className="w-4 h-4" />
             Nachricht senden
           </h2>
-          <SendMessageForm onMessageSent={fetchMessages} />
+          <SendMessageForm onMessageSent={fetchMessages} userSettings={userSettings} />
         </section>
 
         {/* Poll Panel */}
@@ -83,7 +111,7 @@ export default function Dashboard() {
             <Layers className="w-4 h-4" />
             Eingehende Nachrichten abrufen
           </h2>
-          <PollPanel onReceived={fetchMessages} />
+          <PollPanel onReceived={fetchMessages} userSettings={userSettings} />
           <p className="text-xs text-slate-600 mt-2">
             Verbindet sich für 8 Sekunden mit dem Broker und speichert empfangene Meshtastic-Nachrichten.
           </p>
@@ -107,6 +135,8 @@ export default function Dashboard() {
             <MessageList messages={messages} />
           )}
         </section>
+        </>
+        )}
       </main>
     </div>
   );
