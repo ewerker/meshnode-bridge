@@ -29,6 +29,11 @@ export default function PollPanel({ onReceived, userSettings }) {
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
 
+  const handleRegionChange = (val) => {
+    setRegion(val);
+    localStorage.setItem(LS_REGION, val);
+  };
+
   const handleChannelChange = (val) => {
     const ch = parseInt(val);
     setChannel(ch);
@@ -47,7 +52,7 @@ export default function PollPanel({ onReceived, userSettings }) {
     try {
       const res = await base44.functions.invoke('mqttPoll', { region, channel, listenSeconds });
       setResult({ type: 'success', msg: `${res.data.received} Nachricht(en) empfangen, ${res.data.saved} gespeichert.` });
-      if (res.data.received > 0) onReceived?.();
+      onReceived?.();
     } catch (err) {
       setResult({ type: 'error', msg: err.message });
     } finally {
@@ -67,6 +72,16 @@ export default function PollPanel({ onReceived, userSettings }) {
         </div>
       </div>
       <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-slate-500 whitespace-nowrap">Region:</span>
+          <input
+            value={region}
+            onChange={e => handleRegionChange(e.target.value)}
+            disabled={polling}
+            className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 w-20"
+            placeholder="EU_868"
+          />
+        </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500 whitespace-nowrap">Kanal:</span>
           <select
