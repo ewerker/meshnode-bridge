@@ -21,6 +21,7 @@ export default function AutomationSettings({ userSettings, onSettingsChanged }) 
   const [listenSeconds, setListenSeconds] = useState(298);
   const [intervalMinutes, setIntervalMinutes] = useState(5);
   const [channel, setChannel] = useState(2);
+  const [bgEnabled, setBgEnabled] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -29,6 +30,7 @@ export default function AutomationSettings({ userSettings, onSettingsChanged }) 
       setListenSeconds(userSettings.bg_listen_seconds ?? 298);
       setIntervalMinutes(userSettings.bg_poll_interval ?? 5);
       setChannel(userSettings.bg_channel ?? userSettings.default_channel ?? 2);
+      setBgEnabled(userSettings.bg_enabled ?? false);
     }
   }, [userSettings]);
 
@@ -36,7 +38,7 @@ export default function AutomationSettings({ userSettings, onSettingsChanged }) 
     setSaving(true);
     const user = await base44.auth.me();
     const list = await base44.entities.UserSettings.filter({ created_by: user.email });
-    const updates = { bg_listen_seconds: listenSeconds, bg_poll_interval: intervalMinutes, bg_channel: channel };
+    const updates = { bg_listen_seconds: listenSeconds, bg_poll_interval: intervalMinutes, bg_channel: channel, bg_enabled: bgEnabled };
     if (list.length > 0) {
       await base44.entities.UserSettings.update(list[0].id, updates);
       onSettingsChanged?.({ ...list[0], ...updates });
@@ -51,6 +53,15 @@ export default function AutomationSettings({ userSettings, onSettingsChanged }) 
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-slate-300">Hintergrund-Polling aktiv</span>
+        <button
+          onClick={() => setBgEnabled(v => !v)}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${bgEnabled ? 'bg-cyan-600' : 'bg-slate-700'}`}
+        >
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${bgEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+        </button>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Kanal</label>
