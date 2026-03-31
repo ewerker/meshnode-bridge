@@ -10,8 +10,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { text, channel, toNode, fromNode, region } = body;
 
-    if (!text || channel === undefined || channel === null) {
-      return Response.json({ error: 'text and channel are required' }, { status: 400 });
+    if (!text) {
+      return Response.json({ error: 'text is required' }, { status: 400 });
     }
 
     const brokerUrl = Deno.env.get('MQTT_BROKER_URL');
