@@ -46,37 +46,6 @@ export default function SettingsPanel({ onSettingsChanged }) {
 
   return (
     <div className="space-y-5">
-    {/* Basis-Einstellungen */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">Region</label>
-        <input
-          value={settings.region || ''}
-          onChange={e => setSettings(s => ({ ...s, region: e.target.value }))}
-          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-          placeholder="EU_868"
-        />
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">Meine Node-ID</label>
-        <input
-          value={settings.from_node || ''}
-          onChange={e => setSettings(s => ({ ...s, from_node: e.target.value }))}
-          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-          placeholder="!abc1234"
-        />
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Standard-Kanal</label>
-        <select
-          value={settings.default_channel ?? 2}
-          onChange={e => setSettings(s => ({ ...s, default_channel: parseInt(e.target.value) }))}
-          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-        >
-          {[0,1,2,3,4,5,6,7,8,9].map(c => <option key={c} value={c}>Kanal {c}</option>)}
-        </select>
-      </div>
-    </div>
 
     {/* Hintergrund-Polling */}
     <div className="border border-slate-700 rounded-xl p-4 space-y-4">
