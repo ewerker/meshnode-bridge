@@ -52,7 +52,9 @@ export default function MessageList({ messages, onDelete }) {
             </div>
             <p className="text-sm text-slate-200 break-words">{msg.text}</p>
             <p className="text-xs text-slate-600 mt-1">
-              {msg.created_date && !isNaN(new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z').getTime())
+              {msg.meshtastic_timestamp
+                ? formatDistanceToNow(new Date(msg.meshtastic_timestamp * 1000), { addSuffix: true, locale: de })
+                : msg.created_date && !isNaN(new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z').getTime())
                 ? formatDistanceToNow(
                     new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z'),
                     { addSuffix: true, locale: de }

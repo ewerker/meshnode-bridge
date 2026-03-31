@@ -16,7 +16,7 @@
     },
     "channel": {
       "type": "string",
-      "description": "Meshtastic channel name"
+      "description": "Meshtastic channel number"
     },
     "from_node": {
       "type": "string",
@@ -46,6 +46,10 @@
     "message_id": {
       "type": "string",
       "description": "Unique Meshtastic message ID to prevent duplicates"
+    },
+    "meshtastic_timestamp": {
+      "type": "integer",
+      "description": "Unix timestamp from Meshtastic packet"
     }
   },
   "required": [

@@ -114,6 +114,7 @@ Deno.serve(async (req) => {
         status: 'received',
         raw_payload: JSON.stringify(p),
         message_id: msgId || undefined,
+        meshtastic_timestamp: p.timestamp || undefined,
       });
       saved.push(record);
     }

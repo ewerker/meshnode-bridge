@@ -13,10 +13,18 @@ export default function Dashboard() {
   const [userSettings, setUserSettings] = useState(null);
 
   const fetchMessages = useCallback(async () => {
-    const data = await base44.entities.MeshMessage.list('-created_date', 100);
+    const data = await base44.entities.MeshMessage.list('-meshtastic_timestamp', 100);
     setMessages(data);
     setLoading(false);
   }, []);
+
+  const sortMessages = (msgs) => {
+    return [...msgs].sort((a, b) => {
+      const aTime = a.meshtastic_timestamp || 0;
+      const bTime = b.meshtastic_timestamp || 0;
+      return bTime - aTime;
+    });
+  };
 
   const handleDelete = async (id) => {
     await base44.entities.MeshMessage.delete(id);
@@ -28,7 +36,7 @@ export default function Dashboard() {
     loadUserSettings();
     const unsub = base44.entities.MeshMessage.subscribe((event) => {
       if (event.type === 'create') {
-        setMessages((prev) => [event.data, ...prev]);
+        setMessages((prev) => sortMessages([event.data, ...prev]));
       }
     });
     return unsub;
@@ -134,7 +142,7 @@ export default function Dashboard() {
               <div className="w-6 h-6 border-2 border-slate-700 border-t-cyan-500 rounded-full animate-spin" />
             </div>
           ) : (
-            <MessageList messages={messages} onDelete={handleDelete} />
+            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} />
           )}
         </section>
         </>
