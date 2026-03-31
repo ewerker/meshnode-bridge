@@ -33,7 +33,10 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
     if (userSettings?.default_channel !== undefined && userSettings.default_channel !== null) {
       const ch = parseInt(userSettings.default_channel);
       if (!isNaN(ch)) {
-        setForm(f => ({ ...f, channel: ch }));
+        const saved = localStorage.getItem(LS_CHANNEL);
+        if (!saved || saved === 'null' || saved === 'undefined') {
+          setForm(f => ({ ...f, channel: ch }));
+        }
       }
     }
   }, [userSettings]);
