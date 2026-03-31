@@ -2,12 +2,18 @@ import { useState, useEffect } from 'react';
 import { Send, Radio } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
+const REGIONS = ['EU_868', 'EU_433', 'US', 'ANZ', 'KR', 'TW', 'RU', 'IN', 'NZ_865', 'TH', 'LORA_24', 'UA_433', 'UA_868', 'MY_433', 'MY_919', 'SG_923'];
+const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+const LS_REGION = 'mesh_last_region';
+const LS_CHANNEL = 'mesh_last_channel';
+
 export default function SendMessageForm({ onMessageSent, userSettings }) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     text: '',
-    channel: 2,
-    region: 'EU_868',
-  });
+    channel: parseInt(localStorage.getItem(LS_CHANNEL) ?? '2'),
+    region: localStorage.getItem(LS_REGION) || 'EU_868',
+  }));
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
@@ -21,6 +27,12 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
     }
   }, [userSettings]);
 
+  const updateField = (key, value) => {
+    setForm(f => ({ ...f, [key]: value }));
+    if (key === 'region') localStorage.setItem(LS_REGION, value);
+    if (key === 'channel') localStorage.setItem(LS_CHANNEL, String(value));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
@@ -28,7 +40,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
     try {
       const res = await base44.functions.invoke('mqttPublish', form);
       setFeedback({ type: 'success', msg: `Gesendet an Topic: ${res.data.topic}` });
-      setForm((f) => ({ ...f, text: '' }));
+      setForm(f => ({ ...f, text: '' }));
       onMessageSent?.();
     } catch (err) {
       setFeedback({ type: 'error', msg: err.message || 'Fehler beim Senden' });
@@ -41,37 +53,34 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
-            Region
-          </label>
-          <input
+          <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">Region</label>
+          <select
             value={form.region}
-            onChange={(e) => setForm((f) => ({ ...f, region: e.target.value }))}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
-            placeholder="EU_868"
-          />
+            onChange={(e) => updateField('region', e.target.value)}
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+          >
+            {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
         </div>
         <div>
           <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
             <Radio className="inline w-3 h-3 mr-1" />
-            Kanal (0–9)
+            Kanal
           </label>
-          <input
-            type="number"
-            min={0}
-            max={9}
+          <select
             value={form.channel}
-            onChange={(e) => setForm((f) => ({ ...f, channel: parseInt(e.target.value) || 0 }))}
+            onChange={(e) => updateField('channel', parseInt(e.target.value))}
             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-          />
+          >
+            {CHANNELS.map(c => <option key={c} value={c}>Kanal {c}</option>)}
+          </select>
         </div>
-
       </div>
 
       <div className="flex gap-3">
         <textarea
           value={form.text}
-          onChange={(e) => setForm((f) => ({ ...f, text: e.target.value }))}
+          onChange={(e) => setForm(f => ({ ...f, text: e.target.value }))}
           rows={3}
           className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors resize-none"
           placeholder="Nachricht eingeben..."
