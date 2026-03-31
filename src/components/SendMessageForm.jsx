@@ -9,11 +9,14 @@ const LS_REGION = 'mesh_last_region';
 const LS_CHANNEL = 'mesh_last_channel';
 
 export default function SendMessageForm({ onMessageSent, userSettings }) {
-  const [form, setForm] = useState(() => ({
-    text: '',
-    channel: parseInt(localStorage.getItem(LS_CHANNEL) ?? '2'),
-    region: localStorage.getItem(LS_REGION) || 'EU_868',
-  }));
+  const [form, setForm] = useState(() => {
+    const savedChannel = localStorage.getItem(LS_CHANNEL);
+    return {
+      text: '',
+      channel: savedChannel ? parseInt(savedChannel) : 2,
+      region: localStorage.getItem(LS_REGION) || 'EU_868',
+    };
+  });
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
