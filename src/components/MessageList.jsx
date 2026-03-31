@@ -53,7 +53,10 @@ export default function MessageList({ messages, onDelete }) {
             <p className="text-sm text-slate-200 break-words">{msg.text}</p>
             <p className="text-xs text-slate-600 mt-1">
               {msg.created_date
-                ? formatDistanceToNow(new Date(msg.created_date), { addSuffix: true, locale: de })
+                ? formatDistanceToNow(
+                    new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z'),
+                    { addSuffix: true, locale: de }
+                  )
                 : ''}
             </p>
           </div>
