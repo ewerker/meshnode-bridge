@@ -27,12 +27,14 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
   const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
-    if (userSettings) {
-      setForm(f => ({
-        ...f,
-        region: userSettings.region || f.region,
-        channel: userSettings.default_channel !== undefined ? userSettings.default_channel : f.channel,
-      }));
+    if (userSettings?.region) {
+      setForm(f => ({ ...f, region: userSettings.region }));
+    }
+    if (userSettings?.default_channel !== undefined && userSettings.default_channel !== null) {
+      const ch = parseInt(userSettings.default_channel);
+      if (!isNaN(ch)) {
+        setForm(f => ({ ...f, channel: ch }));
+      }
     }
   }, [userSettings]);
 
