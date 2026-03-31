@@ -24,6 +24,8 @@ export default function AutomationSettings({ userSettings, onSettingsChanged }) 
   const [bgEnabled, setBgEnabled] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [polling, setPolling] = useState(false);
+  const [pollResult, setPollResult] = useState(null);
 
   useEffect(() => {
     if (userSettings) {
@@ -49,6 +51,20 @@ export default function AutomationSettings({ userSettings, onSettingsChanged }) 
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleManualPoll = async () => {
+    setPolling(true);
+    setPollResult(null);
+    try {
+      const res = await base44.functions.invoke('mqttPollBackground', {});
+      setPollResult({ type: 'success', msg: `${res.data.received} Nachricht(en) empfangen, ${res.data.saved} gespeichert.` });
+    } catch (err) {
+      setPollResult({ type: 'error', msg: err.message });
+    } finally {
+      setPolling(false);
+      setTimeout(() => setPollResult(null), 3000);
+    }
   };
 
   return (
@@ -103,19 +119,33 @@ export default function AutomationSettings({ userSettings, onSettingsChanged }) 
           </select>
         </div>
       </div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-slate-600">
           Server verbindet sich alle {intervalMinutes} Min. für {LISTEN_OPTIONS.find(o => o.seconds === listenSeconds)?.label ?? `${listenSeconds}s`} mit dem Broker.
         </p>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 px-3 py-1.5 bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 text-white rounded-lg text-xs font-medium transition-colors"
-        >
-          <Save className="w-3.5 h-3.5" />
-          {saved ? 'Gespeichert ✓' : saving ? 'Speichern…' : 'Speichern'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleManualPoll}
+            disabled={polling}
+            className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white rounded-lg text-xs font-medium transition-colors"
+          >
+            {polling ? 'Lausche…' : 'Jetzt abrufen'}
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 px-3 py-1.5 bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 text-white rounded-lg text-xs font-medium transition-colors"
+          >
+            <Save className="w-3.5 h-3.5" />
+            {saved ? 'Gespeichert ✓' : saving ? 'Speichern…' : 'Speichern'}
+          </button>
+        </div>
       </div>
+      {pollResult && (
+        <div className={`text-xs px-3 py-2 rounded-lg ${pollResult.type === 'success' ? 'bg-cyan-900/40 text-cyan-300' : 'bg-red-900/40 text-red-300'}`}>
+          {pollResult.msg}
+        </div>
+      )}
     </div>
   );
 }
