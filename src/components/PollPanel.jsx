@@ -4,10 +4,14 @@ import { base44 } from '@/api/base44Client';
 
 const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 const LISTEN_OPTIONS = [
+  { label: '10 Sek.', seconds: 10 },
   { label: '30 Sek.', seconds: 30 },
   { label: '1 Min.', seconds: 60 },
   { label: '2 Min.', seconds: 120 },
-  { label: '5 Min.', seconds: 300 },
+  { label: '3 Min.', seconds: 180 },
+  { label: '10 Min.', seconds: 600 },
+  { label: '20 Min.', seconds: 1200 },
+  { label: 'Endlos', seconds: 86400 },
 ];
 
 const LS_REGION = 'mesh_last_region';
