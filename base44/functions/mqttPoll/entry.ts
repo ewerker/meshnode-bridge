@@ -42,12 +42,15 @@ Deno.serve(async (req) => {
       const timer = setTimeout(done, listenTime + 10000);
 
       client.on('connect', () => {
+        console.log('[MQTT] connected, subscribing...');
         client.subscribe(topic, { qos: 1 }, (err) => {
           if (err) {
+            console.log('[MQTT] subscribe error:', err.message);
             clearTimeout(timer);
             client.end(true);
             reject(err);
           } else {
+            console.log('[MQTT] subscribed, listening...');
             setTimeout(() => {
               clearTimeout(timer);
               done();
@@ -57,6 +60,7 @@ Deno.serve(async (req) => {
       });
 
       client.on('message', (t, msgBuf) => {
+        console.log('[MQTT] message event fired');
         try {
           const raw = msgBuf.toString();
           console.log('[MQTT] msg:', t, raw.substring(0, 300));
@@ -73,9 +77,14 @@ Deno.serve(async (req) => {
       });
 
       client.on('error', (err) => {
+        console.log('[MQTT] client error:', err.message);
         clearTimeout(timer);
         client.end(true);
         reject(err);
+      });
+
+      client.on('offline', () => {
+        console.log('[MQTT] client offline');
       });
     });
 
