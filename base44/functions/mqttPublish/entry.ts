@@ -22,26 +22,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'MQTT_BROKER_URL not configured' }, { status: 500 });
     }
 
-    const nodeId = fromNode || '!gateway';
     const regionStr = region || 'EU_868';
-    const topic = `msh/${regionStr}/2/json/${nodeId}`;
+    const topic = `msh/${regionStr}/2/json`;
 
+    const base64Text = btoa(unescape(encodeURIComponent(text)));
     const payload = {
-      channel: 0,
-      from: parseInt(nodeId.replace('!', '0x'), 16) || 1234567890,
-      id: Math.floor(Math.random() * 4294967295),
-      payload: { text },
-      sender: nodeId,
-      timestamp: Math.floor(Date.now() / 1000),
-      to: toNode === '^all' || !toNode ? -1 : parseInt(toNode.replace('!', '0x'), 16),
-      type: 'text',
+      payload: base64Text,
+      portnum: 'TEXT_MESSAGE_APP',
     };
-
-    if (psk && psk !== '') {
-      payload.channel_id = channel;
-      payload.psk = psk;
-    }
-
     const payloadStr = JSON.stringify(payload);
 
     await new Promise((resolve, reject) => {
@@ -74,6 +62,7 @@ Deno.serve(async (req) => {
     });
 
     // Save to DB
+    const nodeId = fromNode || '!gateway';
     await base44.entities.MeshMessage.create({
       direction: 'outbound',
       text,
