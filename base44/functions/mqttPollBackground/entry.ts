@@ -29,7 +29,8 @@ Deno.serve(async (req) => {
 
     const regionStr = settings.bg_region || settings.region || 'EU_868';
     const channelNum = settings.bg_channel !== undefined ? settings.bg_channel : (settings.default_channel !== undefined ? settings.default_channel : 2);
-    const listenTime = (settings.bg_listen_seconds || 60) * 1000;
+    const listenSeconds = Math.min(settings.bg_listen_seconds || 60, 120);
+    const listenTime = listenSeconds * 1000;
     const topic = `msh/${regionStr}/${channelNum}/json`;
     console.log('[BG] subscribing to topic:', topic, 'channel filter:', channelNum);
 
