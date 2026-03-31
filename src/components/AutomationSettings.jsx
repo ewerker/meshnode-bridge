@@ -20,6 +20,7 @@ const INTERVAL_OPTIONS = [
 export default function AutomationSettings({ userSettings, onSettingsChanged }) {
   const [listenSeconds, setListenSeconds] = useState(298);
   const [intervalMinutes, setIntervalMinutes] = useState(5);
+  const [channel, setChannel] = useState(2);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -27,6 +28,7 @@ export default function AutomationSettings({ userSettings, onSettingsChanged }) 
     if (userSettings) {
       setListenSeconds(userSettings.bg_listen_seconds ?? 298);
       setIntervalMinutes(userSettings.bg_poll_interval ?? 5);
+      setChannel(userSettings.bg_channel ?? userSettings.default_channel ?? 2);
     }
   }, [userSettings]);
 
@@ -34,7 +36,7 @@ export default function AutomationSettings({ userSettings, onSettingsChanged }) 
     setSaving(true);
     const user = await base44.auth.me();
     const list = await base44.entities.UserSettings.filter({ created_by: user.email });
-    const updates = { bg_listen_seconds: listenSeconds, bg_poll_interval: intervalMinutes };
+    const updates = { bg_listen_seconds: listenSeconds, bg_poll_interval: intervalMinutes, bg_channel: channel };
     if (list.length > 0) {
       await base44.entities.UserSettings.update(list[0].id, updates);
       onSettingsChanged?.({ ...list[0], ...updates });
@@ -49,7 +51,17 @@ export default function AutomationSettings({ userSettings, onSettingsChanged }) 
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Kanal</label>
+          <select
+            value={channel}
+            onChange={e => setChannel(parseInt(e.target.value))}
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+          >
+            {[0,1,2,3,4,5,6,7,8,9].map(c => <option key={c} value={c}>Kanal {c}</option>)}
+          </select>
+        </div>
         <div>
           <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider flex items-center gap-1">
             <Clock className="w-3 h-3" /> Abruf-Rhythmus
