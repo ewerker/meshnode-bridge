@@ -14,6 +14,19 @@ Deno.serve(async (req) => {
       return Response.json({ skipped: true, reason: 'Background polling disabled' });
     }
 
+    // Check interval: skip if last poll was too recent
+    const intervalMinutes = settings.bg_poll_interval ?? 5;
+    if (settings.bg_last_poll) {
+      const lastPoll = new Date(settings.bg_last_poll);
+      const minutesSince = (Date.now() - lastPoll.getTime()) / 60000;
+      if (minutesSince < intervalMinutes - 0.5) {
+        return Response.json({ skipped: true, reason: `Next poll in ${Math.ceil(intervalMinutes - minutesSince)} min` });
+      }
+    }
+
+    // Update last poll timestamp
+    await base44.asServiceRole.entities.UserSettings.update(settings.id, { bg_last_poll: new Date().toISOString() });
+
     const regionStr = settings.bg_region || settings.region || 'EU_868';
     const channelNum = settings.bg_channel !== undefined ? settings.bg_channel : (settings.default_channel !== undefined ? settings.default_channel : 2);
     const listenTime = (settings.bg_listen_seconds || 298) * 1000;

@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Radio, RefreshCw, Activity, Layers, Settings } from 'lucide-react';
 import MessageList from '@/components/MessageList';
 import SendMessageForm from '@/components/SendMessageForm';
-import PollPanel from '@/components/PollPanel';
+import AutomationSettings from '@/components/AutomationSettings';
 import SettingsPanel from '@/components/SettingsPanel';
 
 export default function Dashboard() {
@@ -110,16 +110,13 @@ export default function Dashboard() {
           <SendMessageForm onMessageSent={fetchMessages} userSettings={userSettings} />
         </section>
 
-        {/* Poll Panel */}
+        {/* Automation Settings */}
         <section className="bg-slate-900 rounded-2xl border border-slate-800 p-4">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
             <Layers className="w-4 h-4" />
-            Eingehende Nachrichten abrufen
+            Automatischer Abruf
           </h2>
-          <PollPanel onReceived={fetchMessages} userSettings={userSettings} />
-          <p className="text-xs text-slate-600 mt-2">
-            Verbindet sich für 8 Sekunden mit dem Broker und speichert empfangene Meshtastic-Nachrichten.
-          </p>
+          <AutomationSettings userSettings={userSettings} onSettingsChanged={setUserSettings} />
         </section>
 
         {/* Message Log */}
