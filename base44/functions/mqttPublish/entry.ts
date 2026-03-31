@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { text, channel, toNode, fromNode, region } = body;
 
-    if (!text || !channel) {
+    if (!text || channel === undefined || channel === null) {
       return Response.json({ error: 'text and channel are required' }, { status: 400 });
     }
 
