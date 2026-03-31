@@ -22,12 +22,11 @@ export default function PollPanel({ onReceived, userSettings }) {
   const [region, setRegion] = useState(() => localStorage.getItem(LS_REGION) || 'EU_868');
   const [channel, setChannel] = useState(() => {
     const saved = localStorage.getItem(LS_CHANNEL);
-    const parsed = parseInt(saved);
-    if (isNaN(parsed) || saved === 'null' || saved === 'undefined') {
-      localStorage.removeItem(LS_CHANNEL);
+    if (saved === null || saved === 'null' || saved === 'undefined') {
       return 2;
     }
-    return parsed || 2;
+    const parsed = parseInt(saved);
+    return isNaN(parsed) ? 2 : parsed;
   });
   const [listenSeconds, setListenSeconds] = useState(() => parseInt(localStorage.getItem(LS_LISTEN) ?? '60'));
 
