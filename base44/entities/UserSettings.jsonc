@@ -13,6 +13,23 @@
     "default_channel": {
       "type": "integer",
       "description": "Standard-Kanal 0-9"
+    },
+    "bg_enabled": {
+      "type": "boolean",
+      "description": "Hintergrund-Polling aktiviert",
+      "default": false
+    },
+    "bg_region": {
+      "type": "string",
+      "description": "Region f\u00fcr Hintergrund-Polling"
+    },
+    "bg_channel": {
+      "type": "integer",
+      "description": "Kanal f\u00fcr Hintergrund-Polling"
+    },
+    "bg_listen_seconds": {
+      "type": "integer",
+      "description": "Lauschzeit in Sekunden f\u00fcr Hintergrund-Polling"
     }
   },
   "required": []
