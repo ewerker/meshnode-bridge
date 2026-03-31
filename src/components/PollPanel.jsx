@@ -13,8 +13,8 @@ export default function PollPanel({ onReceived, userSettings }) {
     if (userSettings?.region) setRegion(userSettings.region);
     if (userSettings?.default_channel !== undefined) setChannel(userSettings.default_channel);
   }, [userSettings]);
-  const [listenSeconds, setListenSeconds] = useState(8);
-  const [sinceMinutes, setSinceMinutes] = useState(60);
+  const [listenSeconds, setListenSeconds] = useState(() => parseInt(localStorage.getItem('mesh_listen_seconds') ?? '8'));
+  const [sinceMinutes, setSinceMinutes] = useState(() => parseInt(localStorage.getItem('mesh_since_minutes') ?? '60'));
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
 
@@ -82,13 +82,13 @@ export default function PollPanel({ onReceived, userSettings }) {
         <label className="text-xs text-slate-500 whitespace-nowrap">Lausch-Zeit (s):</label>
         <input
           type="number" min={3} max={30} value={listenSeconds}
-          onChange={e => setListenSeconds(Math.min(30, Math.max(3, parseInt(e.target.value) || 8)))}
+          onChange={e => { const v = Math.min(30, Math.max(3, parseInt(e.target.value) || 8)); setListenSeconds(v); localStorage.setItem('mesh_listen_seconds', String(v)); }}
           className="w-14 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
         />
         <label className="text-xs text-slate-500 whitespace-nowrap">Zeitfenster (min):</label>
         <input
           type="number" min={1} max={1440} value={sinceMinutes}
-          onChange={e => setSinceMinutes(Math.max(1, parseInt(e.target.value) || 60))}
+          onChange={e => { const v = Math.max(1, parseInt(e.target.value) || 60); setSinceMinutes(v); localStorage.setItem('mesh_since_minutes', String(v)); }}
           className="w-16 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
         />
       </div>
