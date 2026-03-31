@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
     for (const msg of messages) {
       const p = msg.payload;
       const topicParts = msg.topic.split('/');
-      const channelNum = topicParts[2] || 'unknown';
+      const channelNum = topicParts[2] || 'unknown'; // Keep as string for consistency
 
       // Build a unique ID from the Meshtastic packet id field if available
       const msgId = p.id !== undefined ? String(p.id) : null;
