@@ -11,7 +11,6 @@ const LISTEN_OPTIONS = [
   { label: '3 Min.', seconds: 180 },
   { label: '10 Min.', seconds: 600 },
   { label: '20 Min.', seconds: 1200 },
-  { label: 'Endlos', seconds: 86400 },
 ];
 
 const LS_REGION = 'mesh_last_region';
