@@ -1,0 +1,52 @@
+{
+  "name": "MeshMessage",
+  "type": "object",
+  "properties": {
+    "direction": {
+      "type": "string",
+      "enum": [
+        "outbound",
+        "inbound"
+      ],
+      "description": "Sent or received"
+    },
+    "text": {
+      "type": "string",
+      "description": "Message text"
+    },
+    "channel": {
+      "type": "string",
+      "description": "Meshtastic channel name"
+    },
+    "from_node": {
+      "type": "string",
+      "description": "Sender node ID"
+    },
+    "to_node": {
+      "type": "string",
+      "description": "Recipient node ID (broadcast = ^all)"
+    },
+    "mqtt_topic": {
+      "type": "string",
+      "description": "MQTT topic used"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "sent",
+        "failed",
+        "received"
+      ],
+      "default": "sent"
+    },
+    "raw_payload": {
+      "type": "string",
+      "description": "Raw JSON payload"
+    }
+  },
+  "required": [
+    "direction",
+    "text",
+    "channel"
+  ]
+}
