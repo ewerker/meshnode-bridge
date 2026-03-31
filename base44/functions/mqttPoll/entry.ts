@@ -22,6 +22,7 @@ Deno.serve(async (req) => {
     const regionStr = region || 'EU_868';
     const channelNum = channel !== undefined ? channel : 2;
     const topic = `msh/${regionStr}/${channelNum}/json`;
+    console.log('[MQTT] params:', { region, channel, listenSeconds });
     console.log('[MQTT] subscribing to topic:', topic);
 
     const messages = await new Promise((resolve, reject) => {
