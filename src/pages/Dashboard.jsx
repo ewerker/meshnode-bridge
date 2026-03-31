@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Radio, RefreshCw, Activity, Layers } from 'lucide-react';
 import MessageList from '@/components/MessageList';
 import SendMessageForm from '@/components/SendMessageForm';
+import PollPanel from '@/components/PollPanel';
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
@@ -97,6 +98,15 @@ export default function Dashboard() {
             Nachricht senden
           </h2>
           <SendMessageForm onMessageSent={fetchMessages} userSettings={userSettings} />
+        </section>
+
+        {/* Manual Poll */}
+        <section className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <Layers className="w-4 h-4" />
+            Manuell empfangen
+          </h2>
+          <PollPanel onReceived={fetchMessages} userSettings={userSettings} />
         </section>
 
 
