@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const { listenSeconds, region, channel } = body;
-    const listenTime = Math.min(listenSeconds || 5, 15) * 1000;
+    const listenTime = (listenSeconds || 298) * 1000;
 
     const brokerUrl = Deno.env.get('MQTT_BROKER_URL');
     const username = Deno.env.get('MQTT_USERNAME');
