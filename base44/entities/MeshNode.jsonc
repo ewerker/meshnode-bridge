@@ -1,0 +1,74 @@
+{
+  "name": "MeshNode",
+  "type": "object",
+  "properties": {
+    "node_id": {
+      "type": "string",
+      "description": "Meshtastic Node-ID z.B. !49b65bc8"
+    },
+    "node_num": {
+      "type": "integer",
+      "description": "Numerische Node-ID"
+    },
+    "long_name": {
+      "type": "string",
+      "description": "Langer Name des Nodes"
+    },
+    "short_name": {
+      "type": "string",
+      "description": "Kurzname des Nodes"
+    },
+    "hw_model": {
+      "type": "string",
+      "description": "Hardware-Modell"
+    },
+    "is_gateway": {
+      "type": "boolean",
+      "description": "Ist Gateway-Node",
+      "default": false
+    },
+    "last_heard": {
+      "type": "integer",
+      "description": "Unix-Timestamp letzte Aktivit\u00e4t"
+    },
+    "snr": {
+      "type": "number",
+      "description": "Signal-Rausch-Verh\u00e4ltnis"
+    },
+    "battery_level": {
+      "type": "integer",
+      "description": "Batterielevel 0-101"
+    },
+    "voltage": {
+      "type": "number",
+      "description": "Spannung in Volt"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Breitengrad"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "L\u00e4ngengrad"
+    },
+    "altitude": {
+      "type": "integer",
+      "description": "H\u00f6he in Metern"
+    },
+    "channel_utilization": {
+      "type": "number",
+      "description": "Kanalauslastung in %"
+    },
+    "air_util_tx": {
+      "type": "number",
+      "description": "Airtime TX Auslastung"
+    },
+    "uptime_seconds": {
+      "type": "integer",
+      "description": "Betriebszeit in Sekunden"
+    }
+  },
+  "required": [
+    "node_id"
+  ]
+}

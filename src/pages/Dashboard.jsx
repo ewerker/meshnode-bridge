@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Radio, RefreshCw, Activity, Layers } from 'lucide-react';
+import { Radio, RefreshCw, Activity, Layers, Cpu } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import MessageList from '@/components/MessageList';
 import SendMessageForm from '@/components/SendMessageForm';
 import PollPanel from '@/components/PollPanel';
@@ -77,6 +78,13 @@ export default function Dashboard() {
                 <span className="text-slate-400">{stats.received} empfangen</span>
               </div>
             </div>
+            <Link
+              to="/nodes"
+              className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors"
+            >
+              <Cpu className="w-4 h-4 text-cyan-400" />
+              <span className="hidden sm:inline">Nodes</span>
+            </Link>
             <button
               onClick={fetchMessages}
               className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
