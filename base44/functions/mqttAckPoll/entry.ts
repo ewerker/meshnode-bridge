@@ -99,15 +99,18 @@ Deno.serve(async (req) => {
     });
 
     // Determine final status from collected messages
-    // Priority: nak > ack/implicit_ack > sent
+    // Priority: nak > ack > implicit_ack > sent
     let finalStatus = 'sent';
     for (const msg of messages) {
       if (msg.status === 'nak') {
         finalStatus = 'failed';
         break;
       }
-      if (msg.status === 'ack' || msg.status === 'implicit_ack') {
+      if (msg.status === 'ack') {
         finalStatus = 'acked';
+      }
+      if (msg.status === 'implicit_ack' && finalStatus !== 'acked') {
+        finalStatus = 'implicit_ack';
       }
     }
 

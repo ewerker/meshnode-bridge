@@ -36,7 +36,8 @@
         "sent",
         "failed",
         "received",
-        "acked"
+        "acked",
+        "implicit_ack"
       ],
       "default": "sent"
     },

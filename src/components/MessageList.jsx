@@ -43,10 +43,11 @@ export default function MessageList({ messages, onDelete }) {
               {msg.direction === 'outbound' && msg.status && (
                 <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                   msg.status === 'acked' ? 'bg-emerald-900/50 text-emerald-400' :
+                  msg.status === 'implicit_ack' ? 'bg-yellow-900/50 text-yellow-400' :
                   msg.status === 'failed' ? 'bg-red-900/50 text-red-400' :
                   'bg-slate-700 text-slate-400'
                 }`}>
-                  {msg.status === 'acked' ? '✓ ACK' : msg.status === 'failed' ? '✗ NAK' : msg.status}
+                  {msg.status === 'acked' ? '✓ ACK' : msg.status === 'implicit_ack' ? '⚡ Implicit' : msg.status === 'failed' ? '✗ NAK' : msg.status}
                 </span>
               )}
               {onDelete && (

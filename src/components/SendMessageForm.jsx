@@ -77,6 +77,8 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
         const status = ackRes.data.final_status;
         if (status === 'acked') {
           setFeedback({ type: 'success', msg: `✅ ACK empfangen (${ref})` });
+        } else if (status === 'implicit_ack') {
+          setFeedback({ type: 'success', msg: `⚡ Implicit ACK (${ref})` });
         } else if (status === 'failed') {
           setFeedback({ type: 'error', msg: `❌ NAK empfangen (${ref})` });
         } else {
