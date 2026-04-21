@@ -19,8 +19,8 @@ export default function MessageList({ messages, onDelete }) {
           key={msg.id}
           className={`flex gap-3 p-3 rounded-xl border transition-all ${
             msg.direction === 'outbound'
-              ? 'bg-cyan-950/30 border-cyan-900/50 mr-8'
-              : 'bg-slate-800/60 border-slate-700/50 ml-8'
+              ? 'bg-cyan-950/30 border-cyan-900/50'
+              : 'bg-emerald-950/30 border-emerald-900/50'
           }`}
         >
           <div className={`mt-0.5 p-1.5 rounded-lg ${msg.direction === 'outbound' ? 'bg-cyan-800/40' : 'bg-slate-700'}`}>
