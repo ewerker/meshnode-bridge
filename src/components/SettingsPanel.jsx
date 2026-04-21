@@ -34,15 +34,21 @@ export default function SettingsPanel({ onSettingsChanged }) {
     onSettingsChanged?.({ node_ids: nodeIds, region, default_channel: defaultChannel });
   };
 
-  const addNodeId = () => {
+  const addNodeId = async () => {
     const id = newNodeId.trim();
     if (!id || nodeIds.includes(id)) return;
-    setNodeIds([...nodeIds, id]);
+    const updated = [...nodeIds, id];
+    setNodeIds(updated);
     setNewNodeId('');
+    await base44.auth.updateMe({ node_ids: updated });
+    onSettingsChanged?.({ node_ids: updated, region, default_channel: defaultChannel });
   };
 
-  const removeNodeId = (id) => {
-    setNodeIds(nodeIds.filter(n => n !== id));
+  const removeNodeId = async (id) => {
+    const updated = nodeIds.filter(n => n !== id);
+    setNodeIds(updated);
+    await base44.auth.updateMe({ node_ids: updated });
+    onSettingsChanged?.({ node_ids: updated, region, default_channel: defaultChannel });
   };
 
   if (!user) return (
