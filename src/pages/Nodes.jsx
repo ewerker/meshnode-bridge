@@ -9,6 +9,7 @@ export default function Nodes() {
   const [loading, setLoading] = useState(true);
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
+  const [logLines, setLogLines] = useState([]);
   const [user, setUser] = useState(null);
   const fetchNodes = useCallback(async () => {
     const data = await base44.entities.MeshNode.list('-last_heard', 500);
@@ -34,9 +35,13 @@ export default function Nodes() {
     }
     setPolling(true);
     setResult(null);
+    setLogLines([]);
     try {
       const res = await base44.functions.invoke('mqttNodesPoll', { fromNode });
-      setResult({ type: 'success', msg: `${res.data.total} Nodes gelesen (${res.data.created} neu, ${res.data.updated} aktualisiert)` });
+      const d = res.data;
+      setLogLines(d.log || []);
+      const errText = d.errors ? `, ${d.errors} Fehler` : '';
+      setResult({ type: 'success', msg: `${d.total} Nodes gelesen (${d.created} neu, ${d.updated} aktualisiert${errText})` });
       fetchNodes();
     } catch (err) {
       setResult({ type: 'error', msg: err.message || 'Fehler beim Abrufen' });
@@ -93,11 +98,20 @@ export default function Nodes() {
             </button>
           </div>
         </div>
-        {result && (
-          <div className={`max-w-6xl mx-auto px-4 pb-3`}>
-            <div className={`text-xs px-3 py-2 rounded-lg ${result.type === 'success' ? 'bg-cyan-900/40 text-cyan-300 border border-cyan-800' : 'bg-red-900/40 text-red-300 border border-red-800'}`}>
-              {result.msg}
-            </div>
+        {(result || logLines.length > 0) && (
+          <div className="max-w-6xl mx-auto px-4 pb-3 space-y-2">
+            {result && (
+              <div className={`text-xs px-3 py-2 rounded-lg ${result.type === 'success' ? 'bg-cyan-900/40 text-cyan-300 border border-cyan-800' : 'bg-red-900/40 text-red-300 border border-red-800'}`}>
+                {result.msg}
+              </div>
+            )}
+            {logLines.length > 0 && (
+              <div className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 max-h-48 overflow-y-auto">
+                {logLines.map((line, i) => (
+                  <div key={i} className="text-xs text-slate-400 py-0.5 font-mono">{line}</div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </header>

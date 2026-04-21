@@ -1,6 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import * as mqtt from 'npm:mqtt@5.10.1';
 
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -58,7 +62,6 @@ Deno.serve(async (req) => {
           console.log('[NODES] received message, length:', raw.length);
           const parsed = JSON.parse(raw);
           collected.push(parsed);
-          // Once we get the node list, we can disconnect
           clearTimeout(timer);
           client.end(true);
           resolve(collected);
@@ -75,7 +78,7 @@ Deno.serve(async (req) => {
     });
 
     if (messages.length === 0) {
-      return Response.json({ success: true, updated: 0, created: 0, total: 0 });
+      return Response.json({ success: true, updated: 0, created: 0, total: 0, log: ['Keine Daten vom Broker erhalten.'] });
     }
 
     const data = messages[0];
@@ -84,8 +87,15 @@ Deno.serve(async (req) => {
 
     let created = 0;
     let updated = 0;
+    let errors = 0;
+    const log = [];
+    log.push(`${nodes.length} Nodes vom Broker empfangen.`);
 
-    for (const node of nodes) {
+    // Process nodes in batches with delay to avoid rate limiting
+    const BATCH_DELAY_MS = 300;
+
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
       const record = {
         node_id: node.node_id,
         node_num: node.node_num,
@@ -105,18 +115,40 @@ Deno.serve(async (req) => {
         uptime_seconds: node.raw?.deviceMetrics?.uptimeSeconds || null,
       };
 
-      // Check if node already exists
-      const existing = await base44.entities.MeshNode.filter({ node_id: node.node_id });
-      if (existing.length > 0) {
-        await base44.entities.MeshNode.update(existing[0].id, record);
-        updated++;
-      } else {
-        await base44.entities.MeshNode.create(record);
-        created++;
+      const label = node.long_name || node.short_name || node.node_id;
+
+      try {
+        const existing = await base44.entities.MeshNode.filter({ node_id: node.node_id });
+        
+        // Small delay between DB operations
+        await delay(BATCH_DELAY_MS);
+
+        if (existing.length > 0) {
+          await base44.entities.MeshNode.update(existing[0].id, record);
+          updated++;
+          log.push(`✏️ ${label} aktualisiert`);
+        } else {
+          await base44.entities.MeshNode.create(record);
+          created++;
+          log.push(`✅ ${label} neu angelegt`);
+        }
+      } catch (err) {
+        errors++;
+        log.push(`❌ ${label}: ${err.message}`);
+        console.log(`[NODES] error processing ${node.node_id}:`, err.message);
+        // Extra delay after error to back off
+        await delay(1000);
+      }
+
+      // Delay between each node
+      if (i < nodes.length - 1) {
+        await delay(BATCH_DELAY_MS);
       }
     }
 
-    return Response.json({ success: true, updated, created, total: nodes.length });
+    log.push(`Fertig: ${created} neu, ${updated} aktualisiert${errors > 0 ? `, ${errors} Fehler` : ''}.`);
+
+    return Response.json({ success: true, updated, created, errors, total: nodes.length, log });
   } catch (error) {
     console.log('[NODES] error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
