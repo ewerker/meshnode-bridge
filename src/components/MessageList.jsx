@@ -40,6 +40,15 @@ export default function MessageList({ messages, onDelete }) {
               }`}>
                 Kanal {msg.channel}
               </span>
+              {msg.direction === 'outbound' && msg.status && (
+                <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                  msg.status === 'acked' ? 'bg-emerald-900/50 text-emerald-400' :
+                  msg.status === 'failed' ? 'bg-red-900/50 text-red-400' :
+                  'bg-slate-700 text-slate-400'
+                }`}>
+                  {msg.status === 'acked' ? '✓ ACK' : msg.status === 'failed' ? '✗ NAK' : msg.status}
+                </span>
+              )}
               {onDelete && (
                 <button
                   onClick={() => onDelete(msg.id)}

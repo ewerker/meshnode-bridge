@@ -61,9 +61,25 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
         hop_limit: hopLimit,
         want_ack: wantAck,
       });
-      setFeedback({ type: 'success', msg: `Gesendet an Topic: ${res.data.topic}` });
+      const ref = res.data.client_ref;
+      setFeedback({ type: 'success', msg: `Gesendet (${ref}) — warte auf ACK…` });
       setText('');
       onMessageSent?.();
+
+      // Poll for ACK in background (up to ~70s)
+      base44.functions.invoke('mqttAckPoll', { client_ref: ref }).then((ackRes) => {
+        const status = ackRes.data.final_status;
+        if (status === 'acked') {
+          setFeedback({ type: 'success', msg: `✅ ACK empfangen (${ref})` });
+        } else if (status === 'failed') {
+          setFeedback({ type: 'error', msg: `❌ NAK empfangen (${ref})` });
+        } else {
+          setFeedback({ type: 'success', msg: `⏱ Kein ACK innerhalb 60s (${ref})` });
+        }
+        onMessageSent?.();
+      }).catch(() => {
+        // silently ignore ack poll errors
+      });
     } catch (err) {
       setFeedback({ type: 'error', msg: err.message || 'Fehler beim Senden' });
     } finally {
