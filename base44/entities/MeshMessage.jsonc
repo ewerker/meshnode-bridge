@@ -35,7 +35,8 @@
       "enum": [
         "sent",
         "failed",
-        "received"
+        "received",
+        "acked"
       ],
       "default": "sent"
     },
@@ -46,6 +47,10 @@
     "message_id": {
       "type": "string",
       "description": "Unique Meshtastic message ID to prevent duplicates"
+    },
+    "client_ref": {
+      "type": "string",
+      "description": "Unique client reference for ACK tracking"
     },
     "meshtastic_timestamp": {
       "type": "integer",

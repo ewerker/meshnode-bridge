@@ -10,6 +10,9 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { text, channel, toNode, mode, hop_limit, want_ack } = body;
 
+    // Generate unique client_ref
+    const client_ref = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+
     if (!text) {
       return Response.json({ error: 'text is required' }, { status: 400 });
     }
@@ -33,12 +36,13 @@ Deno.serve(async (req) => {
       topic = `msh/EU_868/proxy/send/group/${channelNum}`;
     }
 
-    // JSON payload with text, channel, hop_limit, want_ack
+    // JSON payload with text, channel, hop_limit, want_ack, client_ref
     const payload = {
       text,
       channel: channelNum,
       hop_limit: hop_limit !== undefined ? hop_limit : 3,
       want_ack: want_ack !== undefined ? want_ack : true,
+      client_ref,
     };
     const payloadStr = JSON.stringify(payload);
 
@@ -71,7 +75,7 @@ Deno.serve(async (req) => {
       });
     });
 
-    // Save to DB
+    // Save to DB with client_ref
     await base44.entities.MeshMessage.create({
       direction: 'outbound',
       text,
@@ -81,9 +85,10 @@ Deno.serve(async (req) => {
       mqtt_topic: topic,
       status: 'sent',
       raw_payload: payloadStr,
+      client_ref,
     });
 
-    return Response.json({ success: true, topic, payload: payloadStr });
+    return Response.json({ success: true, topic, payload: payloadStr, client_ref });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
