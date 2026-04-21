@@ -12,6 +12,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [nodeName, setNodeName] = useState('');
 
   const fetchMessages = useCallback(async () => {
     const data = await base44.entities.MeshMessage.list('-meshtastic_timestamp', 100);
@@ -46,6 +47,12 @@ export default function Dashboard() {
   const loadUser = async () => {
     const me = await base44.auth.me();
     setCurrentUser(me);
+    if (me.node_id) {
+      const nodes = await base44.entities.MeshNode.filter({ node_id: me.node_id });
+      setNodeName(nodes.length > 0 ? (nodes[0].long_name || nodes[0].short_name || '') : '');
+    } else {
+      setNodeName('');
+    }
   };
 
   const stats = {
@@ -64,8 +71,12 @@ export default function Dashboard() {
               <Radio className="w-5 h-5 text-cyan-400" />
             </div>
             <div>
-              <h1 className="font-bold text-white tracking-tight">Meshtastic MQTT Bridge</h1>
-              <p className="text-xs text-slate-500">Web ↔ MQTT ↔ Meshtastic Netz</p>
+              <h1 className="font-bold text-white tracking-tight">
+                {nodeName || 'Meshtastic MQTT Bridge'}
+              </h1>
+              <p className="text-xs text-slate-500">
+                {currentUser?.node_id ? <span className="font-mono text-cyan-500">{currentUser.node_id}</span> : 'Web ↔ MQTT ↔ Meshtastic Netz'}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-4">

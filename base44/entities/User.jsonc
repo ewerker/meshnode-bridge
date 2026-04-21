@@ -10,12 +10,9 @@
         "user"
       ]
     },
-    "node_ids": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Liste der eigenen Meshtastic Node-IDs z.B. !49b65bc8"
+    "node_id": {
+      "type": "string",
+      "description": "Eigene Meshtastic Node-ID z.B. !49b65bc8"
     },
     "region": {
       "type": "string",

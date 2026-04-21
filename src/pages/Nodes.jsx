@@ -10,8 +10,6 @@ export default function Nodes() {
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
   const [user, setUser] = useState(null);
-  const [selectedNode, setSelectedNode] = useState('');
-
   const fetchNodes = useCallback(async () => {
     const data = await base44.entities.MeshNode.list('-last_heard', 500);
     setNodes(data);
@@ -28,12 +26,10 @@ export default function Nodes() {
     setUser(me);
   };
 
-  const nodeIds = user?.node_ids || [];
-
   const handlePollNodes = async () => {
-    const fromNode = selectedNode || nodeIds[0];
+    const fromNode = user?.node_id;
     if (!fromNode) {
-      setResult({ type: 'error', msg: 'Bitte zuerst Node-IDs in den Einstellungen hinzufügen.' });
+      setResult({ type: 'error', msg: 'Bitte zuerst eine Node-ID in den Einstellungen setzen.' });
       return;
     }
     setPolling(true);
@@ -66,18 +62,14 @@ export default function Nodes() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {nodeIds.length > 0 && (
-              <select
-                value={selectedNode || nodeIds[0]}
-                onChange={(e) => setSelectedNode(e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
-              >
-                {nodeIds.map(id => <option key={id} value={id}>{id}</option>)}
-              </select>
+            {user?.node_id && (
+              <span className="text-xs font-mono text-cyan-400 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
+                {user.node_id}
+              </span>
             )}
             <button
               onClick={handlePollNodes}
-              disabled={polling || nodeIds.length === 0}
+              disabled={polling || !user?.node_id}
               className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
             >
               {polling ? (
