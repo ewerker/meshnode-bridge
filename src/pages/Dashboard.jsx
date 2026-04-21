@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Radio, RefreshCw, Activity, Layers, Cpu } from 'lucide-react';
+import { Radio, RefreshCw, Activity, Layers, Cpu, Settings } from 'lucide-react';
+import SettingsPanel from '@/components/SettingsPanel';
 import { Link } from 'react-router-dom';
 import MessageList from '@/components/MessageList';
 import SendMessageForm from '@/components/SendMessageForm';
@@ -10,6 +11,7 @@ export default function Dashboard() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   const fetchMessages = useCallback(async () => {
     const data = await base44.entities.MeshMessage.list('-meshtastic_timestamp', 100);
@@ -85,18 +87,33 @@ export default function Dashboard() {
               <span className="hidden sm:inline">Nodes</span>
             </Link>
             <button
+              onClick={() => setShowSettings(s => !s)}
+              className={`p-2 rounded-lg transition-colors ${showSettings ? 'bg-cyan-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-400'}`}
+              title="Einstellungen"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+            <button
               onClick={fetchMessages}
               className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
               title="Aktualisieren"
             >
               <RefreshCw className="w-4 h-4 text-slate-400" />
             </button>
-
           </div>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        {showSettings && (
+          <section className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
+            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Einstellungen
+            </h2>
+            <SettingsPanel onSettingsChanged={() => loadUser()} />
+          </section>
+        )}
         <>
         {/* Send Form */}
         <section className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
