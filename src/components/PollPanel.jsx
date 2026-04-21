@@ -3,13 +3,13 @@ import { Download, Wifi } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const LISTEN_OPTIONS = [
-  { label: '10 Sek.', seconds: 10 },
-  { label: '30 Sek.', seconds: 30 },
-  { label: '1 Min.', seconds: 60 },
-  { label: '2 Min.', seconds: 120 },
-  { label: '3 Min.', seconds: 180 },
-  { label: '10 Min.', seconds: 600 },
-  { label: '20 Min.', seconds: 1200 },
+  { label: '10 sec', seconds: 10 },
+  { label: '30 sec', seconds: 30 },
+  { label: '1 min', seconds: 60 },
+  { label: '2 min', seconds: 120 },
+  { label: '3 min', seconds: 180 },
+  { label: '10 min', seconds: 600 },
+  { label: '20 min', seconds: 1200 },
 ];
 
 const LS_LISTEN = 'mesh_poll_listen_seconds';
@@ -31,14 +31,14 @@ export default function PollPanel({ onReceived, userSettings }) {
 
   const handlePoll = async () => {
     if (!nodeId) {
-      setResult({ type: 'error', msg: 'Bitte zuerst Node-ID in den Einstellungen setzen.' });
+      setResult({ type: 'error', msg: 'Please set your Node ID in Settings first.' });
       return;
     }
     setPolling(true);
     setResult(null);
     try {
       const res = await base44.functions.invoke('mqttPoll', { region, listenSeconds });
-      setResult({ type: 'success', msg: `${res.data.received} Nachricht(en) empfangen, ${res.data.saved} gespeichert.` });
+      setResult({ type: 'success', msg: `${res.data.received} message(s) received, ${res.data.saved} saved.` });
       onReceived?.();
     } catch (err) {
       setResult({ type: 'error', msg: err.message });
@@ -60,7 +60,7 @@ export default function PollPanel({ onReceived, userSettings }) {
       </div>
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 whitespace-nowrap">Lauschzeit:</span>
+          <span className="text-xs text-slate-500 whitespace-nowrap">Listen time:</span>
           <select
             value={listenSeconds}
             onChange={e => handleListenChange(e.target.value)}
@@ -78,12 +78,12 @@ export default function PollPanel({ onReceived, userSettings }) {
           {polling ? (
             <>
               <Wifi className="w-4 h-4 text-cyan-400 animate-pulse" />
-              <span>Lausche… ({listenLabel})</span>
+              <span>Listening… ({listenLabel})</span>
             </>
           ) : (
             <>
               <Download className="w-4 h-4" />
-              <span>Empfangen</span>
+              <span>Receive</span>
             </>
           )}
         </button>

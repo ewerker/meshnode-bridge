@@ -30,7 +30,7 @@ export default function Nodes() {
   const handlePollNodes = async () => {
     const fromNode = user?.node_id;
     if (!fromNode) {
-      setResult({ type: 'error', msg: 'Bitte zuerst eine Node-ID in den Einstellungen setzen.' });
+      setResult({ type: 'error', msg: 'Please set a Node ID in Settings first.' });
       return;
     }
     setPolling(true);
@@ -40,11 +40,11 @@ export default function Nodes() {
       const res = await base44.functions.invoke('mqttNodesPoll', { fromNode });
       const d = res.data;
       setLogLines(d.log || []);
-      const errText = d.errors ? `, ${d.errors} Fehler` : '';
-      setResult({ type: 'success', msg: `${d.total} Nodes gelesen (${d.created} neu, ${d.updated} aktualisiert${errText})` });
+      const errText = d.errors ? `, ${d.errors} errors` : '';
+      setResult({ type: 'success', msg: `${d.total} nodes read (${d.created} new, ${d.updated} updated${errText})` });
       fetchNodes();
     } catch (err) {
-      setResult({ type: 'error', msg: err.message || 'Fehler beim Abrufen' });
+      setResult({ type: 'error', msg: err.message || 'Error fetching nodes' });
     } finally {
       setPolling(false);
     }
@@ -63,7 +63,7 @@ export default function Nodes() {
             </div>
             <div>
               <h1 className="font-bold text-white tracking-tight">Mesh Nodes</h1>
-              <p className="text-xs text-slate-500">{nodes.length} Nodes bekannt</p>
+              <p className="text-xs text-slate-500">{nodes.length} nodes known</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -80,19 +80,19 @@ export default function Nodes() {
               {polling ? (
                 <>
                   <Download className="w-4 h-4 animate-pulse" />
-                  <span>Lese Nodes…</span>
+                  <span>Reading nodes…</span>
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4" />
-                  <span>Nodes einlesen</span>
+                  <span>Fetch Nodes</span>
                 </>
               )}
             </button>
             <button
               onClick={fetchNodes}
               className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
-              title="Aktualisieren"
+              title="Refresh"
             >
               <RefreshCw className="w-4 h-4 text-slate-400" />
             </button>

@@ -68,30 +68,30 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
       onMessageSent?.();
 
       if (!ref) {
-        setFeedback({ type: 'success', msg: `Gesendet (ohne ACK)` });
+        setFeedback({ type: 'success', msg: `Sent (no ACK)` });
         return;
       }
 
-      setFeedback({ type: 'success', msg: `Gesendet (${ref}) — warte auf ACK…` });
+      setFeedback({ type: 'success', msg: `Sent (${ref}) — waiting for ACK…` });
 
       // Poll for ACK in background (up to ~70s)
       base44.functions.invoke('mqttAckPoll', { client_ref: ref }).then((ackRes) => {
         const status = ackRes.data.final_status;
         if (status === 'acked') {
-          setFeedback({ type: 'success', msg: `✅ ACK empfangen (${ref})` });
+          setFeedback({ type: 'success', msg: `✅ ACK received (${ref})` });
         } else if (status === 'implicit_ack') {
           setFeedback({ type: 'success', msg: `⚡ Implicit ACK (${ref})` });
         } else if (status === 'failed') {
-          setFeedback({ type: 'error', msg: `❌ NAK empfangen (${ref})` });
+          setFeedback({ type: 'error', msg: `❌ NAK received (${ref})` });
         } else {
-          setFeedback({ type: 'success', msg: `⏱ Kein ACK innerhalb 60s (${ref})` });
+          setFeedback({ type: 'success', msg: `⏱ No ACK within 60s (${ref})` });
         }
         onMessageSent?.();
       }).catch(() => {
         // silently ignore ack poll errors
       });
     } catch (err) {
-      setFeedback({ type: 'error', msg: err.message || 'Fehler beim Senden' });
+      setFeedback({ type: 'error', msg: err.message || 'Error sending message' });
     } finally {
       setSending(false);
     }
@@ -128,7 +128,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
         <div>
           <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
             <Radio className="inline w-3 h-3 mr-1" />
-            Gruppe
+            Group
           </label>
           <select
             value={channel}
@@ -137,7 +137,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
           >
             {CHANNELS.map(c => {
               const ch = (userSettings?.channels || []).find(x => x.number === c);
-              return <option key={c} value={c}>{ch?.name ? `${ch.name} (${c})` : `Gruppe ${c}`}</option>;
+              return <option key={c} value={c}>{ch?.name ? `${ch.name} (${c})` : `Group ${c}`}</option>;
             })}
           </select>
           <div className="mt-1.5 flex items-center gap-2">
@@ -151,7 +151,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
       {mode === 'dm' && (
         <div>
           <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
-            Empfänger
+            Recipient
           </label>
           <NodePicker value={dmNodeId} onChange={setDmNodeId} />
           <div className="mt-1.5 flex items-center gap-2">
@@ -185,7 +185,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
           }`}
         >
           <span className={`inline-block w-2 h-2 rounded-full ${wantAck ? 'bg-cyan-400' : 'bg-slate-600'}`} />
-          Bestätigung (ACK)
+          Acknowledge (ACK)
         </button>
       </div>
 
@@ -196,7 +196,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
           onChange={(e) => setText(e.target.value)}
           rows={3}
           className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors resize-none"
-          placeholder="Nachricht eingeben..."
+          placeholder="Enter message..."
           required
         />
         <button
@@ -209,7 +209,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
           ) : (
             <>
               <Send className="w-5 h-5" />
-              <span className="text-xs">Senden</span>
+              <span className="text-xs">Send</span>
             </>
           )}
         </button>

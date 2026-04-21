@@ -110,7 +110,7 @@ export default function Dashboard() {
                 {nodeName || 'Meshtastic MQTT Bridge'}
               </h1>
               <p className="text-xs text-slate-500">
-                {currentUser?.node_id ? <span className="font-mono text-cyan-500">{currentUser.node_id}</span> : 'Web ↔ MQTT ↔ Meshtastic Netz'}
+                {currentUser?.node_id ? <span className="font-mono text-cyan-500">{currentUser.node_id}</span> : 'Web ↔ MQTT ↔ Meshtastic Network'}
               </p>
             </div>
           </div>
@@ -118,11 +118,11 @@ export default function Dashboard() {
             <div className="hidden sm:flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1.5">
                 <Activity className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-slate-400">{stats.sent} gesendet</span>
+                <span className="text-slate-400">{stats.sent} sent</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Layers className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-slate-400">{stats.received} empfangen</span>
+                <span className="text-slate-400">{stats.received} received</span>
               </div>
             </div>
             <Link
@@ -135,14 +135,14 @@ export default function Dashboard() {
             <button
               onClick={() => setShowSettings(s => !s)}
               className={`p-2 rounded-lg transition-colors ${showSettings ? 'bg-cyan-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-400'}`}
-              title="Einstellungen"
+              title="Settings"
             >
               <Settings className="w-4 h-4" />
             </button>
             <button
               onClick={() => { fetchMessages(); autoPoll(); }}
               className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
-              title="Aktualisieren"
+              title="Refresh"
             >
               <RefreshCw className="w-4 h-4 text-slate-400" />
             </button>
@@ -155,7 +155,7 @@ export default function Dashboard() {
           <section className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
             <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
               <Settings className="w-4 h-4" />
-              Einstellungen
+              Settings
             </h2>
             <SettingsPanel onSettingsChanged={() => loadUser()} />
           </section>
@@ -165,7 +165,7 @@ export default function Dashboard() {
         <section className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
           <h2 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4 flex items-center gap-2">
             <Radio className="w-4 h-4" />
-            Nachricht senden
+            Send Message
           </h2>
           <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} />
         </section>
@@ -174,7 +174,7 @@ export default function Dashboard() {
         <section className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
             <Layers className="w-4 h-4" />
-            Manuell empfangen
+            Manual Receive
           </h2>
           <PollPanel onReceived={fetchMessages} userSettings={currentUser} />
         </section>
@@ -185,10 +185,10 @@ export default function Dashboard() {
         <section className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
-              Nachrichtenverlauf
+              Message History
             </h2>
             <span className="text-xs text-slate-600 bg-slate-800 px-2 py-1 rounded-full">
-              {stats.total} gesamt
+              {stats.total} total
             </span>
           </div>
           {loading ? (

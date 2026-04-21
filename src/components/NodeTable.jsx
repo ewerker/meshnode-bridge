@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Cpu, Radio, Battery, MapPin, Clock, Wifi, ChevronUp, ChevronDown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { de } from 'date-fns/locale';
 
 function formatUptime(seconds) {
   if (!seconds) return '—';
@@ -27,13 +26,13 @@ function BatteryIcon({ level }) {
 
 const COLUMNS = [
   { key: 'long_name', label: 'Node' },
-  { key: 'short_name', label: 'Kurzname' },
+  { key: 'short_name', label: 'Short Name' },
   { key: 'hw_model', label: 'Hardware' },
-  { key: 'battery_level', label: 'Batterie' },
+  { key: 'battery_level', label: 'Battery' },
   { key: 'snr', label: 'SNR' },
-  { key: 'latitude', label: 'Position' },
+  { key: 'latitude', label: 'Location' },
   { key: 'uptime_seconds', label: 'Uptime' },
-  { key: 'last_heard', label: 'Zuletzt gehört' },
+  { key: 'last_heard', label: 'Last Heard' },
 ];
 
 function SortIcon({ column, sortKey, sortDir }) {
@@ -91,8 +90,8 @@ export default function NodeTable({ nodes }) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-slate-600">
         <Cpu className="w-12 h-12 mb-3 opacity-30" />
-        <p className="text-sm">Keine Nodes bekannt</p>
-        <p className="text-xs mt-1 opacity-60">Klicke „Nodes einlesen" um Nodes vom Mesh abzurufen</p>
+        <p className="text-sm">No nodes known</p>
+        <p className="text-xs mt-1 opacity-60">Click "Fetch Nodes" to retrieve nodes from the mesh</p>
       </div>
     );
   }
@@ -162,7 +161,7 @@ export default function NodeTable({ nodes }) {
                 {node.last_heard ? (
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {formatDistanceToNow(new Date(node.last_heard * 1000), { addSuffix: true, locale: de })}
+                    {formatDistanceToNow(new Date(node.last_heard * 1000), { addSuffix: true })}
                   </span>
                 ) : '—'}
               </td>

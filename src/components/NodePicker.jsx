@@ -63,7 +63,7 @@ export default function NodePicker({ value, onChange }) {
           className="w-full flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-400 hover:border-cyan-500 transition-colors text-left"
         >
           <Search className="w-4 h-4" />
-          Node suchen…
+          Search node…
         </button>
       )}
 
@@ -76,7 +76,7 @@ export default function NodePicker({ value, onChange }) {
               type="text"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              placeholder="Name oder ID filtern…"
+              placeholder="Filter by name or ID…"
               className="flex-1 bg-transparent text-sm text-slate-200 focus:outline-none placeholder-slate-600"
               autoFocus
             />
@@ -88,7 +88,7 @@ export default function NodePicker({ value, onChange }) {
           </div>
           <div className="overflow-y-auto">
             {filtered.length === 0 ? (
-              <div className="px-3 py-4 text-xs text-slate-600 text-center">Keine Nodes gefunden</div>
+              <div className="px-3 py-4 text-xs text-slate-600 text-center">No nodes found</div>
             ) : (
               filtered.map(node => (
                 <button

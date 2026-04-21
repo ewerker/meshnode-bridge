@@ -1,14 +1,13 @@
 import { ArrowUpRight, ArrowDownLeft, Radio, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { de } from 'date-fns/locale';
 
 export default function MessageList({ messages, onDelete }) {
   if (!messages || messages.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-slate-600">
         <Radio className="w-12 h-12 mb-3 opacity-30" />
-        <p className="text-sm">Keine Nachrichten</p>
-        <p className="text-xs mt-1 opacity-60">Warte auf Meshtastic-Nachrichten…</p>
+        <p className="text-sm">No messages</p>
+        <p className="text-xs mt-1 opacity-60">Waiting for Meshtastic messages…</p>
       </div>
     );
   }
@@ -43,7 +42,7 @@ export default function MessageList({ messages, onDelete }) {
                 <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                   msg.direction === 'outbound' ? 'bg-cyan-900/50 text-cyan-400' : 'bg-emerald-900/50 text-emerald-400'
                 }`}>
-                  Kanal {msg.channel}
+                  Channel {msg.channel}
                 </span>
               )}
               {msg.direction === 'outbound' && msg.status && (
@@ -60,7 +59,7 @@ export default function MessageList({ messages, onDelete }) {
                 <button
                   onClick={() => onDelete(msg.id)}
                   className="p-1 rounded hover:bg-red-900/40 text-slate-600 hover:text-red-400 transition-colors"
-                  title="Löschen"
+                  title="Delete"
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>
@@ -69,11 +68,11 @@ export default function MessageList({ messages, onDelete }) {
             <p className="text-sm text-slate-200 break-words">{msg.text}</p>
             <p className="text-xs text-slate-600 mt-1">
               {msg.meshtastic_timestamp
-                ? formatDistanceToNow(new Date(msg.meshtastic_timestamp * 1000), { addSuffix: true, locale: de })
+                ? formatDistanceToNow(new Date(msg.meshtastic_timestamp * 1000), { addSuffix: true })
                 : msg.created_date && !isNaN(new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z').getTime())
                 ? formatDistanceToNow(
                     new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z'),
-                    { addSuffix: true, locale: de }
+                    { addSuffix: true }
                   )
                 : ''}
             </p>

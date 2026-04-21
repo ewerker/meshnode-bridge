@@ -68,13 +68,13 @@ export default function SettingsPanel({ onSettingsChanged }) {
       <div>
         <label className="block text-xs font-medium text-cyan-400 mb-2 uppercase tracking-wider">
           <Radio className="inline w-3 h-3 mr-1" />
-          Meine Node-ID
+          My Node ID
         </label>
         <input
           type="text"
           value={nodeId}
           onChange={(e) => setNodeId(e.target.value)}
-          placeholder="z.B. !49b65bc8"
+          placeholder="e.g. !49b65bc8"
           className="w-full max-w-xs bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
         />
       </div>
@@ -93,7 +93,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
           className="w-full max-w-md bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
         />
         <p className="text-xs text-slate-600 mt-1">
-          Standard: <span className="font-mono text-slate-500">msh/{region}/proxy</span> — Topics: <span className="font-mono text-slate-500">{topicPrefix || `msh/${region}/proxy`}/send/group/0</span>, <span className="font-mono text-slate-500">{topicPrefix || `msh/${region}/proxy`}/rx/{nodeId || '…'}/scope/group</span>
+          Default: <span className="font-mono text-slate-500">msh/{region}/proxy</span> — Topics: <span className="font-mono text-slate-500">{topicPrefix || `msh/${region}/proxy`}/send/group/0</span>, <span className="font-mono text-slate-500">{topicPrefix || `msh/${region}/proxy`}/rx/{nodeId || '…'}/scope/group</span>
         </p>
       </div>
 
@@ -113,7 +113,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Standard-Kanal</label>
+          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Default Channel</label>
           <select
             value={defaultChannel}
             onChange={(e) => setDefaultChannel(parseInt(e.target.value))}
@@ -121,7 +121,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
           >
             {channels.map(c => (
               <option key={c.number} value={c.number}>
-                {c.name ? `${c.name} (${c.number})` : `Kanal ${c.number}`}
+                {c.name ? `${c.name} (${c.number})` : `Channel ${c.number}`}
               </option>
             ))}
           </select>
@@ -132,7 +132,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
       <div>
         <label className="block text-xs font-medium text-cyan-400 mb-2 uppercase tracking-wider">
           <Hash className="inline w-3 h-3 mr-1" />
-          Kanalnamen (0–7)
+          Channel Names (0–7)
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {channels.map(c => (
@@ -142,7 +142,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
                 type="text"
                 value={c.name}
                 onChange={(e) => updateChannelName(c.number, e.target.value)}
-                placeholder={`Kanal ${c.number}`}
+                placeholder={`Channel ${c.number}`}
                 className="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 placeholder-slate-600"
               />
             </div>
@@ -158,7 +158,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
           className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
         >
           <Save className="w-4 h-4" />
-          {saved ? 'Gespeichert ✓' : saving ? 'Speichern…' : 'Einstellungen speichern'}
+          {saved ? 'Saved ✓' : saving ? 'Saving…' : 'Save Settings'}
         </button>
       </div>
     </div>
