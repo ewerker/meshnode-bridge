@@ -3,7 +3,6 @@ import { Download, Wifi } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const REGIONS = ['EU_868', 'EU_433', 'US', 'ANZ', 'KR', 'TW', 'RU', 'IN', 'NZ_865', 'TH', 'LORA_24', 'UA_433', 'UA_868', 'MY_433', 'MY_919', 'SG_923'];
-const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7];
 const LISTEN_OPTIONS = [
   { label: '10 Sek.', seconds: 10 },
   { label: '30 Sek.', seconds: 30 },
@@ -15,32 +14,16 @@ const LISTEN_OPTIONS = [
 ];
 
 const LS_REGION = 'mesh_last_region';
-const LS_CHANNEL = 'mesh_last_channel';
 const LS_LISTEN = 'mesh_poll_listen_seconds';
 
 export default function PollPanel({ onReceived, userSettings }) {
   const [region, setRegion] = useState(() => localStorage.getItem(LS_REGION) || 'EU_868');
-  const [channel, setChannel] = useState(() => {
-    const saved = localStorage.getItem(LS_CHANNEL);
-    if (saved === null || saved === 'null' || saved === 'undefined') {
-      return 2;
-    }
-    const parsed = parseInt(saved);
-    return isNaN(parsed) ? 2 : parsed;
-  });
   const [listenSeconds, setListenSeconds] = useState(() => parseInt(localStorage.getItem(LS_LISTEN) ?? '60'));
 
   useEffect(() => {
     if (userSettings?.region) {
       setRegion(userSettings.region);
       localStorage.setItem(LS_REGION, userSettings.region);
-    }
-    if (userSettings?.default_channel !== undefined && userSettings.default_channel !== null) {
-      const ch = parseInt(userSettings.default_channel);
-      if (!isNaN(ch)) {
-        setChannel(ch);
-        localStorage.setItem(LS_CHANNEL, String(ch));
-      }
     }
   }, [userSettings]);
   const [polling, setPolling] = useState(false);
@@ -51,23 +34,23 @@ export default function PollPanel({ onReceived, userSettings }) {
     localStorage.setItem(LS_REGION, val);
   };
 
-  const handleChannelChange = (val) => {
-    const ch = parseInt(val);
-    setChannel(ch);
-    localStorage.setItem(LS_CHANNEL, String(ch));
-  };
-
   const handleListenChange = (val) => {
     const s = parseInt(val);
     setListenSeconds(s);
     localStorage.setItem(LS_LISTEN, String(s));
   };
 
+  const nodeId = userSettings?.node_id;
+
   const handlePoll = async () => {
+    if (!nodeId) {
+      setResult({ type: 'error', msg: 'Bitte zuerst Node-ID in den Einstellungen setzen.' });
+      return;
+    }
     setPolling(true);
     setResult(null);
     try {
-      const res = await base44.functions.invoke('mqttPoll', { region, channel: parseInt(channel), listenSeconds });
+      const res = await base44.functions.invoke('mqttPoll', { region, listenSeconds });
       setResult({ type: 'success', msg: `${res.data.received} Nachricht(en) empfangen, ${res.data.saved} gespeichert.` });
       onReceived?.();
     } catch (err) {
@@ -77,7 +60,7 @@ export default function PollPanel({ onReceived, userSettings }) {
     }
   };
 
-  const topic = `msh/${region}/${channel}/json`;
+  const topic = nodeId ? `msh/${region}/proxy/rx/${nodeId}/scope/*` : '—';
   const listenLabel = LISTEN_OPTIONS.find(o => o.seconds === listenSeconds)?.label || `${listenSeconds}s`;
 
   return (
@@ -100,20 +83,7 @@ export default function PollPanel({ onReceived, userSettings }) {
             {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 whitespace-nowrap">Kanal:</span>
-          <select
-            value={channel}
-            onChange={e => handleChannelChange(e.target.value)}
-            disabled={polling}
-            className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-          >
-            {CHANNELS.map(c => {
-              const ch = (userSettings?.channels || []).find(x => x.number === c);
-              return <option key={c} value={c}>{ch?.name ? `${ch.name} (${c})` : `Kanal ${c}`}</option>;
-            })}
-          </select>
-        </div>
+
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500 whitespace-nowrap">Lauschzeit:</span>
           <select
@@ -127,7 +97,7 @@ export default function PollPanel({ onReceived, userSettings }) {
         </div>
         <button
           onClick={handlePoll}
-          disabled={polling}
+          disabled={polling || !nodeId}
           className="flex items-center gap-2 px-4 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 rounded-lg text-sm font-medium transition-colors"
         >
           {polling ? (
