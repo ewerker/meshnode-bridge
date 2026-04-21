@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     const regionStr = region || 'EU_868';
     // Subscribe to both group and direct messages
     const groupTopic = `msh/${regionStr}/proxy/rx/${nodeId}/scope/group`;
-    const directTopic = `msh/${regionStr}/proxy/rx/${nodeId}/scope/direct`;
+    const directTopic = `msh/${regionStr}/proxy/rx/${nodeId}/scope/dm`;
     console.log('[MQTT] params:', { region, listenSeconds, nodeId });
     console.log('[MQTT] subscribing to topics:', groupTopic, directTopic);
 
@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
         if (existing.length > 0) continue; // already saved
       }
 
-      const isDM = p.scope === 'direct';
+      const isDM = p.scope === 'dm';
       const channelStr = p.channel !== null && p.channel !== undefined ? String(p.channel) : '';
 
       const record = await base44.entities.MeshMessage.create({
