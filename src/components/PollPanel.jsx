@@ -60,7 +60,7 @@ export default function PollPanel({ onReceived, userSettings }) {
     }
   };
 
-  const topic = nodeId ? `msh/${region}/proxy/rx/${nodeId}/scope/*` : '—';
+  const topic = nodeId ? `msh/${region}/proxy/rx/${nodeId}/scope/group + /dm` : '—';
   const listenLabel = LISTEN_OPTIONS.find(o => o.seconds === listenSeconds)?.label || `${listenSeconds}s`;
 
   return (
