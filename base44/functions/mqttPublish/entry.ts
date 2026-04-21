@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import * as mqtt from 'npm:mqtt@5.10.1';
 
 Deno.serve(async (req) => {
@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { text, channel, toNode, fromNode, region } = body;
+    const { text, channel, toNode, mode } = body;
 
     if (!text) {
       return Response.json({ error: 'text is required' }, { status: 400 });
@@ -22,12 +22,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'MQTT_BROKER_URL not configured' }, { status: 500 });
     }
 
-    const regionStr = region || 'EU_868';
-    const channelNum = typeof channel === 'string' ? parseInt(channel) : (channel !== undefined ? channel : 2);
-    const topic = `msh/${regionStr}/${channelNum}/json`;
+    const channelNum = typeof channel === 'string' ? parseInt(channel) : (channel !== undefined ? channel : 0);
 
-    const base64Text = btoa(unescape(encodeURIComponent(text)));
-    const payloadStr = JSON.stringify({ payload: base64Text, portnum: 'TEXT_MESSAGE_APP' });
+    // New topic format: msh/EU_868/proxy/send/group/{channel}
+    const topic = `msh/EU_868/proxy/send/group/${channelNum}`;
+
+    // Payload is plain text, no JSON wrapping
+    const payloadStr = text;
 
     await new Promise((resolve, reject) => {
       const clientOpts = { clientId: `mesh_bridge_${Date.now()}` };
@@ -59,12 +60,11 @@ Deno.serve(async (req) => {
     });
 
     // Save to DB
-    const nodeId = fromNode || '!gateway';
     await base44.entities.MeshMessage.create({
       direction: 'outbound',
       text,
       channel: String(channelNum),
-      from_node: nodeId,
+      from_node: '!gateway',
       to_node: toNode || '^all',
       mqtt_topic: topic,
       status: 'sent',

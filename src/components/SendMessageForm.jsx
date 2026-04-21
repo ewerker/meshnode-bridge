@@ -1,60 +1,63 @@
 import { useState, useEffect } from 'react';
-import { Send, Radio } from 'lucide-react';
+import { Send, Radio, Users, User } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-const REGIONS = ['EU_868', 'EU_433', 'US', 'ANZ', 'KR', 'TW', 'RU', 'IN', 'NZ_865', 'TH', 'LORA_24', 'UA_433', 'UA_868', 'MY_433', 'MY_919', 'SG_923'];
 const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-const LS_REGION = 'mesh_last_region';
 const LS_CHANNEL = 'mesh_last_channel';
+const LS_MODE = 'mesh_send_mode';
 
 export default function SendMessageForm({ onMessageSent, userSettings }) {
-  const [form, setForm] = useState(() => {
+  const [mode, setMode] = useState(() => localStorage.getItem(LS_MODE) || 'channel');
+  const [channel, setChannel] = useState(() => {
     const saved = localStorage.getItem(LS_CHANNEL);
-    let channel = 0;
     if (saved !== null && saved !== 'null' && saved !== 'undefined') {
       const parsed = parseInt(saved);
-      if (!isNaN(parsed)) channel = parsed;
+      if (!isNaN(parsed)) return parsed;
     }
-    return {
-      text: '',
-      channel,
-      region: localStorage.getItem(LS_REGION) || 'EU_868',
-      toNode: '^all',
-    };
+    return 0;
   });
+  const [text, setText] = useState('');
+  const [dmNodeId, setDmNodeId] = useState('');
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
-    if (userSettings?.region) {
-      setForm(f => ({ ...f, region: userSettings.region }));
-    }
     if (userSettings?.default_channel !== undefined && userSettings.default_channel !== null) {
       const ch = parseInt(userSettings.default_channel);
       if (!isNaN(ch)) {
         const saved = localStorage.getItem(LS_CHANNEL);
         if (!saved || saved === 'null' || saved === 'undefined') {
-          setForm(f => ({ ...f, channel: ch }));
+          setChannel(ch);
         }
       }
     }
   }, [userSettings]);
 
-  const updateField = (key, value) => {
-    setForm(f => ({ ...f, [key]: value }));
-    if (key === 'region') localStorage.setItem(LS_REGION, value);
-    if (key === 'channel') localStorage.setItem(LS_CHANNEL, String(value));
+  const switchMode = (m) => {
+    setMode(m);
+    localStorage.setItem(LS_MODE, m);
   };
+
+  const updateChannel = (val) => {
+    setChannel(val);
+    localStorage.setItem(LS_CHANNEL, String(val));
+  };
+
+  const topic = `msh/EU_868/proxy/send/group/${channel}`;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
     setFeedback(null);
     try {
-      const res = await base44.functions.invoke('mqttPublish', form);
+      const res = await base44.functions.invoke('mqttPublish', {
+        mode,
+        text,
+        channel,
+        toNode: mode === 'dm' ? dmNodeId : '^all',
+      });
       setFeedback({ type: 'success', msg: `Gesendet an Topic: ${res.data.topic}` });
-      setForm(f => ({ ...f, text: '' }));
+      setText('');
       onMessageSent?.();
     } catch (err) {
       setFeedback({ type: 'error', msg: err.message || 'Fehler beim Senden' });
@@ -65,36 +68,74 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">Region</label>
-          <select
-            value={form.region}
-            onChange={(e) => updateField('region', e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-          >
-            {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-        </div>
+      {/* Mode Tabs */}
+      <div className="flex gap-1 bg-slate-800 rounded-lg p-1">
+        <button
+          type="button"
+          onClick={() => switchMode('channel')}
+          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            mode === 'channel' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          Channel
+        </button>
+        <button
+          type="button"
+          onClick={() => switchMode('dm')}
+          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            mode === 'dm' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <User className="w-4 h-4" />
+          DM
+        </button>
+      </div>
+
+      {/* Channel Mode */}
+      {mode === 'channel' && (
         <div>
           <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
             <Radio className="inline w-3 h-3 mr-1" />
-            Kanal
+            Gruppe
           </label>
           <select
-            value={form.channel}
-            onChange={(e) => updateField('channel', parseInt(e.target.value))}
+            value={channel}
+            onChange={(e) => updateChannel(parseInt(e.target.value))}
             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
           >
-            {CHANNELS.map(c => <option key={c} value={c}>Kanal {c}</option>)}
+            {CHANNELS.map(c => <option key={c} value={c}>Gruppe {c}</option>)}
           </select>
+          <div className="mt-1.5 flex items-center gap-2">
+            <span className="text-xs text-slate-500">Topic:</span>
+            <span className="text-xs text-cyan-400 font-mono bg-slate-800 px-2 py-0.5 rounded">{topic}</span>
+          </div>
         </div>
-      </div>
+      )}
 
+      {/* DM Mode */}
+      {mode === 'dm' && (
+        <div>
+          <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
+            Empfänger Node-ID
+          </label>
+          <input
+            type="text"
+            value={dmNodeId}
+            onChange={(e) => setDmNodeId(e.target.value)}
+            placeholder="z.B. !abc1234"
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+            required
+          />
+          <p className="text-xs text-slate-600 mt-1">DM-Versand kommt bald…</p>
+        </div>
+      )}
+
+      {/* Message + Send */}
       <div className="flex gap-3">
         <textarea
-          value={form.text}
-          onChange={(e) => setForm(f => ({ ...f, text: e.target.value }))}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
           rows={3}
           className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors resize-none"
           placeholder="Nachricht eingeben..."
@@ -102,7 +143,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
         />
         <button
           type="submit"
-          disabled={sending || !form.text.trim()}
+          disabled={sending || !text.trim() || (mode === 'dm' && !dmNodeId.trim())}
           className="px-5 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-1 min-w-[64px]"
         >
           {sending ? (
