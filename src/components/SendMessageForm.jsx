@@ -123,11 +123,16 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
             type="text"
             value={dmNodeId}
             onChange={(e) => setDmNodeId(e.target.value)}
-            placeholder="z.B. !abc1234"
+            placeholder="z.B. !13c2288b"
             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
             required
           />
-          <p className="text-xs text-slate-600 mt-1">DM-Versand kommt bald…</p>
+          <div className="mt-1.5 flex items-center gap-2">
+            <span className="text-xs text-slate-500">Topic:</span>
+            <span className="text-xs text-cyan-400 font-mono bg-slate-800 px-2 py-0.5 rounded">
+              msh/EU_868/proxy/send/direct/{dmNodeId || '…'}
+            </span>
+          </div>
         </div>
       )}
 

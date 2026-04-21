@@ -24,8 +24,14 @@ Deno.serve(async (req) => {
 
     const channelNum = typeof channel === 'string' ? parseInt(channel) : (channel !== undefined ? channel : 0);
 
-    // New topic format: msh/EU_868/proxy/send/group/{channel}
-    const topic = `msh/EU_868/proxy/send/group/${channelNum}`;
+    let topic;
+    if (mode === 'dm' && toNode) {
+      // DM: msh/EU_868/proxy/send/direct/{nodeId}
+      topic = `msh/EU_868/proxy/send/direct/${toNode}`;
+    } else {
+      // Channel: msh/EU_868/proxy/send/group/{channel}
+      topic = `msh/EU_868/proxy/send/group/${channelNum}`;
+    }
 
     // Payload is plain text, no JSON wrapping
     const payloadStr = text;
