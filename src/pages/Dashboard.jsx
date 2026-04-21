@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Radio, RefreshCw, Activity, Layers, Cpu, Settings } from 'lucide-react';
+import { Radio, RefreshCw, Activity, Layers, Cpu, Settings, HelpCircle } from 'lucide-react';
 import SettingsPanel from '@/components/SettingsPanel';
 import { Link } from 'react-router-dom';
 import MessageList from '@/components/MessageList';
@@ -131,6 +131,13 @@ export default function Dashboard() {
             >
               <Cpu className="w-4 h-4 text-cyan-400" />
               <span className="hidden sm:inline">Nodes</span>
+            </Link>
+            <Link
+              to="/about"
+              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
+              title="About"
+            >
+              <HelpCircle className="w-4 h-4 text-slate-400" />
             </Link>
             <button
               onClick={() => setShowSettings(s => !s)}
