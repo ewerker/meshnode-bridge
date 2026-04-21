@@ -78,8 +78,9 @@ Deno.serve(async (req) => {
           collected.push(parsed);
           console.log('[ACK] status:', parsed.status, '| collected:', collected.length);
 
-          // If we get a final status (ack or nak), stop early
-          if (parsed.status === 'ack' || parsed.status === 'nak') {
+          // Final statuses that mean we can stop listening
+          const finalStatuses = ['ack', 'implicit_ack', 'nak'];
+          if (finalStatuses.includes(parsed.status)) {
             console.log('[ACK] final status received:', parsed.status);
             finish();
           }
@@ -98,14 +99,14 @@ Deno.serve(async (req) => {
     });
 
     // Determine final status from collected messages
-    // Priority: nak > ack > sent
+    // Priority: nak > ack/implicit_ack > sent
     let finalStatus = 'sent';
     for (const msg of messages) {
       if (msg.status === 'nak') {
         finalStatus = 'failed';
         break;
       }
-      if (msg.status === 'ack') {
+      if (msg.status === 'ack' || msg.status === 'implicit_ack') {
         finalStatus = 'acked';
       }
     }
