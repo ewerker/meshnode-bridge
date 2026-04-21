@@ -3,7 +3,7 @@ import { Download, Wifi } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const REGIONS = ['EU_868', 'EU_433', 'US', 'ANZ', 'KR', 'TW', 'RU', 'IN', 'NZ_865', 'TH', 'LORA_24', 'UA_433', 'UA_868', 'MY_433', 'MY_919', 'SG_923'];
-const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7];
 const LISTEN_OPTIONS = [
   { label: '10 Sek.', seconds: 10 },
   { label: '30 Sek.', seconds: 30 },
@@ -108,7 +108,10 @@ export default function PollPanel({ onReceived, userSettings }) {
             disabled={polling}
             className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
           >
-            {CHANNELS.map(c => <option key={c} value={c}>Kanal {c}</option>)}
+            {CHANNELS.map(c => {
+              const ch = (userSettings?.channels || []).find(x => x.number === c);
+              return <option key={c} value={c}>{ch?.name ? `${ch.name} (${c})` : `Kanal ${c}`}</option>;
+            })}
           </select>
         </div>
         <div className="flex items-center gap-2">

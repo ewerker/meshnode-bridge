@@ -3,7 +3,7 @@ import { Send, Radio, Users, User } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import NodePicker from '@/components/NodePicker';
 
-const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7];
 const LS_CHANNEL = 'mesh_last_channel';
 const LS_MODE = 'mesh_send_mode';
 
@@ -105,7 +105,10 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
             onChange={(e) => updateChannel(parseInt(e.target.value))}
             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
           >
-            {CHANNELS.map(c => <option key={c} value={c}>Gruppe {c}</option>)}
+            {CHANNELS.map(c => {
+              const ch = (userSettings?.channels || []).find(x => x.number === c);
+              return <option key={c} value={c}>{ch?.name ? `${ch.name} (${c})` : `Gruppe ${c}`}</option>;
+            })}
           </select>
           <div className="mt-1.5 flex items-center gap-2">
             <span className="text-xs text-slate-500">Topic:</span>

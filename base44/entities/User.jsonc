@@ -20,7 +20,24 @@
     },
     "default_channel": {
       "type": "integer",
-      "description": "Standard-Kanal 0-9"
+      "description": "Standard-Kanal 0-7"
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "integer",
+            "description": "Kanalnummer 0-7"
+          },
+          "name": {
+            "type": "string",
+            "description": "Benutzerdefinierter Kanalname"
+          }
+        }
+      },
+      "description": "Benannte Kan\u00e4le 0-7"
     }
   },
   "required": [
