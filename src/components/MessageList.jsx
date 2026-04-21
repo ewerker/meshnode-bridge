@@ -35,11 +35,17 @@ export default function MessageList({ messages, onDelete }) {
                 {msg.mqtt_topic ? msg.mqtt_topic.split('/')[1] : '—'}
               </span>
               <span className="text-slate-600">·</span>
-              <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                msg.direction === 'outbound' ? 'bg-cyan-900/50 text-cyan-400' : 'bg-emerald-900/50 text-emerald-400'
-              }`}>
-                Kanal {msg.channel}
-              </span>
+              {msg.to_node && msg.to_node !== '^all' ? (
+                <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-purple-900/50 text-purple-400">
+                  DM → {msg.to_node}
+                </span>
+              ) : (
+                <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                  msg.direction === 'outbound' ? 'bg-cyan-900/50 text-cyan-400' : 'bg-emerald-900/50 text-emerald-400'
+                }`}>
+                  Kanal {msg.channel}
+                </span>
+              )}
               {msg.direction === 'outbound' && msg.status && (
                 <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                   msg.status === 'acked' ? 'bg-emerald-900/50 text-emerald-400' :
