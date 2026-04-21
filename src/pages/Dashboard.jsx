@@ -9,7 +9,7 @@ import PollPanel from '@/components/PollPanel';
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userSettings, setUserSettings] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const fetchMessages = useCallback(async () => {
     const data = await base44.entities.MeshMessage.list('-meshtastic_timestamp', 100);
@@ -32,7 +32,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchMessages();
-    loadUserSettings();
+    loadUser();
     const unsub = base44.entities.MeshMessage.subscribe((event) => {
       if (event.type === 'create') {
         setMessages((prev) => sortMessages([event.data, ...prev]));
@@ -41,10 +41,9 @@ export default function Dashboard() {
     return unsub;
   }, [fetchMessages]);
 
-  const loadUserSettings = async () => {
-    const user = await base44.auth.me();
-    const list = await base44.entities.UserSettings.filter({ created_by: user.email });
-    if (list.length > 0) setUserSettings(list[0]);
+  const loadUser = async () => {
+    const me = await base44.auth.me();
+    setCurrentUser(me);
   };
 
   const stats = {
@@ -105,7 +104,7 @@ export default function Dashboard() {
             <Radio className="w-4 h-4" />
             Nachricht senden
           </h2>
-          <SendMessageForm onMessageSent={fetchMessages} userSettings={userSettings} />
+          <SendMessageForm onMessageSent={fetchMessages} userSettings={currentUser} />
         </section>
 
         {/* Manual Poll */}
@@ -114,7 +113,7 @@ export default function Dashboard() {
             <Layers className="w-4 h-4" />
             Manuell empfangen
           </h2>
-          <PollPanel onReceived={fetchMessages} userSettings={userSettings} />
+          <PollPanel onReceived={fetchMessages} userSettings={currentUser} />
         </section>
 
 

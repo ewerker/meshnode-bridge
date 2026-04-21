@@ -9,7 +9,7 @@ export default function Nodes() {
   const [loading, setLoading] = useState(true);
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
-  const [userSettings, setUserSettings] = useState(null);
+  const [user, setUser] = useState(null);
   const [selectedNode, setSelectedNode] = useState('');
 
   const fetchNodes = useCallback(async () => {
@@ -20,16 +20,15 @@ export default function Nodes() {
 
   useEffect(() => {
     fetchNodes();
-    loadUserSettings();
+    loadUser();
   }, [fetchNodes]);
 
-  const loadUserSettings = async () => {
-    const user = await base44.auth.me();
-    const list = await base44.entities.UserSettings.filter({ created_by: user.email });
-    if (list.length > 0) setUserSettings(list[0]);
+  const loadUser = async () => {
+    const me = await base44.auth.me();
+    setUser(me);
   };
 
-  const nodeIds = userSettings?.node_ids || [];
+  const nodeIds = user?.node_ids || [];
 
   const handlePollNodes = async () => {
     const fromNode = selectedNode || nodeIds[0];

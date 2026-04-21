@@ -3,61 +3,53 @@ import { base44 } from '@/api/base44Client';
 import { Save, Plus, X, Radio } from 'lucide-react';
 
 export default function SettingsPanel({ onSettingsChanged }) {
-  const [settings, setSettings] = useState(null);
-  const [settingsId, setSettingsId] = useState(null);
+  const [user, setUser] = useState(null);
+  const [nodeIds, setNodeIds] = useState([]);
+  const [region, setRegion] = useState('EU_868');
+  const [defaultChannel, setDefaultChannel] = useState(0);
+  const [newNodeId, setNewNodeId] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [newNodeId, setNewNodeId] = useState('');
+
+  const REGIONS = ['EU_868', 'EU_433', 'US', 'ANZ', 'KR', 'TW', 'RU', 'IN', 'NZ_865', 'TH', 'LORA_24', 'UA_433', 'UA_868', 'MY_433', 'MY_919', 'SG_923'];
 
   useEffect(() => {
-    loadSettings();
+    loadUser();
   }, []);
 
-  const loadSettings = async () => {
-    const user = await base44.auth.me();
-    const list = await base44.entities.UserSettings.filter({ created_by: user.email });
-    if (list.length > 0) {
-      setSettings(list[0]);
-      setSettingsId(list[0].id);
-    } else {
-      setSettings({ region: 'EU_868', from_node: '!gateway', default_channel: 2, node_ids: [] });
-    }
+  const loadUser = async () => {
+    const me = await base44.auth.me();
+    setUser(me);
+    setNodeIds(me.node_ids || []);
+    setRegion(me.region || 'EU_868');
+    setDefaultChannel(me.default_channel ?? 0);
   };
 
   const handleSave = async () => {
     setSaving(true);
-    if (settingsId) {
-      await base44.entities.UserSettings.update(settingsId, settings);
-    } else {
-      const created = await base44.entities.UserSettings.create(settings);
-      setSettingsId(created.id);
-    }
+    await base44.auth.updateMe({ node_ids: nodeIds, region, default_channel: defaultChannel });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-    onSettingsChanged?.(settings);
+    onSettingsChanged?.({ node_ids: nodeIds, region, default_channel: defaultChannel });
   };
 
   const addNodeId = () => {
     const id = newNodeId.trim();
-    if (!id) return;
-    const list = settings.node_ids || [];
-    if (list.includes(id)) return;
-    setSettings({ ...settings, node_ids: [...list, id] });
+    if (!id || nodeIds.includes(id)) return;
+    setNodeIds([...nodeIds, id]);
     setNewNodeId('');
   };
 
   const removeNodeId = (id) => {
-    setSettings({ ...settings, node_ids: (settings.node_ids || []).filter(n => n !== id) });
+    setNodeIds(nodeIds.filter(n => n !== id));
   };
 
-  if (!settings) return (
+  if (!user) return (
     <div className="flex justify-center py-6">
       <div className="w-5 h-5 border-2 border-slate-700 border-t-cyan-500 rounded-full animate-spin" />
     </div>
   );
-
-  const nodeIds = settings.node_ids || [];
 
   return (
     <div className="space-y-5">
@@ -97,6 +89,30 @@ export default function SettingsPanel({ onSettingsChanged }) {
             <Plus className="w-4 h-4" />
             Hinzufügen
           </button>
+        </div>
+      </div>
+
+      {/* Region & Channel */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Region</label>
+          <select
+            value={region}
+            onChange={(e) => setRegion(e.target.value)}
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+          >
+            {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Standard-Kanal</label>
+          <select
+            value={defaultChannel}
+            onChange={(e) => setDefaultChannel(parseInt(e.target.value))}
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+          >
+            {[0,1,2,3,4,5,6,7,8,9].map(c => <option key={c} value={c}>Kanal {c}</option>)}
+          </select>
         </div>
       </div>
 
