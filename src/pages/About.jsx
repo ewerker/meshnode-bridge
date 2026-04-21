@@ -80,6 +80,12 @@ export default function About() {
             <li>The broker credentials are configured by the app administrator.</li>
           </ul>
         </section>
+        {/* Footer link */}
+        <div className="pt-4 border-t border-slate-800 text-center">
+          <Link to="/imprint" className="text-xs text-slate-600 hover:text-cyan-400 transition-colors">
+            Imprint & Disclaimer
+          </Link>
+        </div>
       </main>
     </div>
   );

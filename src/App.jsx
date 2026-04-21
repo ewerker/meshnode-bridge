@@ -9,6 +9,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Dashboard from './pages/Dashboard';
 import Nodes from './pages/Nodes';
 import About from './pages/About';
+import Imprint from './pages/Imprint';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -40,6 +41,7 @@ const AuthenticatedApp = () => {
       <Route path="/" element={<Dashboard />} />
       <Route path="/nodes" element={<Nodes />} />
       <Route path="/about" element={<About />} />
+      <Route path="/imprint" element={<Imprint />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
