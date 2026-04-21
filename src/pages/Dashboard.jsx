@@ -20,10 +20,18 @@ export default function Dashboard() {
     setLoading(false);
   }, []);
 
+  const autoPoll = useCallback(async () => {
+    if (!currentUser?.node_id) return;
+    try {
+      await base44.functions.invoke('mqttPoll', { region: currentUser.region || 'EU_868', listenSeconds: 10 });
+      fetchMessages();
+    } catch (_) { /* silent */ }
+  }, [currentUser, fetchMessages]);
+
   const sortMessages = (msgs) => {
     return [...msgs].sort((a, b) => {
-      const aTime = a.meshtastic_timestamp || 0;
-      const bTime = b.meshtastic_timestamp || 0;
+      const aTime = a.meshtastic_timestamp || (a.created_date ? new Date(a.created_date.endsWith('Z') ? a.created_date : a.created_date + 'Z').getTime() / 1000 : 0);
+      const bTime = b.meshtastic_timestamp || (b.created_date ? new Date(b.created_date.endsWith('Z') ? b.created_date : b.created_date + 'Z').getTime() / 1000 : 0);
       return bTime - aTime;
     });
   };
@@ -43,6 +51,19 @@ export default function Dashboard() {
     });
     return unsub;
   }, [fetchMessages]);
+
+  // Auto-poll on page load and tab focus
+  useEffect(() => {
+    if (!currentUser?.node_id) return;
+    // Poll on initial load
+    autoPoll();
+    // Poll when tab becomes visible again
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') autoPoll();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [currentUser?.node_id, autoPoll]);
 
   const loadUser = async () => {
     const me = await base44.auth.me();
@@ -132,7 +153,7 @@ export default function Dashboard() {
             <Radio className="w-4 h-4" />
             Nachricht senden
           </h2>
-          <SendMessageForm onMessageSent={fetchMessages} userSettings={currentUser} />
+          <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} />
         </section>
 
         {/* Manual Poll */}
