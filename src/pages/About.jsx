@@ -71,10 +71,35 @@ export default function About() {
           </ol>
         </section>
 
+        {/* MQTT Proxy */}
+        <section>
+          <h2 className="text-xl font-bold text-white mb-3">MQTT Proxy</h2>
+          <div className="bg-slate-900 border border-yellow-800/50 rounded-xl p-4">
+            <p className="text-slate-400 leading-relaxed mb-3">
+              <span className="text-yellow-400 font-semibold">Important:</span> This app uses a data format tailored to the 
+              <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline mx-1 font-medium">ewerker/mqtt-proxy</a>. 
+              The proxy translates between Meshtastic's native Protobuf-encoded MQTT messages and a JSON format that this web app can work with.
+            </p>
+            <p className="text-slate-400 leading-relaxed mb-3">
+              You need to install and run the MQTT proxy locally (or on a server) before using this dashboard. 
+              It connects to the same MQTT broker as your Meshtastic gateway nodes and provides the JSON topics this app subscribes to.
+            </p>
+            <a
+              href="https://github.com/ewerker/mqtt-proxy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sm text-cyan-400 font-medium transition-colors"
+            >
+              → GitHub: ewerker/mqtt-proxy
+            </a>
+          </div>
+        </section>
+
         {/* Requirements */}
         <section>
           <h2 className="text-xl font-bold text-white mb-3">Requirements</h2>
           <ul className="list-disc list-inside space-y-1.5 text-slate-400">
+            <li>The <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">ewerker/mqtt-proxy</a> running locally or on a server.</li>
             <li>At least one Meshtastic node with <span className="text-cyan-400">MQTT uplink</span> enabled (acting as gateway).</li>
             <li>Access to the MQTT broker that gateway publishes to.</li>
             <li>The broker credentials are configured by the app administrator.</li>
