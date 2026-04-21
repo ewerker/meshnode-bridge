@@ -25,10 +25,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Node-ID nicht in Einstellungen gesetzt' }, { status: 400 });
     }
 
-    const regionStr = region || 'EU_868';
-    // Subscribe to both group and direct messages
-    const groupTopic = `msh/${regionStr}/proxy/rx/${nodeId}/scope/group`;
-    const directTopic = `msh/${regionStr}/proxy/rx/${nodeId}/scope/dm`;
+    const regionStr = region || user.region || 'EU_868';
+    // Build topics from user's configured prefix
+    const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
+    const groupTopic = `${prefix}/rx/${nodeId}/scope/group`;
+    const directTopic = `${prefix}/rx/${nodeId}/scope/dm`;
     console.log('[MQTT] params:', { region, listenSeconds, nodeId });
     console.log('[MQTT] subscribing to topics:', groupTopic, directTopic);
 

@@ -46,7 +46,9 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
     localStorage.setItem(LS_CHANNEL, String(val));
   };
 
-  const topic = `msh/EU_868/proxy/send/group/${channel}`;
+  const region = userSettings?.region || 'EU_868';
+  const prefix = userSettings?.topic_prefix || `msh/${region}/proxy`;
+  const topic = `${prefix}/send/group/${channel}`;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -155,7 +157,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
           <div className="mt-1.5 flex items-center gap-2">
             <span className="text-xs text-slate-500">Topic:</span>
             <span className="text-xs text-cyan-400 font-mono bg-slate-800 px-2 py-0.5 rounded">
-              msh/EU_868/proxy/send/direct/{dmNodeId || '…'}
+              {prefix}/send/direct/{dmNodeId || '…'}
             </span>
           </div>
         </div>

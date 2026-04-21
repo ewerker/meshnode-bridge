@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Download, Wifi } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-const REGIONS = ['EU_868', 'EU_433', 'US', 'ANZ', 'KR', 'TW', 'RU', 'IN', 'NZ_865', 'TH', 'LORA_24', 'UA_433', 'UA_868', 'MY_433', 'MY_919', 'SG_923'];
 const LISTEN_OPTIONS = [
   { label: '10 Sek.', seconds: 10 },
   { label: '30 Sek.', seconds: 30 },
@@ -13,26 +12,12 @@ const LISTEN_OPTIONS = [
   { label: '20 Min.', seconds: 1200 },
 ];
 
-const LS_REGION = 'mesh_last_region';
 const LS_LISTEN = 'mesh_poll_listen_seconds';
 
 export default function PollPanel({ onReceived, userSettings }) {
-  const [region, setRegion] = useState(() => localStorage.getItem(LS_REGION) || 'EU_868');
   const [listenSeconds, setListenSeconds] = useState(() => parseInt(localStorage.getItem(LS_LISTEN) ?? '60'));
-
-  useEffect(() => {
-    if (userSettings?.region) {
-      setRegion(userSettings.region);
-      localStorage.setItem(LS_REGION, userSettings.region);
-    }
-  }, [userSettings]);
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
-
-  const handleRegionChange = (val) => {
-    setRegion(val);
-    localStorage.setItem(LS_REGION, val);
-  };
 
   const handleListenChange = (val) => {
     const s = parseInt(val);
@@ -41,6 +26,8 @@ export default function PollPanel({ onReceived, userSettings }) {
   };
 
   const nodeId = userSettings?.node_id;
+  const region = userSettings?.region || 'EU_868';
+  const prefix = userSettings?.topic_prefix || `msh/${region}/proxy`;
 
   const handlePoll = async () => {
     if (!nodeId) {
@@ -60,7 +47,7 @@ export default function PollPanel({ onReceived, userSettings }) {
     }
   };
 
-  const topic = nodeId ? `msh/${region}/proxy/rx/${nodeId}/scope/group + /dm` : '—';
+  const topic = nodeId ? `${prefix}/rx/${nodeId}/scope/group + /dm` : '—';
   const listenLabel = LISTEN_OPTIONS.find(o => o.seconds === listenSeconds)?.label || `${listenSeconds}s`;
 
   return (
@@ -72,18 +59,6 @@ export default function PollPanel({ onReceived, userSettings }) {
         </div>
       </div>
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 whitespace-nowrap">Region:</span>
-          <select
-            value={region}
-            onChange={e => handleRegionChange(e.target.value)}
-            disabled={polling}
-            className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-          >
-            {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-        </div>
-
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500 whitespace-nowrap">Lauschzeit:</span>
           <select

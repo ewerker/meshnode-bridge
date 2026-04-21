@@ -28,13 +28,15 @@ Deno.serve(async (req) => {
 
     const channelNum = typeof channel === 'string' ? parseInt(channel) : (channel !== undefined ? channel : 0);
 
+    // Build topic from user's configured prefix
+    const regionStr = user.region || 'EU_868';
+    const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
+
     let topic;
     if (mode === 'dm' && toNode) {
-      // DM: msh/EU_868/proxy/send/direct/{nodeId}
-      topic = `msh/EU_868/proxy/send/direct/${toNode}`;
+      topic = `${prefix}/send/direct/${toNode}`;
     } else {
-      // Channel: msh/EU_868/proxy/send/group/{channel}
-      topic = `msh/EU_868/proxy/send/group/${channelNum}`;
+      topic = `${prefix}/send/group/${channelNum}`;
     }
 
     // JSON payload with text, channel, hop_limit, want_ack, and optionally client_ref

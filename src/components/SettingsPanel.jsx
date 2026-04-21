@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Save, Radio, Hash } from 'lucide-react';
+import { Save, Radio, Hash, Globe, Link2 } from 'lucide-react';
 
 const DEFAULT_CHANNELS = Array.from({ length: 8 }, (_, i) => ({ number: i, name: '' }));
 
@@ -10,6 +10,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
   const [region, setRegion] = useState('EU_868');
   const [defaultChannel, setDefaultChannel] = useState(0);
   const [channels, setChannels] = useState(DEFAULT_CHANNELS);
+  const [topicPrefix, setTopicPrefix] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -25,6 +26,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
     setNodeId(me.node_id || '');
     setRegion(me.region || 'EU_868');
     setDefaultChannel(me.default_channel ?? 0);
+    setTopicPrefix(me.topic_prefix || '');
     // Merge saved channels with defaults
     const saved = me.channels || [];
     const merged = DEFAULT_CHANNELS.map(def => {
@@ -46,6 +48,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
       region,
       default_channel: defaultChannel,
       channels: channelsToSave,
+      topic_prefix: topicPrefix.trim(),
     });
     setSaving(false);
     setSaved(true);
@@ -76,10 +79,31 @@ export default function SettingsPanel({ onSettingsChanged }) {
         />
       </div>
 
+      {/* Topic Prefix */}
+      <div>
+        <label className="block text-xs font-medium text-cyan-400 mb-2 uppercase tracking-wider">
+          <Link2 className="inline w-3 h-3 mr-1" />
+          Topic-Prefix
+        </label>
+        <input
+          type="text"
+          value={topicPrefix}
+          onChange={(e) => setTopicPrefix(e.target.value)}
+          placeholder={`msh/${region}/proxy`}
+          className="w-full max-w-md bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
+        />
+        <p className="text-xs text-slate-600 mt-1">
+          Standard: <span className="font-mono text-slate-500">msh/{region}/proxy</span> — Topics: <span className="font-mono text-slate-500">{topicPrefix || `msh/${region}/proxy`}/send/group/0</span>, <span className="font-mono text-slate-500">{topicPrefix || `msh/${region}/proxy`}/rx/{nodeId || '…'}/scope/group</span>
+        </p>
+      </div>
+
       {/* Region & Default Channel */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Region</label>
+          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">
+            <Globe className="inline w-3 h-3 mr-1" />
+            Region
+          </label>
           <select
             value={region}
             onChange={(e) => setRegion(e.target.value)}
