@@ -52,17 +52,27 @@ export default function Dashboard() {
     return unsub;
   }, [fetchMessages]);
 
-  // Auto-poll on page load and tab focus
+  // Auto-poll on page load, tab focus, and every 2 minutes while active
   useEffect(() => {
     if (!currentUser?.node_id) return;
     // Poll on initial load
     autoPoll();
+
     // Poll when tab becomes visible again
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') autoPoll();
     };
     document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+
+    // Poll every 2 minutes while tab is visible
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') autoPoll();
+    }, 120000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      clearInterval(interval);
+    };
   }, [currentUser?.node_id, autoPoll]);
 
   const loadUser = async () => {
