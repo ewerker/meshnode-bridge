@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Send, Radio, Users, User } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import NodePicker from '@/components/NodePicker';
 
 const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 const LS_CHANNEL = 'mesh_last_channel';
@@ -117,16 +118,9 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
       {mode === 'dm' && (
         <div>
           <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
-            Empfänger Node-ID
+            Empfänger
           </label>
-          <input
-            type="text"
-            value={dmNodeId}
-            onChange={(e) => setDmNodeId(e.target.value)}
-            placeholder="z.B. !13c2288b"
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-            required
-          />
+          <NodePicker value={dmNodeId} onChange={setDmNodeId} />
           <div className="mt-1.5 flex items-center gap-2">
             <span className="text-xs text-slate-500">Topic:</span>
             <span className="text-xs text-cyan-400 font-mono bg-slate-800 px-2 py-0.5 rounded">
