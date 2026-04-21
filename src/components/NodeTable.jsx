@@ -1,4 +1,5 @@
-import { Cpu, Radio, Battery, MapPin, Clock, Wifi } from 'lucide-react';
+import { useState } from 'react';
+import { Cpu, Radio, Battery, MapPin, Clock, Wifi, ChevronUp, ChevronDown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 
@@ -24,7 +25,68 @@ function BatteryIcon({ level }) {
   );
 }
 
+const COLUMNS = [
+  { key: 'long_name', label: 'Node' },
+  { key: 'short_name', label: 'Kurzname' },
+  { key: 'hw_model', label: 'Hardware' },
+  { key: 'battery_level', label: 'Batterie' },
+  { key: 'snr', label: 'SNR' },
+  { key: 'latitude', label: 'Position' },
+  { key: 'uptime_seconds', label: 'Uptime' },
+  { key: 'last_heard', label: 'Zuletzt gehört' },
+];
+
+function SortIcon({ column, sortKey, sortDir }) {
+  if (column !== sortKey) return <ChevronUp className="w-3 h-3 opacity-0 group-hover:opacity-30" />;
+  return sortDir === 'asc'
+    ? <ChevronUp className="w-3 h-3 text-cyan-400" />
+    : <ChevronDown className="w-3 h-3 text-cyan-400" />;
+}
+
+function getValue(node, key) {
+  const v = node[key];
+  if (v === null || v === undefined) return null;
+  return v;
+}
+
+function compareNodes(a, b, key, dir) {
+  let aVal = getValue(a, key);
+  let bVal = getValue(b, key);
+
+  // For 'long_name' column, fall back to node_id
+  if (key === 'long_name') {
+    aVal = (a.long_name || a.node_id || '').toLowerCase();
+    bVal = (b.long_name || b.node_id || '').toLowerCase();
+  }
+
+  // Nulls always last
+  if (aVal === null && bVal === null) return 0;
+  if (aVal === null) return 1;
+  if (bVal === null) return -1;
+
+  if (typeof aVal === 'string') {
+    aVal = aVal.toLowerCase();
+    bVal = (bVal || '').toString().toLowerCase();
+  }
+
+  if (aVal < bVal) return dir === 'asc' ? -1 : 1;
+  if (aVal > bVal) return dir === 'asc' ? 1 : -1;
+  return 0;
+}
+
 export default function NodeTable({ nodes }) {
+  const [sortKey, setSortKey] = useState('last_heard');
+  const [sortDir, setSortDir] = useState('desc');
+
+  const handleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'last_heard' || key === 'battery_level' || key === 'snr' || key === 'uptime_seconds' ? 'desc' : 'asc');
+    }
+  };
+
   if (!nodes || nodes.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-slate-600">
@@ -35,23 +97,29 @@ export default function NodeTable({ nodes }) {
     );
   }
 
+  const sorted = [...nodes].sort((a, b) => compareNodes(a, b, sortKey, sortDir));
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-800 text-xs text-slate-500 uppercase tracking-wider">
-            <th className="text-left py-3 px-3">Node</th>
-            <th className="text-left py-3 px-3">Kurzname</th>
-            <th className="text-left py-3 px-3">Hardware</th>
-            <th className="text-left py-3 px-3">Batterie</th>
-            <th className="text-left py-3 px-3">SNR</th>
-            <th className="text-left py-3 px-3">Position</th>
-            <th className="text-left py-3 px-3">Uptime</th>
-            <th className="text-left py-3 px-3">Zuletzt gehört</th>
+            {COLUMNS.map(col => (
+              <th
+                key={col.key}
+                onClick={() => handleSort(col.key)}
+                className="text-left py-3 px-3 cursor-pointer select-none hover:text-slate-300 transition-colors group"
+              >
+                <span className="flex items-center gap-1">
+                  {col.label}
+                  <SortIcon column={col.key} sortKey={sortKey} sortDir={sortDir} />
+                </span>
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {nodes.map((node) => (
+          {sorted.map((node) => (
             <tr key={node.id} className="border-b border-slate-800/50 hover:bg-slate-900/50 transition-colors">
               <td className="py-2.5 px-3">
                 <div className="flex items-center gap-2">
