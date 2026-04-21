@@ -126,7 +126,7 @@ export default function Dashboard() {
               <Settings className="w-4 h-4" />
             </button>
             <button
-              onClick={fetchMessages}
+              onClick={() => { fetchMessages(); autoPoll(); }}
               className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
               title="Aktualisieren"
             >
