@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { text, channel, toNode, mode } = body;
+    const { text, channel, toNode, mode, hop_limit, want_ack } = body;
 
     if (!text) {
       return Response.json({ error: 'text is required' }, { status: 400 });
@@ -33,8 +33,14 @@ Deno.serve(async (req) => {
       topic = `msh/EU_868/proxy/send/group/${channelNum}`;
     }
 
-    // Payload is plain text, no JSON wrapping
-    const payloadStr = text;
+    // JSON payload with text, channel, hop_limit, want_ack
+    const payload = {
+      text,
+      channel: channelNum,
+      hop_limit: hop_limit !== undefined ? hop_limit : 3,
+      want_ack: want_ack !== undefined ? want_ack : true,
+    };
+    const payloadStr = JSON.stringify(payload);
 
     await new Promise((resolve, reject) => {
       const clientOpts = { clientId: `mesh_bridge_${Date.now()}` };
