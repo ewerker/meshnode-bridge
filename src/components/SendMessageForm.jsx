@@ -62,9 +62,15 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
         want_ack: wantAck,
       });
       const ref = res.data.client_ref;
-      setFeedback({ type: 'success', msg: `Gesendet (${ref}) — warte auf ACK…` });
       setText('');
       onMessageSent?.();
+
+      if (!ref) {
+        setFeedback({ type: 'success', msg: `Gesendet (ohne ACK)` });
+        return;
+      }
+
+      setFeedback({ type: 'success', msg: `Gesendet (${ref}) — warte auf ACK…` });
 
       // Poll for ACK in background (up to ~70s)
       base44.functions.invoke('mqttAckPoll', { client_ref: ref }).then((ackRes) => {
