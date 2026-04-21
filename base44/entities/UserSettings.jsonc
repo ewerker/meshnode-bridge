@@ -10,6 +10,13 @@
       "type": "string",
       "description": "Eigene Node-ID z.B. !abc1234"
     },
+    "node_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Liste aller eigenen Node-IDs"
+    },
     "default_channel": {
       "type": "integer",
       "description": "Standard-Kanal 0-9"

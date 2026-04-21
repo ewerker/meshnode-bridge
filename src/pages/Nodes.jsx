@@ -10,6 +10,7 @@ export default function Nodes() {
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
   const [userSettings, setUserSettings] = useState(null);
+  const [selectedNode, setSelectedNode] = useState('');
 
   const fetchNodes = useCallback(async () => {
     const data = await base44.entities.MeshNode.list('-last_heard', 500);
@@ -28,10 +29,12 @@ export default function Nodes() {
     if (list.length > 0) setUserSettings(list[0]);
   };
 
+  const nodeIds = userSettings?.node_ids || [];
+
   const handlePollNodes = async () => {
-    const fromNode = userSettings?.from_node;
+    const fromNode = selectedNode || nodeIds[0];
     if (!fromNode) {
-      setResult({ type: 'error', msg: 'Bitte zuerst eigene Node-ID in den Einstellungen setzen.' });
+      setResult({ type: 'error', msg: 'Bitte zuerst Node-IDs in den Einstellungen hinzufügen.' });
       return;
     }
     setPolling(true);
@@ -64,9 +67,18 @@ export default function Nodes() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {nodeIds.length > 0 && (
+              <select
+                value={selectedNode || nodeIds[0]}
+                onChange={(e) => setSelectedNode(e.target.value)}
+                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
+              >
+                {nodeIds.map(id => <option key={id} value={id}>{id}</option>)}
+              </select>
+            )}
             <button
               onClick={handlePollNodes}
-              disabled={polling}
+              disabled={polling || nodeIds.length === 0}
               className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
             >
               {polling ? (
