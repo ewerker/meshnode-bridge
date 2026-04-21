@@ -28,10 +28,9 @@ Deno.serve(async (req) => {
     const regionStr = region || user.region || 'EU_868';
     // Build topics from user's configured prefix
     const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
-    const groupTopic = `${prefix}/rx/${nodeId}/scope/group`;
-    const directTopic = `${prefix}/rx/${nodeId}/scope/dm`;
+    const wildcardTopic = `${prefix}/rx/${nodeId}/#`;
     console.log('[MQTT] params:', { region, listenSeconds, nodeId });
-    console.log('[MQTT] subscribing to topics:', groupTopic, directTopic);
+    console.log('[MQTT] subscribing to wildcard topic:', wildcardTopic);
 
     const messages = await new Promise((resolve, reject) => {
       const collected = [];
@@ -78,9 +77,8 @@ Deno.serve(async (req) => {
 
       client.on('connect', (connack) => {
         console.log('[MQTT] connected, connack:', JSON.stringify(connack));
-        const topics = [groupTopic, directTopic];
-        console.log('[MQTT] subscribing to:', topics);
-        client.subscribe(topics, { qos: 1 }, (err, granted) => {
+        console.log('[MQTT] subscribing to:', wildcardTopic);
+        client.subscribe(wildcardTopic, { qos: 1 }, (err, granted) => {
           if (err) {
             console.log('[MQTT] subscribe error:', err.message);
             clearTimeout(timer);

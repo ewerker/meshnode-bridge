@@ -47,7 +47,7 @@ export default function PollPanel({ onReceived, userSettings }) {
     }
   };
 
-  const topic = nodeId ? `${prefix}/rx/${nodeId}/scope/group + /dm` : '—';
+  const topic = nodeId ? `${prefix}/rx/${nodeId}/#` : '—';
   const listenLabel = LISTEN_OPTIONS.find(o => o.seconds === listenSeconds)?.label || `${listenSeconds}s`;
 
   return (
