@@ -34,54 +34,65 @@ Deno.serve(async (req) => {
 
     const messages = await new Promise((resolve, reject) => {
       const collected = [];
-      const clientOpts = { clientId: `mesh_poll_${Date.now()}` };
+      const clientOpts = {
+        clientId: `mesh_poll_${Date.now()}`,
+        connectTimeout: 10000,
+        clean: true,
+        protocolVersion: 4,
+      };
       if (username) clientOpts.username = username;
       if (password) clientOpts.password = password;
-      clientOpts.connectTimeout = 10000;
 
+      console.log('[MQTT] connecting to:', brokerUrl);
       const client = mqtt.connect(brokerUrl, clientOpts);
 
+      let finished = false;
       const done = () => {
+        if (finished) return;
+        finished = true;
+        console.log('[MQTT] done, collected:', collected.length, 'messages');
         client.end(true);
         resolve(collected);
       };
 
       const timer = setTimeout(done, listenTime + 10000);
 
-      client.on('connect', () => {
-        console.log('[MQTT] connected, subscribing...');
-        client.subscribe([groupTopic, directTopic], { qos: 1 }, (err) => {
+      // Register message handler BEFORE connect to not miss any messages
+      client.on('message', (t, msgBuf) => {
+        console.log('[MQTT] >>> message event on topic:', t);
+        try {
+          const raw = msgBuf.toString();
+          console.log('[MQTT] raw payload:', raw.substring(0, 500));
+          const parsed = JSON.parse(raw);
+          const text = parsed.text || '';
+          console.log('[MQTT] text:', text, '| from:', parsed.from_id, '| scope:', parsed.scope, '| portnum:', parsed.portnum);
+          if (text && parsed.portnum === 'TEXT_MESSAGE_APP') {
+            collected.push({ topic: t, payload: parsed, receivedAt: new Date().toISOString() });
+            console.log('[MQTT] collected total:', collected.length);
+          }
+        } catch (e) {
+          console.log('[MQTT] parse error:', e.message, '| raw:', msgBuf.toString().substring(0, 200));
+        }
+      });
+
+      client.on('connect', (connack) => {
+        console.log('[MQTT] connected, connack:', JSON.stringify(connack));
+        const topics = [groupTopic, directTopic];
+        console.log('[MQTT] subscribing to:', topics);
+        client.subscribe(topics, { qos: 1 }, (err, granted) => {
           if (err) {
             console.log('[MQTT] subscribe error:', err.message);
             clearTimeout(timer);
             client.end(true);
             reject(err);
           } else {
-            console.log('[MQTT] subscribed, listening...');
+            console.log('[MQTT] subscribe granted:', JSON.stringify(granted));
             setTimeout(() => {
               clearTimeout(timer);
               done();
             }, listenTime);
           }
         });
-      });
-
-      client.on('message', (t, msgBuf) => {
-        console.log('[MQTT] message event fired');
-        try {
-          const raw = msgBuf.toString();
-          console.log('[MQTT] msg:', t, raw.substring(0, 500));
-          const parsed = JSON.parse(raw);
-          // Proxy format: flat object with text, from_id, scope, packet_id, etc.
-          const text = parsed.text || '';
-          console.log('[MQTT] parsed text:', text, '| from:', parsed.from_id, '| scope:', parsed.scope);
-          if (text && parsed.portnum === 'TEXT_MESSAGE_APP') {
-            collected.push({ topic: t, payload: parsed, receivedAt: new Date().toISOString() });
-            console.log('[MQTT] added to collected, total:', collected.length);
-          }
-        } catch (e) {
-          console.log('[MQTT] parse error:', e.message);
-        }
       });
 
       client.on('error', (err) => {
@@ -91,9 +102,10 @@ Deno.serve(async (req) => {
         reject(err);
       });
 
-      client.on('offline', () => {
-        console.log('[MQTT] client offline');
-      });
+      client.on('offline', () => console.log('[MQTT] client offline'));
+      client.on('reconnect', () => console.log('[MQTT] reconnecting...'));
+      client.on('close', () => console.log('[MQTT] connection closed'));
+      client.on('disconnect', () => console.log('[MQTT] disconnected by broker'));
     });
 
     // Save received messages to DB (skip duplicates by packet_id)
