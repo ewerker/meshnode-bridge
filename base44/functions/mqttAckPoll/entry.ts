@@ -31,6 +31,16 @@ Deno.serve(async (req) => {
 
     const messages = await new Promise((resolve, reject) => {
       const collected = [];
+      let done = false;
+
+      const finish = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        try { client.end(true); } catch (_) { /* ignore */ }
+        resolve(collected);
+      };
+
       const clientOpts = {
         clientId: `mesh_ack_${Date.now()}`,
         connectTimeout: 10000,
@@ -41,18 +51,21 @@ Deno.serve(async (req) => {
       const client = mqtt.connect(brokerUrl, clientOpts);
 
       const timer = setTimeout(() => {
-        console.log('[ACK] listen time expired, closing');
-        client.end(true);
-        resolve(collected);
+        console.log('[ACK] listen time expired, collected', collected.length, 'messages');
+        finish();
       }, LISTEN_MS);
 
       client.on('connect', () => {
         console.log('[ACK] connected, subscribing to', ackTopic);
         client.subscribe(ackTopic, { qos: 1 }, (err) => {
           if (err) {
+            console.log('[ACK] subscribe error:', err.message);
+            done = true;
             clearTimeout(timer);
-            client.end(true);
+            try { client.end(true); } catch (_) { /* ignore */ }
             reject(err);
+          } else {
+            console.log('[ACK] subscribed successfully, waiting for messages...');
           }
         });
       });
@@ -60,26 +73,26 @@ Deno.serve(async (req) => {
       client.on('message', (t, msgBuf) => {
         try {
           const raw = msgBuf.toString();
-          console.log('[ACK] received:', raw.substring(0, 500));
+          console.log('[ACK] message on', t, ':', raw.substring(0, 500));
           const parsed = JSON.parse(raw);
           collected.push(parsed);
+          console.log('[ACK] status:', parsed.status, '| collected:', collected.length);
 
-          // If we get a final status (ack or nak), we can stop early
+          // If we get a final status (ack or nak), stop early
           if (parsed.status === 'ack' || parsed.status === 'nak') {
             console.log('[ACK] final status received:', parsed.status);
-            clearTimeout(timer);
-            client.end(true);
-            resolve(collected);
+            finish();
           }
         } catch (e) {
-          console.log('[ACK] parse error:', e.message);
+          console.log('[ACK] parse error:', e.message, '| raw:', msgBuf.toString().substring(0, 200));
         }
       });
 
       client.on('error', (err) => {
-        console.log('[ACK] error:', err.message);
+        console.log('[ACK] client error:', err.message);
+        done = true;
         clearTimeout(timer);
-        client.end(true);
+        try { client.end(true); } catch (_) { /* ignore */ }
         reject(err);
       });
     });
