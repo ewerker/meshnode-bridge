@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Radio, RefreshCw, Activity, Layers, Cpu, Settings } from 'lucide-react';
 import SettingsPanel from '@/components/SettingsPanel';
@@ -20,12 +20,16 @@ export default function Dashboard() {
     setLoading(false);
   }, []);
 
+  const pollingRef = useRef(false);
+
   const autoPoll = useCallback(async () => {
-    if (!currentUser?.node_id) return;
+    if (!currentUser?.node_id || pollingRef.current) return;
+    pollingRef.current = true;
     try {
       await base44.functions.invoke('mqttPoll', { region: currentUser.region || 'EU_868', listenSeconds: 10 });
       fetchMessages();
     } catch (_) { /* silent */ }
+    finally { pollingRef.current = false; }
   }, [currentUser, fetchMessages]);
 
   const sortMessages = (msgs) => {
