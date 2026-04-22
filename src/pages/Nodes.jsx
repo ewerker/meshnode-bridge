@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, RefreshCw, Download, Cpu } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Download, Cpu, BarChart3, List } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NodeTable from '@/components/NodeTable';
+import NodeStats from '@/components/nodes/NodeStats';
 import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Nodes() {
@@ -12,6 +13,7 @@ export default function Nodes() {
   const [result, setResult] = useState(null);
   const [logLines, setLogLines] = useState([]);
   const [user, setUser] = useState(null);
+  const [view, setView] = useState('table');
   const fetchNodes = useCallback(async () => {
     const data = await base44.entities.MeshNode.list('-last_heard', 500);
     setNodes(data);
@@ -73,6 +75,26 @@ export default function Nodes() {
                 {user.node_id}
               </span>
             )}
+            <div className="flex bg-secondary rounded-lg p-0.5">
+              <button
+                onClick={() => setView('table')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  view === 'table' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <List className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Table</span>
+              </button>
+              <button
+                onClick={() => setView('stats')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  view === 'stats' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Stats</span>
+              </button>
+            </div>
             <button
               onClick={handlePollNodes}
               disabled={polling || !user?.node_id}
@@ -123,6 +145,8 @@ export default function Nodes() {
           <div className="flex justify-center py-12">
             <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
           </div>
+        ) : view === 'stats' ? (
+          <NodeStats nodes={nodes} />
         ) : (
           <NodeTable nodes={nodes} />
         )}
