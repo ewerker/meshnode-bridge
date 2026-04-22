@@ -29,8 +29,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'MQTT_BROKER_URL not configured' }, { status: 500 });
     }
 
-    // Listen for 4.5 minutes (to fit within 5-min schedule with margin)
-    const listenTime = 270000;
+    // Listen for 2.5 minutes (must finish within 3-min platform timeout)
+    const listenTime = 150000;
 
     console.log('[MQTT-AUTO] subscribing to:', wildcardTopic);
 
