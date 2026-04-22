@@ -203,7 +203,7 @@ export default function Dashboard() {
               <div className="w-6 h-6 border-2 border-slate-700 border-t-cyan-500 rounded-full animate-spin" />
             </div>
           ) : (
-            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} />
+            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} />
           )}
         </section>
         </>

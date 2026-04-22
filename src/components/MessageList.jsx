@@ -1,7 +1,14 @@
 import { ArrowUpRight, ArrowDownLeft, Radio, Trash2, Wifi } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
-export default function MessageList({ messages, onDelete }) {
+export default function MessageList({ messages, onDelete, channels }) {
+  const getChannelName = (ch) => {
+    if (!channels || !ch) return null;
+    const num = parseInt(ch);
+    if (isNaN(num)) return null;
+    const found = channels.find(c => c.number === num);
+    return found?.name || null;
+  };
   if (!messages || messages.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-slate-600">
@@ -63,7 +70,7 @@ export default function MessageList({ messages, onDelete }) {
                 <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                   msg.direction === 'outbound' ? 'bg-cyan-900/50 text-cyan-400' : 'bg-emerald-900/50 text-emerald-400'
                 }`}>
-                  Channel {msg.channel}
+                  {getChannelName(msg.channel) ? `${getChannelName(msg.channel)} (${msg.channel})` : `Channel ${msg.channel}`}
                 </span>
               )}
               {msg.direction === 'outbound' && msg.status && (
