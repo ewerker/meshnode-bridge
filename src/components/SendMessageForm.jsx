@@ -63,7 +63,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
         hop_limit: hopLimit,
         want_ack: wantAck,
       });
-      const ref = res.data.client_ref;
+      const { client_ref: ref, final_status } = res.data;
       setText('');
       onMessageSent?.();
 
@@ -72,24 +72,15 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
         return;
       }
 
-      setFeedback({ type: 'success', msg: `Sent (${ref}) — waiting for ACK…` });
-
-      // Poll for ACK in background (up to ~70s)
-      base44.functions.invoke('mqttAckPoll', { client_ref: ref }).then((ackRes) => {
-        const status = ackRes.data.final_status;
-        if (status === 'acked') {
-          setFeedback({ type: 'success', msg: `✅ ACK received (${ref})` });
-        } else if (status === 'implicit_ack') {
-          setFeedback({ type: 'success', msg: `⚡ Implicit ACK (${ref})` });
-        } else if (status === 'failed') {
-          setFeedback({ type: 'error', msg: `❌ NAK received (${ref})` });
-        } else {
-          setFeedback({ type: 'success', msg: `⏱ No ACK within 60s (${ref})` });
-        }
-        onMessageSent?.();
-      }).catch(() => {
-        // silently ignore ack poll errors
-      });
+      if (final_status === 'acked') {
+        setFeedback({ type: 'success', msg: `✅ ACK received (${ref})` });
+      } else if (final_status === 'implicit_ack') {
+        setFeedback({ type: 'success', msg: `⚡ Implicit ACK (${ref})` });
+      } else if (final_status === 'failed') {
+        setFeedback({ type: 'error', msg: `❌ NAK received (${ref})` });
+      } else {
+        setFeedback({ type: 'success', msg: `⏱ No ACK within timeout (${ref})` });
+      }
     } catch (err) {
       setFeedback({ type: 'error', msg: err.message || 'Error sending message' });
     } finally {
