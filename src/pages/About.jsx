@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-10">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Link to="/" className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors">
-            <ArrowLeft className="w-4 h-4 text-slate-400" />
+          <Link to="/" className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
+            <ArrowLeft className="w-4 h-4 text-muted-foreground" />
           </Link>
           <div className="w-9 h-9 rounded-xl bg-cyan-600/20 border border-cyan-600/40 flex items-center justify-center">
             <Radio className="w-5 h-5 text-cyan-400" />
@@ -20,9 +20,9 @@ export default function About() {
         {/* Intro */}
         <section>
           <h2 className="text-xl font-bold text-white mb-3">What is this?</h2>
-          <p className="text-slate-400 leading-relaxed">
-            This is a <span className="text-cyan-400 font-medium">web-based MQTT bridge</span> for the 
-            <a href="https://meshtastic.org" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline ml-1">Meshtastic</a> mesh network. 
+          <p className="text-muted-foreground leading-relaxed">
+            This is a <span className="text-primary font-medium">web-based MQTT bridge</span> for the 
+            <a href="https://meshtastic.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">Meshtastic</a> mesh network. 
             It allows you to send and receive text messages to and from the Meshtastic radio mesh — directly from your browser, 
             without needing a physical Meshtastic device connected to your computer.
           </p>
@@ -31,12 +31,12 @@ export default function About() {
         {/* How it works */}
         <section>
           <h2 className="text-xl font-bold text-white mb-3">How does it work?</h2>
-          <p className="text-slate-400 leading-relaxed mb-4">
+          <p className="text-muted-foreground leading-relaxed mb-4">
             Meshtastic nodes with MQTT uplink enabled publish messages to an MQTT broker. 
             This app connects to that same broker to read and write messages — acting as a virtual node on the mesh.
           </p>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 font-mono text-sm text-center text-slate-400">
-            <span className="text-cyan-400">Browser</span>
+          <div className="bg-card border border-border rounded-xl p-4 font-mono text-sm text-center text-muted-foreground">
+            <span className="text-primary">Browser</span>
             <span className="mx-2">↔</span>
             <span className="text-emerald-400">MQTT Broker</span>
             <span className="mx-2">↔</span>
@@ -62,11 +62,11 @@ export default function About() {
         {/* Setup */}
         <section>
           <h2 className="text-xl font-bold text-white mb-3">Quick Setup</h2>
-          <ol className="list-decimal list-inside space-y-2 text-slate-400">
-            <li>Open <span className="text-cyan-400">Settings</span> (gear icon in the header).</li>
-            <li>Enter your <span className="text-cyan-400">Node ID</span> (e.g. <code className="text-xs bg-slate-800 px-1.5 py-0.5 rounded font-mono">!49b65bc8</code>).</li>
-            <li>Set the correct <span className="text-cyan-400">Region</span> matching your Meshtastic config.</li>
-            <li>Optionally customize the <span className="text-cyan-400">Topic Prefix</span> if your broker uses a non-standard path.</li>
+          <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
+            <li>Open <span className="text-primary">Settings</span> (gear icon in the header).</li>
+            <li>Enter your <span className="text-primary">Node ID</span> (e.g. <code className="text-xs bg-secondary px-1.5 py-0.5 rounded font-mono">!49b65bc8</code>).</li>
+            <li>Set the correct <span className="text-primary">Region</span> matching your Meshtastic config.</li>
+            <li>Optionally customize the <span className="text-primary">Topic Prefix</span> if your broker uses a non-standard path.</li>
             <li>Save — you're ready to send and receive messages.</li>
           </ol>
         </section>
@@ -74,13 +74,13 @@ export default function About() {
         {/* MQTT Proxy */}
         <section>
           <h2 className="text-xl font-bold text-white mb-3">MQTT Proxy</h2>
-          <div className="bg-slate-900 border border-yellow-800/50 rounded-xl p-4">
-            <p className="text-slate-400 leading-relaxed mb-3">
+          <div className="bg-card border border-yellow-800/50 rounded-xl p-4">
+            <p className="text-muted-foreground leading-relaxed mb-3">
               <span className="text-yellow-400 font-semibold">Important:</span> This app uses a data format tailored to the 
-              <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline mx-1 font-medium">ewerker/mqtt-proxy</a>. 
+              <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline mx-1 font-medium">ewerker/mqtt-proxy</a>. 
               The proxy translates between Meshtastic's native Protobuf-encoded MQTT messages and a JSON format that this web app can work with.
             </p>
-            <p className="text-slate-400 leading-relaxed mb-3">
+            <p className="text-muted-foreground leading-relaxed mb-3">
               You need to install and run the MQTT proxy locally (or on a server) before using this dashboard. 
               It connects to the same MQTT broker as your Meshtastic gateway nodes and provides the JSON topics this app subscribes to.
             </p>
@@ -88,7 +88,7 @@ export default function About() {
               href="https://github.com/ewerker/mqtt-proxy"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sm text-cyan-400 font-medium transition-colors"
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-secondary hover:bg-secondary/80 border border-border rounded-lg text-sm text-primary font-medium transition-colors"
             >
               → GitHub: ewerker/mqtt-proxy
             </a>
@@ -98,16 +98,16 @@ export default function About() {
         {/* Requirements */}
         <section>
           <h2 className="text-xl font-bold text-white mb-3">Requirements</h2>
-          <ul className="list-disc list-inside space-y-1.5 text-slate-400">
-            <li>The <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">ewerker/mqtt-proxy</a> running locally or on a server.</li>
-            <li>At least one Meshtastic node with <span className="text-cyan-400">MQTT uplink</span> enabled (acting as gateway).</li>
+          <ul className="list-disc list-inside space-y-1.5 text-muted-foreground">
+            <li>The <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">ewerker/mqtt-proxy</a> running locally or on a server.</li>
+            <li>At least one Meshtastic node with <span className="text-primary">MQTT uplink</span> enabled (acting as gateway).</li>
             <li>Access to the MQTT broker that gateway publishes to.</li>
             <li>The broker credentials are configured by the app administrator.</li>
           </ul>
         </section>
         {/* Footer link */}
-        <div className="pt-4 border-t border-slate-800 text-center">
-          <Link to="/imprint" className="text-xs text-slate-600 hover:text-cyan-400 transition-colors">
+        <div className="pt-4 border-t border-border text-center">
+          <Link to="/imprint" className="text-xs text-muted-foreground hover:text-primary transition-colors">
             Imprint & Disclaimer
           </Link>
         </div>
@@ -118,13 +118,13 @@ export default function About() {
 
 function Feature({ icon: Icon, color, title, description }) {
   return (
-    <div className="flex items-start gap-3 bg-slate-900 border border-slate-800 rounded-xl p-3.5">
-      <div className="p-2 rounded-lg bg-slate-800 mt-0.5">
+    <div className="flex items-start gap-3 bg-card border border-border rounded-xl p-3.5">
+    <div className="p-2 rounded-lg bg-secondary mt-0.5">
         <Icon className={`w-4 h-4 ${color}`} />
       </div>
       <div>
-        <h3 className="text-sm font-semibold text-slate-200">{title}</h3>
-        <p className="text-xs text-slate-500 mt-0.5">{description}</p>
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
       </div>
     </div>
   );

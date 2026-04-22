@@ -54,18 +54,18 @@ export default function PollPanel({ onReceived, userSettings }) {
     <div className="space-y-3">
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 whitespace-nowrap">Topic:</span>
-          <span className="text-xs text-cyan-400 font-mono bg-slate-800 px-2 py-0.5 rounded">{topic}</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">Topic:</span>
+          <span className="text-xs text-primary font-mono bg-secondary px-2 py-0.5 rounded">{topic}</span>
         </div>
       </div>
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 whitespace-nowrap">Listen time:</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">Listen time:</span>
           <select
             value={listenSeconds}
             onChange={e => handleListenChange(e.target.value)}
             disabled={polling}
-            className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+            className="bg-secondary border border-border rounded px-2 py-1 text-sm text-foreground focus:outline-none focus:border-primary"
           >
             {LISTEN_OPTIONS.map(o => <option key={o.seconds} value={o.seconds}>{o.label}</option>)}
           </select>
@@ -73,11 +73,11 @@ export default function PollPanel({ onReceived, userSettings }) {
         <button
           onClick={handlePoll}
           disabled={polling || !nodeId}
-          className="flex items-center gap-2 px-4 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-1.5 bg-secondary hover:bg-secondary/80 disabled:opacity-50 text-foreground rounded-lg text-sm font-medium transition-colors"
         >
           {polling ? (
             <>
-              <Wifi className="w-4 h-4 text-cyan-400 animate-pulse" />
+              <Wifi className="w-4 h-4 text-primary animate-pulse" />
               <span>Listening… ({listenLabel})</span>
             </>
           ) : (
@@ -88,7 +88,7 @@ export default function PollPanel({ onReceived, userSettings }) {
           )}
         </button>
         {result && (
-          <span className={`text-xs ${result.type === 'success' ? 'text-cyan-400' : 'text-red-400'}`}>
+          <span className={`text-xs ${result.type === 'success' ? 'text-primary' : 'text-destructive'}`}>
             {result.msg}
           </span>
         )}

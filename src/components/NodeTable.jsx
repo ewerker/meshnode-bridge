@@ -14,7 +14,7 @@ function formatUptime(seconds) {
 }
 
 function BatteryIcon({ level }) {
-  if (level === null || level === undefined) return <span className="text-slate-600">—</span>;
+  if (level === null || level === undefined) return <span className="text-muted-foreground">—</span>;
   const color = level > 75 ? 'text-emerald-400' : level > 30 ? 'text-yellow-400' : 'text-red-400';
   return (
     <span className={`flex items-center gap-1 ${color}`}>
@@ -38,8 +38,8 @@ const COLUMNS = [
 function SortIcon({ column, sortKey, sortDir }) {
   if (column !== sortKey) return <ChevronUp className="w-3 h-3 opacity-0 group-hover:opacity-30" />;
   return sortDir === 'asc'
-    ? <ChevronUp className="w-3 h-3 text-cyan-400" />
-    : <ChevronDown className="w-3 h-3 text-cyan-400" />;
+    ? <ChevronUp className="w-3 h-3 text-primary" />
+    : <ChevronDown className="w-3 h-3 text-primary" />;
 }
 
 function getValue(node, key) {
@@ -88,7 +88,7 @@ export default function NodeTable({ nodes }) {
 
   if (!nodes || nodes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-slate-600">
+      <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
         <Cpu className="w-12 h-12 mb-3 opacity-30" />
         <p className="text-sm">No nodes known</p>
         <p className="text-xs mt-1 opacity-60">Click "Fetch Nodes" to retrieve nodes from the mesh</p>
@@ -102,12 +102,12 @@ export default function NodeTable({ nodes }) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-800 text-xs text-slate-500 uppercase tracking-wider">
+          <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wider">
             {COLUMNS.map(col => (
               <th
                 key={col.key}
                 onClick={() => handleSort(col.key)}
-                className="text-left py-3 px-3 cursor-pointer select-none hover:text-slate-300 transition-colors group"
+                className="text-left py-3 px-3 cursor-pointer select-none hover:text-foreground transition-colors group"
               >
                 <span className="flex items-center gap-1">
                   {col.label}
@@ -119,26 +119,26 @@ export default function NodeTable({ nodes }) {
         </thead>
         <tbody>
           {sorted.map((node) => (
-            <tr key={node.id} className="border-b border-slate-800/50 hover:bg-slate-900/50 transition-colors">
+            <tr key={node.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
               <td className="py-2.5 px-3">
                 <div className="flex items-center gap-2">
-                  {node.is_gateway && <Radio className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />}
+                  {node.is_gateway && <Radio className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
                   <div>
-                    <div className="text-slate-200 font-medium text-xs">{node.long_name || node.node_id}</div>
-                    <div className="text-slate-600 text-xs font-mono">{node.node_id}</div>
+                    <div className="text-foreground font-medium text-xs">{node.long_name || node.node_id}</div>
+                    <div className="text-muted-foreground text-xs font-mono">{node.node_id}</div>
                   </div>
                 </div>
               </td>
-              <td className="py-2.5 px-3 text-slate-400 text-xs">{node.short_name || '—'}</td>
+              <td className="py-2.5 px-3 text-muted-foreground text-xs">{node.short_name || '—'}</td>
               <td className="py-2.5 px-3">
-                <span className="text-xs px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
+                <span className="text-xs px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground">
                   {node.hw_model || '—'}
                 </span>
               </td>
               <td className="py-2.5 px-3 text-xs">
                 <BatteryIcon level={node.battery_level} />
               </td>
-              <td className="py-2.5 px-3 text-xs text-slate-400">
+              <td className="py-2.5 px-3 text-xs text-muted-foreground">
                 {node.snr !== null && node.snr !== undefined ? (
                   <span className="flex items-center gap-1">
                     <Wifi className="w-3 h-3" />
@@ -148,16 +148,16 @@ export default function NodeTable({ nodes }) {
               </td>
               <td className="py-2.5 px-3 text-xs">
                 {node.latitude && node.longitude ? (
-                  <span className="flex items-center gap-1 text-slate-400">
+                  <span className="flex items-center gap-1 text-muted-foreground">
                     <MapPin className="w-3 h-3" />
                     {node.latitude.toFixed(4)}, {node.longitude.toFixed(4)}
                   </span>
-                ) : <span className="text-slate-600">—</span>}
+                ) : <span className="text-muted-foreground">—</span>}
               </td>
-              <td className="py-2.5 px-3 text-xs text-slate-400">
+              <td className="py-2.5 px-3 text-xs text-muted-foreground">
                 {formatUptime(node.uptime_seconds)}
               </td>
-              <td className="py-2.5 px-3 text-xs text-slate-500">
+              <td className="py-2.5 px-3 text-xs text-muted-foreground">
                 {node.last_heard ? (
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />

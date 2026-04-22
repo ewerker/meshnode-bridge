@@ -5,7 +5,9 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* Dark theme (default) */
+  :root,
+  [data-theme="dark"] {
     --background: 222 47% 5%;
     --foreground: 210 40% 92%;
     --card: 222 47% 7%;
@@ -39,6 +41,43 @@
     --sidebar-accent-foreground: 210 40% 92%;
     --sidebar-border: 222 30% 16%;
     --sidebar-ring: 186 100% 42%;
+  }
+
+  /* Light theme */
+  [data-theme="light"] {
+    --background: 210 20% 96%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 186 100% 35%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 90%;
+    --secondary-foreground: 222 30% 30%;
+    --muted: 210 15% 92%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 186 60% 90%;
+    --accent-foreground: 186 100% 25%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 20% 85%;
+    --input: 214 20% 88%;
+    --ring: 186 100% 35%;
+    --chart-1: 186 100% 35%;
+    --chart-2: 160 60% 40%;
+    --chart-3: 30 80% 50%;
+    --chart-4: 280 65% 55%;
+    --chart-5: 340 75% 50%;
+    --radius: 0.75rem;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 186 100% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 92%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 20% 85%;
+    --sidebar-ring: 186 100% 35%;
   }
 
   .dark {

@@ -91,12 +91,12 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Mode Tabs */}
-      <div className="flex gap-1 bg-slate-800 rounded-lg p-1">
+      <div className="flex gap-1 bg-secondary rounded-lg p-1">
         <button
           type="button"
           onClick={() => switchMode('channel')}
           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-            mode === 'channel' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-slate-200'
+            mode === 'channel' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -106,7 +106,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
           type="button"
           onClick={() => switchMode('dm')}
           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-            mode === 'dm' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-slate-200'
+            mode === 'dm' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <User className="w-4 h-4" />
@@ -117,14 +117,14 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
       {/* Channel Mode */}
       {mode === 'channel' && (
         <div>
-          <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
+          <label className="block text-xs font-medium text-primary mb-1 uppercase tracking-wider">
             <Radio className="inline w-3 h-3 mr-1" />
             Group
           </label>
           <select
             value={channel}
             onChange={(e) => updateChannel(parseInt(e.target.value))}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+            className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
           >
             {CHANNELS.map(c => {
               const ch = (userSettings?.channels || []).find(x => x.number === c);
@@ -132,8 +132,8 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
             })}
           </select>
           <div className="mt-1.5 flex items-center gap-2">
-            <span className="text-xs text-slate-500">Topic:</span>
-            <span className="text-xs text-cyan-400 font-mono bg-slate-800 px-2 py-0.5 rounded">{topic}</span>
+            <span className="text-xs text-muted-foreground">Topic:</span>
+            <span className="text-xs text-primary font-mono bg-secondary px-2 py-0.5 rounded">{topic}</span>
           </div>
         </div>
       )}
@@ -141,13 +141,13 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
       {/* DM Mode */}
       {mode === 'dm' && (
         <div>
-          <label className="block text-xs font-medium text-cyan-400 mb-1 uppercase tracking-wider">
+          <label className="block text-xs font-medium text-primary mb-1 uppercase tracking-wider">
             Recipient
           </label>
           <NodePicker value={dmNodeId} onChange={setDmNodeId} />
           <div className="mt-1.5 flex items-center gap-2">
-            <span className="text-xs text-slate-500">Topic:</span>
-            <span className="text-xs text-cyan-400 font-mono bg-slate-800 px-2 py-0.5 rounded">
+            <span className="text-xs text-muted-foreground">Topic:</span>
+            <span className="text-xs text-primary font-mono bg-secondary px-2 py-0.5 rounded">
               {prefix}/send/direct/{dmNodeId || '…'}
             </span>
           </div>
@@ -157,11 +157,11 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
       {/* Hop Limit + Want Ack */}
       <div className="flex items-center gap-4 flex-wrap">
         <div className="flex items-center gap-2">
-          <label className="text-xs text-slate-500 whitespace-nowrap">Hop-Limit:</label>
+          <label className="text-xs text-muted-foreground whitespace-nowrap">Hop-Limit:</label>
           <select
             value={hopLimit}
             onChange={(e) => setHopLimit(parseInt(e.target.value))}
-            className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+            className="bg-secondary border border-border rounded px-2 py-1 text-sm text-foreground focus:outline-none focus:border-primary"
           >
             {[2, 3, 4, 5, 6, 7].map(h => (
               <option key={h} value={h}>{h}</option>
@@ -172,10 +172,10 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
           type="button"
           onClick={() => setWantAck(v => !v)}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            wantAck ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-600/40' : 'bg-slate-800 text-slate-500 border border-slate-700'
+            wantAck ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-secondary text-muted-foreground border border-border'
           }`}
         >
-          <span className={`inline-block w-2 h-2 rounded-full ${wantAck ? 'bg-cyan-400' : 'bg-slate-600'}`} />
+          <span className={`inline-block w-2 h-2 rounded-full ${wantAck ? 'bg-primary' : 'bg-muted-foreground'}`} />
           Acknowledge (ACK)
         </button>
       </div>
@@ -186,14 +186,14 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={3}
-          className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors resize-none"
+          className="flex-1 bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
           placeholder="Enter message..."
           required
         />
         <button
           type="submit"
           disabled={sending || !text.trim() || (mode === 'dm' && !dmNodeId.trim())}
-          className="px-5 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-1 min-w-[64px]"
+          className="px-5 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-1 min-w-[64px]"
         >
           {sending ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -207,7 +207,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
       </div>
 
       {feedback && (
-        <div className={`text-xs px-3 py-2 rounded-lg ${feedback.type === 'success' ? 'bg-cyan-900/40 text-cyan-300 border border-cyan-800' : 'bg-red-900/40 text-red-300 border border-red-800'}`}>
+        <div className={`text-xs px-3 py-2 rounded-lg ${feedback.type === 'success' ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-destructive/10 text-destructive border border-destructive/30'}`}>
           {feedback.msg}
         </div>
       )}

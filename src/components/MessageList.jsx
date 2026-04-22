@@ -11,7 +11,7 @@ export default function MessageList({ messages, onDelete, channels }) {
   };
   if (!messages || messages.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-slate-600">
+      <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
         <Radio className="w-12 h-12 mb-3 opacity-30" />
         <p className="text-sm">No messages</p>
         <p className="text-xs mt-1 opacity-60">Waiting for Meshtastic messages…</p>
@@ -93,24 +93,24 @@ export default function MessageList({ messages, onDelete, channels }) {
                 </button>
               )}
             </div>
-            <p className="text-sm text-slate-200 break-words">{msg.text}</p>
+            <p className="text-sm text-foreground break-words">{msg.text}</p>
             <div className="flex items-center gap-3 mt-1 flex-wrap">
               {(rxSnr !== undefined && rxSnr !== null) && (
-                <span className="text-xs text-slate-500 flex items-center gap-1">
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <Wifi className="w-3 h-3" /> SNR {rxSnr}
                 </span>
               )}
               {(rxRssi !== undefined && rxRssi !== null) && (
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-muted-foreground">
                   RSSI {rxRssi}
                 </span>
               )}
               {gatewayId && (
-                <span className="text-xs text-slate-600 font-mono">
+                <span className="text-xs text-muted-foreground font-mono">
                   GW {gatewayId}
                 </span>
               )}
-              <span className="text-xs text-slate-600">
+              <span className="text-xs text-muted-foreground">
                 {msg.meshtastic_timestamp
                   ? formatDistanceToNow(new Date(msg.meshtastic_timestamp * 1000), { addSuffix: true })
                   : msg.created_date && !isNaN(new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z').getTime())
