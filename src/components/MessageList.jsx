@@ -1,4 +1,4 @@
-import { ArrowUpRight, ArrowDownLeft, Radio, Trash2 } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Radio, Trash2, Wifi } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function MessageList({ messages, onDelete }) {
@@ -12,9 +12,21 @@ export default function MessageList({ messages, onDelete }) {
     );
   }
 
+  const parseRaw = (raw) => {
+    if (!raw) return {};
+    try { return JSON.parse(raw); } catch { return {}; }
+  };
+
   return (
     <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
-      {messages.map((msg) => (
+      {messages.map((msg) => {
+        const raw = parseRaw(msg.raw_payload);
+        const fromLabel = raw.from_label || '';
+        const rxSnr = raw.rx_snr;
+        const rxRssi = raw.rx_rssi;
+        const gatewayId = raw.gateway_id;
+
+        return (
         <div
           key={msg.id}
           className={`flex gap-3 p-3 rounded-xl border transition-all ${
@@ -29,14 +41,17 @@ export default function MessageList({ messages, onDelete }) {
               : <ArrowDownLeft className="w-5 h-5 text-emerald-300" />}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
               <span className={`text-xs font-semibold uppercase tracking-wider ${msg.direction === 'outbound' ? 'text-cyan-400' : 'text-emerald-400'}`}>
                 {msg.direction === 'outbound' ? '⬆ Sent' : '⬇ Received'}
               </span>
               <span className="text-slate-600">·</span>
-              {msg.direction === 'inbound' && msg.from_node && (
+              {msg.direction === 'inbound' && (fromLabel || msg.from_node) && (
                 <>
-                  <span className="text-xs font-mono text-slate-400">{msg.from_node}</span>
+                  <span className="text-xs text-slate-300 font-medium">{fromLabel || msg.from_node}</span>
+                  {fromLabel && msg.from_node && (
+                    <span className="text-xs font-mono text-slate-500">{msg.from_node}</span>
+                  )}
                   <span className="text-slate-600">·</span>
                 </>
               )}
@@ -72,19 +87,37 @@ export default function MessageList({ messages, onDelete }) {
               )}
             </div>
             <p className="text-sm text-slate-200 break-words">{msg.text}</p>
-            <p className="text-xs text-slate-600 mt-1">
-              {msg.meshtastic_timestamp
-                ? formatDistanceToNow(new Date(msg.meshtastic_timestamp * 1000), { addSuffix: true })
-                : msg.created_date && !isNaN(new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z').getTime())
-                ? formatDistanceToNow(
-                    new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z'),
-                    { addSuffix: true }
-                  )
-                : ''}
-            </p>
+            <div className="flex items-center gap-3 mt-1 flex-wrap">
+              {(rxSnr !== undefined && rxSnr !== null) && (
+                <span className="text-xs text-slate-500 flex items-center gap-1">
+                  <Wifi className="w-3 h-3" /> SNR {rxSnr}
+                </span>
+              )}
+              {(rxRssi !== undefined && rxRssi !== null) && (
+                <span className="text-xs text-slate-500">
+                  RSSI {rxRssi}
+                </span>
+              )}
+              {gatewayId && (
+                <span className="text-xs text-slate-600 font-mono">
+                  GW {gatewayId}
+                </span>
+              )}
+              <span className="text-xs text-slate-600">
+                {msg.meshtastic_timestamp
+                  ? formatDistanceToNow(new Date(msg.meshtastic_timestamp * 1000), { addSuffix: true })
+                  : msg.created_date && !isNaN(new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z').getTime())
+                  ? formatDistanceToNow(
+                      new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z'),
+                      { addSuffix: true }
+                    )
+                  : ''}
+              </span>
+            </div>
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
