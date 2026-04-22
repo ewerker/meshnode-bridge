@@ -1,10 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import * as mqtt from 'npm:mqtt@5.10.1';
 
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -87,17 +83,19 @@ Deno.serve(async (req) => {
     const nodes = data.nodes || [];
     console.log('[NODES] received', nodes.length, 'nodes');
 
-    let created = 0;
-    let updated = 0;
-    let errors = 0;
-    const log = [];
-    log.push(`${nodes.length} Nodes vom Broker empfangen.`);
+    // Load all existing nodes in one call
+    const existingNodes = await base44.asServiceRole.entities.MeshNode.list('-last_heard', 1000);
+    const existingMap = {};
+    for (const n of existingNodes) {
+      existingMap[n.node_id] = n;
+    }
+    console.log('[NODES] existing nodes in DB:', existingNodes.length);
 
-    // Process nodes in batches with delay to avoid rate limiting
-    const BATCH_DELAY_MS = 300;
+    const toCreate = [];
+    const toUpdate = [];
+    const log = [`${nodes.length} Nodes vom Broker empfangen.`];
 
-    for (let i = 0; i < nodes.length; i++) {
-      const node = nodes[i];
+    for (const node of nodes) {
       const record = {
         node_id: node.node_id,
         node_num: node.node_num,
@@ -117,38 +115,38 @@ Deno.serve(async (req) => {
         uptime_seconds: node.raw?.deviceMetrics?.uptimeSeconds || null,
       };
 
-      const label = node.long_name || node.short_name || node.node_id;
+      const existing = existingMap[node.node_id];
+      if (existing) {
+        toUpdate.push({ id: existing.id, record });
+      } else {
+        toCreate.push(record);
+      }
+    }
 
+    // Bulk create new nodes in batches of 25
+    let created = 0;
+    for (let i = 0; i < toCreate.length; i += 25) {
+      const batch = toCreate.slice(i, i + 25);
+      await base44.asServiceRole.entities.MeshNode.bulkCreate(batch);
+      created += batch.length;
+      console.log('[NODES] created batch:', batch.length, 'total:', created);
+    }
+
+    // Update existing nodes in sequence (no bulk update available)
+    let updated = 0;
+    let errors = 0;
+    for (const item of toUpdate) {
       try {
-        const existing = await base44.asServiceRole.entities.MeshNode.filter({ node_id: node.node_id });
-        
-        // Small delay between DB operations
-        await delay(BATCH_DELAY_MS);
-
-        if (existing.length > 0) {
-          await base44.asServiceRole.entities.MeshNode.update(existing[0].id, record);
-          updated++;
-          log.push(`✏️ ${label} aktualisiert`);
-        } else {
-          await base44.asServiceRole.entities.MeshNode.create(record);
-          created++;
-          log.push(`✅ ${label} neu angelegt`);
-        }
+        await base44.asServiceRole.entities.MeshNode.update(item.id, item.record);
+        updated++;
       } catch (err) {
         errors++;
-        log.push(`❌ ${label}: ${err.message}`);
-        console.log(`[NODES] error processing ${node.node_id}:`, err.message);
-        // Extra delay after error to back off
-        await delay(1000);
-      }
-
-      // Delay between each node
-      if (i < nodes.length - 1) {
-        await delay(BATCH_DELAY_MS);
+        console.log('[NODES] update error:', item.record.node_id, err.message);
       }
     }
 
     log.push(`Fertig: ${created} neu, ${updated} aktualisiert${errors > 0 ? `, ${errors} Fehler` : ''}.`);
+    console.log('[NODES] done:', created, 'created,', updated, 'updated,', errors, 'errors');
 
     return Response.json({ success: true, updated, created, errors, total: nodes.length, log });
   } catch (error) {
