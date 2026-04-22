@@ -23,17 +23,23 @@ export default function MessageList({ messages, onDelete }) {
               : 'bg-emerald-950/30 border-emerald-900/50'
           }`}
         >
-          <div className={`mt-0.5 p-1.5 rounded-lg ${msg.direction === 'outbound' ? 'bg-cyan-800/40' : 'bg-slate-700'}`}>
+          <div className={`mt-0.5 p-2 rounded-lg ${msg.direction === 'outbound' ? 'bg-cyan-600/30 border border-cyan-500/40' : 'bg-emerald-600/30 border border-emerald-500/40'}`}>
             {msg.direction === 'outbound'
-              ? <ArrowUpRight className="w-3.5 h-3.5 text-cyan-400" />
-              : <ArrowDownLeft className="w-3.5 h-3.5 text-emerald-400" />}
+              ? <ArrowUpRight className="w-5 h-5 text-cyan-300" />
+              : <ArrowDownLeft className="w-5 h-5 text-emerald-300" />}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-xs font-mono text-slate-400">
-                {msg.mqtt_topic ? msg.mqtt_topic.split('/')[1] : '—'}
+              <span className={`text-xs font-semibold uppercase tracking-wider ${msg.direction === 'outbound' ? 'text-cyan-400' : 'text-emerald-400'}`}>
+                {msg.direction === 'outbound' ? '⬆ Sent' : '⬇ Received'}
               </span>
               <span className="text-slate-600">·</span>
+              {msg.direction === 'inbound' && msg.from_node && (
+                <>
+                  <span className="text-xs font-mono text-slate-400">{msg.from_node}</span>
+                  <span className="text-slate-600">·</span>
+                </>
+              )}
               {msg.to_node && msg.to_node !== '^all' ? (
                 <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-purple-900/50 text-purple-400">
                   DM → {msg.to_node}
