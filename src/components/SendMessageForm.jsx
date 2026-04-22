@@ -172,7 +172,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
             onChange={(e) => setHopLimit(parseInt(e.target.value))}
             className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
           >
-            {[2, 3, 4, 5, 6, 7, 8].map(h => (
+            {[2, 3, 4, 5, 6, 7].map(h => (
               <option key={h} value={h}>{h}</option>
             ))}
           </select>
