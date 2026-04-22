@@ -14,8 +14,8 @@ function resolveTheme(preference) {
 }
 
 export function ThemeProvider({ children }) {
-  const [preference, setPreference] = useState(() => localStorage.getItem(LS_KEY) || 'auto');
-  const [resolved, setResolved] = useState(() => resolveTheme(localStorage.getItem(LS_KEY) || 'auto'));
+  const [preference, setPreference] = useState(() => localStorage.getItem(LS_KEY) || 'dark');
+  const [resolved, setResolved] = useState(() => resolveTheme(localStorage.getItem(LS_KEY) || 'dark'));
 
   useEffect(() => {
     const apply = () => setResolved(resolveTheme(preference));
