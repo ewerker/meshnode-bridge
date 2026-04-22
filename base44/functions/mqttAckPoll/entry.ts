@@ -22,8 +22,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'MQTT_BROKER_URL not configured' }, { status: 500 });
     }
 
-    // Subscribe to ACK topic: msh/EU_868/proxy/ack/{client_ref}
-    const ackTopic = `msh/EU_868/proxy/ack/${client_ref}`;
+    // Subscribe to ACK topic using user's configured prefix
+    const regionStr = user.region || 'EU_868';
+    const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
+    const ackTopic = `${prefix}/ack/${client_ref}`;
     console.log('[ACK] subscribing to:', ackTopic);
 
     const LISTEN_MS = 70000; // 70 seconds to allow for ~60s of ack window
