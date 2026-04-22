@@ -38,47 +38,47 @@ export default function MessageList({ messages, onDelete, channels }) {
           key={msg.id}
           className={`flex gap-3 p-3 rounded-xl border transition-all ${
             msg.direction === 'outbound'
-              ? 'bg-cyan-950/30 border-cyan-900/50'
-              : 'bg-emerald-950/30 border-emerald-900/50'
+              ? 'bg-primary/10 border-primary/30'
+              : 'bg-emerald-500/10 border-emerald-500/30'
           }`}
         >
-          <div className={`mt-0.5 p-2 rounded-lg ${msg.direction === 'outbound' ? 'bg-cyan-600/30 border border-cyan-500/40' : 'bg-emerald-600/30 border border-emerald-500/40'}`}>
+          <div className={`mt-0.5 p-2 rounded-lg ${msg.direction === 'outbound' ? 'bg-primary/20 border border-primary/40' : 'bg-emerald-500/20 border border-emerald-500/40'}`}>
             {msg.direction === 'outbound'
-              ? <ArrowUpRight className="w-5 h-5 text-cyan-300" />
-              : <ArrowDownLeft className="w-5 h-5 text-emerald-300" />}
+              ? <ArrowUpRight className="w-5 h-5 text-primary" />
+              : <ArrowDownLeft className="w-5 h-5 text-emerald-400" />}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <span className={`text-xs font-semibold uppercase tracking-wider ${msg.direction === 'outbound' ? 'text-cyan-400' : 'text-emerald-400'}`}>
+              <span className={`text-xs font-semibold uppercase tracking-wider ${msg.direction === 'outbound' ? 'text-primary' : 'text-emerald-400'}`}>
                 {msg.direction === 'outbound' ? '⬆ Sent' : '⬇ Received'}
               </span>
-              <span className="text-slate-600">·</span>
+              <span className="text-muted-foreground/60">·</span>
               {msg.direction === 'inbound' && (fromLabel || msg.from_node) && (
                 <>
-                  <span className="text-xs text-slate-300 font-medium">{fromLabel || msg.from_node}</span>
+                  <span className="text-xs text-foreground font-medium">{fromLabel || msg.from_node}</span>
                   {fromLabel && msg.from_node && (
-                    <span className="text-xs font-mono text-slate-500">{msg.from_node}</span>
+                    <span className="text-xs font-mono text-muted-foreground">{msg.from_node}</span>
                   )}
-                  <span className="text-slate-600">·</span>
+                  <span className="text-muted-foreground/60">·</span>
                 </>
               )}
               {msg.to_node && msg.to_node !== '^all' ? (
-                <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-purple-900/50 text-purple-400">
+                <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-purple-500/15 text-purple-400">
                   DM → {msg.to_node}
                 </span>
               ) : (
                 <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                  msg.direction === 'outbound' ? 'bg-cyan-900/50 text-cyan-400' : 'bg-emerald-900/50 text-emerald-400'
+                  msg.direction === 'outbound' ? 'bg-primary/15 text-primary' : 'bg-emerald-500/15 text-emerald-400'
                 }`}>
                   {getChannelName(msg.channel) ? `${getChannelName(msg.channel)} (${msg.channel})` : `Channel ${msg.channel}`}
                 </span>
               )}
               {msg.direction === 'outbound' && msg.status && (
                 <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                  msg.status === 'acked' ? 'bg-emerald-900/50 text-emerald-400' :
-                  msg.status === 'implicit_ack' ? 'bg-yellow-900/50 text-yellow-400' :
-                  msg.status === 'failed' ? 'bg-red-900/50 text-red-400' :
-                  'bg-slate-700 text-slate-400'
+                  msg.status === 'acked' ? 'bg-emerald-500/15 text-emerald-400' :
+                  msg.status === 'implicit_ack' ? 'bg-yellow-500/15 text-yellow-400' :
+                  msg.status === 'failed' ? 'bg-destructive/15 text-destructive' :
+                  'bg-secondary text-secondary-foreground'
                 }`}>
                   {msg.status === 'acked' ? '✓ ACK' : msg.status === 'implicit_ack' ? '⚡ Implicit' : msg.status === 'failed' ? '✗ NAK' : msg.status}
                 </span>
@@ -86,7 +86,7 @@ export default function MessageList({ messages, onDelete, channels }) {
               {onDelete && (
                 <button
                   onClick={() => onDelete(msg.id)}
-                  className="p-1 rounded hover:bg-red-900/40 text-slate-600 hover:text-red-400 transition-colors"
+                  className="p-1 rounded hover:bg-destructive/15 text-muted-foreground hover:text-destructive transition-colors"
                   title="Delete"
                 >
                   <Trash2 className="w-3 h-3" />
