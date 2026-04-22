@@ -132,17 +132,58 @@ Deno.serve(async (req) => {
       console.log('[NODES] created batch:', batch.length, 'total:', created);
     }
 
-    // Update existing nodes in sequence (no bulk update available)
+    // Update existing nodes in batches with delay and retry
+    const BATCH_SIZE = 10;
+    const BATCH_DELAY_MS = 500;
+    const MAX_RETRIES = 2;
     let updated = 0;
     let errors = 0;
-    for (const item of toUpdate) {
-      try {
-        await base44.asServiceRole.entities.MeshNode.update(item.id, item.record);
-        updated++;
-      } catch (err) {
-        errors++;
-        console.log('[NODES] update error:', item.record.node_id, err.message);
+
+    const delay = (ms) => new Promise(r => setTimeout(r, ms));
+
+    for (let i = 0; i < toUpdate.length; i += BATCH_SIZE) {
+      const batch = toUpdate.slice(i, i + BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map(item => base44.asServiceRole.entities.MeshNode.update(item.id, item.record))
+      );
+
+      // Collect failed items for retry
+      const failed = [];
+      results.forEach((r, idx) => {
+        if (r.status === 'fulfilled') {
+          updated++;
+        } else {
+          failed.push(batch[idx]);
+        }
+      });
+
+      // Retry failed items with individual delay
+      for (let retry = 0; retry < MAX_RETRIES && failed.length > 0; retry++) {
+        await delay(1000 * (retry + 1));
+        const retryBatch = [...failed];
+        failed.length = 0;
+        for (const item of retryBatch) {
+          try {
+            await base44.asServiceRole.entities.MeshNode.update(item.id, item.record);
+            updated++;
+          } catch (err) {
+            failed.push(item);
+          }
+        }
       }
+
+      // Remaining failures after retries
+      errors += failed.length;
+      for (const item of failed) {
+        console.log('[NODES] update failed after retries:', item.record.node_id);
+      }
+
+      // Pause between batches to avoid rate limits
+      if (i + BATCH_SIZE < toUpdate.length) {
+        await delay(BATCH_DELAY_MS);
+      }
+
+      console.log('[NODES] update progress:', updated, '/', toUpdate.length);
     }
 
     log.push(`Fertig: ${created} neu, ${updated} aktualisiert${errors > 0 ? `, ${errors} Fehler` : ''}.`);
