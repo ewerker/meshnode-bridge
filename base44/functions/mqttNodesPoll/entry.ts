@@ -26,7 +26,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'MQTT_BROKER_URL not configured' }, { status: 500 });
     }
 
-    const topic = `msh/EU_868/proxy/nodes/${fromNode}/all`;
+    const regionStr = user.region || 'EU_868';
+    const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
+    const topic = `${prefix}/nodes/${fromNode}/all`;
     console.log('[NODES] subscribing to topic:', topic);
 
     const messages = await new Promise((resolve, reject) => {
@@ -118,17 +120,17 @@ Deno.serve(async (req) => {
       const label = node.long_name || node.short_name || node.node_id;
 
       try {
-        const existing = await base44.entities.MeshNode.filter({ node_id: node.node_id });
+        const existing = await base44.asServiceRole.entities.MeshNode.filter({ node_id: node.node_id });
         
         // Small delay between DB operations
         await delay(BATCH_DELAY_MS);
 
         if (existing.length > 0) {
-          await base44.entities.MeshNode.update(existing[0].id, record);
+          await base44.asServiceRole.entities.MeshNode.update(existing[0].id, record);
           updated++;
           log.push(`✏️ ${label} aktualisiert`);
         } else {
-          await base44.entities.MeshNode.create(record);
+          await base44.asServiceRole.entities.MeshNode.create(record);
           created++;
           log.push(`✅ ${label} neu angelegt`);
         }
