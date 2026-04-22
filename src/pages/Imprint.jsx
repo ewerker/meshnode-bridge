@@ -1,5 +1,6 @@
 import { ArrowLeft, Scale } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Imprint() {
   return (
@@ -9,17 +10,18 @@ export default function Imprint() {
           <Link to="/" className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
             <ArrowLeft className="w-4 h-4 text-muted-foreground" />
           </Link>
-          <div className="w-9 h-9 rounded-xl bg-cyan-600/20 border border-cyan-600/40 flex items-center justify-center">
-            <Scale className="w-5 h-5 text-cyan-400" />
+          <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center">
+            <Scale className="w-5 h-5 text-primary" />
           </div>
-          <h1 className="font-bold text-white tracking-tight">Imprint & Disclaimer</h1>
+          <h1 className="font-bold text-foreground tracking-tight">Imprint & Disclaimer</h1>
+          <div className="ml-auto"><ThemeToggle /></div>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
         {/* Impressum */}
         <section>
-          <h2 className="text-xl font-bold text-white mb-4">Imprint</h2>
+          <h2 className="text-xl font-bold text-foreground mb-4">Imprint</h2>
           <div className="bg-card border border-border rounded-xl p-5 space-y-3 text-muted-foreground">
             <p className="text-primary font-semibold text-lg">DoubleU2 (we-zwei)</p>
             <p><span className="text-muted-foreground">Owner:</span> Frank Richter</p>
@@ -47,7 +49,7 @@ export default function Imprint() {
 
         {/* Disclaimer */}
         <section>
-          <h2 className="text-xl font-bold text-white mb-4">Disclaimer</h2>
+          <h2 className="text-xl font-bold text-foreground mb-4">Disclaimer</h2>
           <div className="space-y-6">
             <DisclaimerSection
               title="Liability for Content"

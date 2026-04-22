@@ -47,7 +47,7 @@ export default function NodePicker({ value, onChange }) {
       {/* Selected display / trigger */}
       {value && selectedNode ? (
         <div className="flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">
-          <Cpu className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+          <Cpu className="w-3.5 h-3.5 text-primary flex-shrink-0" />
           <span className="text-sm text-foreground truncate">
             {selectedNode.long_name || selectedNode.short_name || selectedNode.node_id}
           </span>
@@ -71,17 +71,17 @@ export default function NodePicker({ value, onChange }) {
       {open && (
         <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-xl max-h-64 flex flex-col overflow-hidden">
           <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
-            <Search className="w-4 h-4 text-slate-500 flex-shrink-0" />
+            <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <input
               type="text"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               placeholder="Filter by name or ID…"
-              className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder-muted-foreground"
+              className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-muted-foreground"
               autoFocus
             />
             {filter && (
-              <button type="button" onClick={() => setFilter('')} className="text-slate-500 hover:text-slate-300">
+              <button type="button" onClick={() => setFilter('')} className="text-muted-foreground hover:text-foreground">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
