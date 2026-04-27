@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Cpu, Radio, Battery, MapPin, Clock, Wifi, ChevronUp, ChevronDown, Star } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { getFavorites, toggleFavorite } from '@/components/NodePicker';
+import { getFavorites, toggleFavorite } from './NodePicker';
 
 function formatUptime(seconds) {
   if (!seconds) return '—';
