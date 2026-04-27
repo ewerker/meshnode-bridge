@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Cpu, Radio, Battery, MapPin, Clock, Wifi, ChevronUp, ChevronDown } from 'lucide-react';
+import { Cpu, Radio, Battery, MapPin, Clock, Wifi, ChevronUp, ChevronDown, Star } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { getFavorites, toggleFavorite } from '@/components/NodePicker';
 
 function formatUptime(seconds) {
   if (!seconds) return '—';
@@ -76,6 +77,12 @@ function compareNodes(a, b, key, dir) {
 export default function NodeTable({ nodes }) {
   const [sortKey, setSortKey] = useState('last_heard');
   const [sortDir, setSortDir] = useState('desc');
+  const [favorites, setFavorites] = useState(getFavorites);
+
+  const handleToggleFav = (e, nodeId) => {
+    e.stopPropagation();
+    setFavorites(toggleFavorite(nodeId));
+  };
 
   const handleSort = (key) => {
     if (sortKey === key) {
@@ -122,6 +129,13 @@ export default function NodeTable({ nodes }) {
             <tr key={node.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
               <td className="py-2.5 px-3">
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => handleToggleFav(e, node.node_id)}
+                    className={`flex-shrink-0 transition-colors ${favorites.includes(node.node_id) ? 'text-yellow-400' : 'text-muted-foreground/30 hover:text-yellow-400'}`}
+                    title={favorites.includes(node.node_id) ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    <Star className={`w-3.5 h-3.5 ${favorites.includes(node.node_id) ? 'fill-yellow-400' : ''}`} />
+                  </button>
                   {node.is_gateway && <Radio className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
                   <div>
                     <div className="text-foreground font-medium text-xs">{node.long_name || node.node_id}</div>
