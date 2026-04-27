@@ -26,6 +26,7 @@ function BatteryIcon({ level }) {
 }
 
 const COLUMNS = [
+  { key: '_fav', label: '★', sortable: false },
   { key: 'long_name', label: 'Node' },
   { key: 'short_name', label: 'Short Name' },
   { key: 'hw_model', label: 'Hardware' },
@@ -113,12 +114,12 @@ export default function NodeTable({ nodes }) {
             {COLUMNS.map(col => (
               <th
                 key={col.key}
-                onClick={() => handleSort(col.key)}
-                className="text-left py-3 px-3 cursor-pointer select-none hover:text-foreground transition-colors group"
+                onClick={() => col.sortable !== false && handleSort(col.key)}
+                className={`text-left py-3 px-3 select-none transition-colors group ${col.sortable !== false ? 'cursor-pointer hover:text-foreground' : ''}`}
               >
                 <span className="flex items-center gap-1">
                   {col.label}
-                  <SortIcon column={col.key} sortKey={sortKey} sortDir={sortDir} />
+                  {col.sortable !== false && <SortIcon column={col.key} sortKey={sortKey} sortDir={sortDir} />}
                 </span>
               </th>
             ))}
@@ -127,15 +128,17 @@ export default function NodeTable({ nodes }) {
         <tbody>
           {sorted.map((node) => (
             <tr key={node.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
+              <td className="py-2.5 px-3 w-8">
+                <button
+                  onClick={(e) => handleToggleFav(e, node.node_id)}
+                  className={`transition-colors ${favorites.includes(node.node_id) ? 'text-yellow-400' : 'text-muted-foreground/30 hover:text-yellow-400'}`}
+                  title={favorites.includes(node.node_id) ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <Star className={`w-3.5 h-3.5 ${favorites.includes(node.node_id) ? 'fill-yellow-400' : ''}`} />
+                </button>
+              </td>
               <td className="py-2.5 px-3">
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => handleToggleFav(e, node.node_id)}
-                    className={`flex-shrink-0 transition-colors ${favorites.includes(node.node_id) ? 'text-yellow-400' : 'text-muted-foreground/30 hover:text-yellow-400'}`}
-                    title={favorites.includes(node.node_id) ? 'Remove from favorites' : 'Add to favorites'}
-                  >
-                    <Star className={`w-3.5 h-3.5 ${favorites.includes(node.node_id) ? 'fill-yellow-400' : ''}`} />
-                  </button>
                   {node.is_gateway && <Radio className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
                   <div>
                     <div className="text-foreground font-medium text-xs">{node.long_name || node.node_id}</div>
