@@ -148,7 +148,7 @@ export default function Nodes() {
         ) : view === 'stats' ? (
           <NodeStats nodes={nodes} />
         ) : (
-          <NodeTable nodes={nodes} />
+          <NodeTable nodes={nodes} onFavoriteToggle={fetchNodes} />
         )}
       </main>
     </div>

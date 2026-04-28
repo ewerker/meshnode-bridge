@@ -27,6 +27,11 @@
       "description": "Ist Gateway-Node",
       "default": false
     },
+    "is_favorite": {
+      "type": "boolean",
+      "description": "Als Favorit markiert",
+      "default": false
+    },
     "last_heard": {
       "type": "integer",
       "description": "Unix-Timestamp letzte Aktivit\u00e4t"

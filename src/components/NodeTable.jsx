@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Cpu, Radio, Battery, MapPin, Clock, Wifi, ChevronUp, ChevronDown, Star } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { getFavorites, toggleFavorite } from './NodePicker';
+import { base44 } from '@/api/base44Client';
 
 function formatUptime(seconds) {
   if (!seconds) return '—';
@@ -75,14 +75,14 @@ function compareNodes(a, b, key, dir) {
   return 0;
 }
 
-export default function NodeTable({ nodes }) {
+export default function NodeTable({ nodes, onFavoriteToggle }) {
   const [sortKey, setSortKey] = useState('last_heard');
   const [sortDir, setSortDir] = useState('desc');
-  const [favorites, setFavorites] = useState(getFavorites);
 
-  const handleToggleFav = (e, nodeId) => {
+  const handleToggleFav = async (e, node) => {
     e.stopPropagation();
-    setFavorites(toggleFavorite(nodeId));
+    await base44.entities.MeshNode.update(node.id, { is_favorite: !node.is_favorite });
+    onFavoriteToggle?.();
   };
 
   const handleSort = (key) => {
@@ -104,7 +104,12 @@ export default function NodeTable({ nodes }) {
     );
   }
 
-  const sorted = [...nodes].sort((a, b) => compareNodes(a, b, sortKey, sortDir));
+  const sorted = [...nodes].sort((a, b) => compareNodes(a, b, sortKey, sortDir)).sort((a, b) => {
+    // Sort favorites to top
+    if (a.is_favorite && !b.is_favorite) return -1;
+    if (!a.is_favorite && b.is_favorite) return 1;
+    return 0;
+  });
 
   return (
     <div className="overflow-x-auto">
@@ -130,11 +135,11 @@ export default function NodeTable({ nodes }) {
             <tr key={node.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
               <td className="py-2.5 px-3 w-8">
                 <button
-                  onClick={(e) => handleToggleFav(e, node.node_id)}
-                  className={`transition-colors ${favorites.includes(node.node_id) ? 'text-yellow-400' : 'text-muted-foreground/30 hover:text-yellow-400'}`}
-                  title={favorites.includes(node.node_id) ? 'Remove from favorites' : 'Add to favorites'}
+                  onClick={(e) => handleToggleFav(e, node)}
+                  className={`transition-colors ${node.is_favorite ? 'text-yellow-400' : 'text-muted-foreground/30 hover:text-yellow-400'}`}
+                  title={node.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
                 >
-                  <Star className={`w-3.5 h-3.5 ${favorites.includes(node.node_id) ? 'fill-yellow-400' : ''}`} />
+                  <Star className={`w-3.5 h-3.5 ${node.is_favorite ? 'fill-yellow-400' : ''}`} />
                 </button>
               </td>
               <td className="py-2.5 px-3">

@@ -1,11 +1,9 @@
 import { ArrowUpRight, ArrowDownLeft, Radio, Trash2, Wifi, Star } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { getFavorites } from '@/components/NodePicker';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
 export default function MessageList({ messages, onDelete, channels }) {
-  const favorites = getFavorites();
   const [nodeMap, setNodeMap] = useState({});
 
   useEffect(() => {
@@ -70,7 +68,7 @@ export default function MessageList({ messages, onDelete, channels }) {
               {msg.direction === 'inbound' && (fromLabel || msg.from_node) && (
                 <>
                   <span className="flex items-center gap-1 text-xs text-foreground font-medium">
-                    {favorites.includes(msg.from_node) && <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 flex-shrink-0" />}
+                    {nodeMap[msg.from_node]?.is_favorite && <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 flex-shrink-0" />}
                     {fromLabel || msg.from_node}
                     {nodeMap[msg.from_node]?.short_name && (
                       <span className="text-muted-foreground font-normal">({nodeMap[msg.from_node].short_name})</span>
@@ -84,7 +82,7 @@ export default function MessageList({ messages, onDelete, channels }) {
               )}
               {msg.to_node && msg.to_node !== '^all' ? (
                 <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-purple-500/15 text-purple-400">
-                  {favorites.includes(msg.to_node) && <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />}
+                  {nodeMap[msg.to_node]?.is_favorite && <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />}
                   DM → {msg.to_node}
                 </span>
               ) : (

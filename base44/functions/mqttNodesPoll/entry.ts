@@ -117,6 +117,8 @@ Deno.serve(async (req) => {
 
       const existing = existingMap[node.node_id];
       if (existing) {
+        // Preserve is_favorite when updating
+        record.is_favorite = existing.is_favorite;
         toUpdate.push({ id: existing.id, record });
       } else {
         toCreate.push(record);
