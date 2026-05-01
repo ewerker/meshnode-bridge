@@ -1,8 +1,8 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Battery, Wifi, Clock, Radio, Star, MapPin, Zap } from 'lucide-react';
+import { Battery, Wifi, Clock, Radio, Star, MapPin, Zap, Filter } from 'lucide-react';
 import { useTheme } from '@/lib/ThemeContext';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -94,12 +94,34 @@ function FitBounds({ nodes }) {
   return null;
 }
 
+const LAST_SEEN_OPTIONS = [
+  { label: 'Alle', value: 0 },
+  { label: '1h', value: 3600 },
+  { label: '6h', value: 21600 },
+  { label: '24h', value: 86400 },
+  { label: '7d', value: 604800 },
+];
+
 export default function NodeMap({ nodes, ownNode }) {
   const { resolved } = useTheme();
   const isDark = resolved === 'dark';
-  const withPos = nodes.filter(n => n.latitude && n.longitude);
+  const [lastSeenFilter, setLastSeenFilter] = useState(0);
+  const [favOnly, setFavOnly] = useState(false);
+  const [gatewayOnly, setGatewayOnly] = useState(false);
 
-  if (withPos.length === 0) {
+  const now = Date.now() / 1000;
+
+  const withPos = nodes.filter(n => {
+    if (!n.latitude || !n.longitude) return false;
+    if (lastSeenFilter > 0 && (!n.last_heard || (now - n.last_heard) > lastSeenFilter)) return false;
+    if (favOnly && !n.is_favorite) return false;
+    if (gatewayOnly && !n.is_gateway) return false;
+    return true;
+  });
+
+  const allWithPos = nodes.filter(n => n.latitude && n.longitude);
+
+  if (allWithPos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
         <MapPin className="w-12 h-12 mb-3 opacity-30" />
@@ -108,9 +130,65 @@ export default function NodeMap({ nodes, ownNode }) {
     );
   }
 
-  const center = [withPos[0].latitude, withPos[0].longitude];
+  const center = [allWithPos[0].latitude, allWithPos[0].longitude];
 
   return (
+    <div className="space-y-3">
+      {/* Filter Bar */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Filter className="w-3.5 h-3.5" />
+          <span>Filter:</span>
+        </div>
+
+        {/* Last seen */}
+        <div className="flex items-center gap-1 bg-secondary rounded-lg p-0.5">
+          {LAST_SEEN_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setLastSeenFilter(opt.value)}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                lastSeenFilter === opt.value
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Favorites toggle */}
+        <button
+          onClick={() => setFavOnly(v => !v)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+            favOnly
+              ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40'
+              : 'bg-secondary text-muted-foreground border-border hover:text-foreground'
+          }`}
+        >
+          <Star className={`w-3.5 h-3.5 ${favOnly ? 'fill-yellow-400' : ''}`} />
+          Favoriten
+        </button>
+
+        {/* Gateway toggle */}
+        <button
+          onClick={() => setGatewayOnly(v => !v)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+            gatewayOnly
+              ? 'bg-purple-500/20 text-purple-400 border-purple-500/40'
+              : 'bg-secondary text-muted-foreground border-border hover:text-foreground'
+          }`}
+        >
+          <Radio className="w-3.5 h-3.5" />
+          Nur Gateways
+        </button>
+
+        <span className="text-xs text-muted-foreground ml-auto">
+          {withPos.length} / {allWithPos.length} Nodes
+        </span>
+      </div>
+
     <div className="rounded-xl overflow-hidden border border-border" style={{ height: '70vh' }}>
       <MapContainer center={center} zoom={10} style={{ height: '100%', width: '100%' }} zoomControl={true}>
         <TileLayer
@@ -220,6 +298,7 @@ export default function NodeMap({ nodes, ownNode }) {
           );
         })}
       </MapContainer>
+    </div>
     </div>
   );
 }
