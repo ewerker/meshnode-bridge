@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, RefreshCw, Download, Cpu, BarChart3, List } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Download, Cpu, BarChart3, List, Map } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NodeTable from '@/components/NodeTable';
 import NodeStats from '@/components/nodes/NodeStats';
+import NodeMap from '@/components/nodes/NodeMap';
 import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Nodes() {
@@ -14,6 +15,7 @@ export default function Nodes() {
   const [logLines, setLogLines] = useState([]);
   const [user, setUser] = useState(null);
   const [view, setView] = useState('table');
+  const [ownNode, setOwnNode] = useState(null);
   const fetchNodes = useCallback(async () => {
     const data = await base44.entities.MeshNode.list('-last_heard', 500);
     setNodes(data);
@@ -28,6 +30,10 @@ export default function Nodes() {
   const loadUser = async () => {
     const me = await base44.auth.me();
     setUser(me);
+    if (me?.node_id) {
+      const matches = await base44.entities.MeshNode.filter({ node_id: me.node_id });
+      setOwnNode(matches[0] || null);
+    }
   };
 
   const handlePollNodes = async () => {
@@ -84,6 +90,15 @@ export default function Nodes() {
               >
                 <List className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Table</span>
+              </button>
+              <button
+                onClick={() => setView('map')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  view === 'map' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Map className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Map</span>
               </button>
               <button
                 onClick={() => setView('stats')}
@@ -145,6 +160,8 @@ export default function Nodes() {
           <div className="flex justify-center py-12">
             <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
           </div>
+        ) : view === 'map' ? (
+          <NodeMap nodes={nodes} ownNode={ownNode} />
         ) : view === 'stats' ? (
           <NodeStats nodes={nodes} />
         ) : (
