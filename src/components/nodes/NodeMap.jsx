@@ -1,8 +1,9 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Battery, Wifi, Clock, Radio, Star, MapPin, Zap } from 'lucide-react';
+import { useTheme } from '@/lib/ThemeContext';
 import { formatDistanceToNow } from 'date-fns';
 
 // Fix Leaflet default icon issue with bundlers
@@ -41,18 +42,43 @@ function formatUptime(seconds) {
   return `${h}h ${m}m`;
 }
 
-function createIcon(node, isOwn) {
-  const color = isOwn ? '#00d4d4' : node.is_favorite ? '#facc15' : node.is_gateway ? '#a78bfa' : '#6ee7b7';
+function createIcon(node, isOwn, isDark) {
+  // Dark map (OSM standard is light) — use vivid, saturated colors visible on light map tiles
+  // For dark theme users the map is still light OSM, so we use dark-border / light-fill combos
+  let fill, stroke, strokeW;
+  if (isOwn) {
+    fill = isDark ? '#f97316' : '#ea580c'; // orange — unique, very visible
+    stroke = isDark ? '#fff7ed' : '#ffffff';
+    strokeW = 2.5;
+  } else if (node.is_favorite) {
+    fill = '#eab308'; // yellow
+    stroke = isDark ? '#1c1917' : '#ffffff';
+    strokeW = 2;
+  } else if (node.is_gateway) {
+    fill = isDark ? '#c026d3' : '#9333ea'; // purple/fuchsia
+    stroke = isDark ? '#fae8ff' : '#ffffff';
+    strokeW = 2;
+  } else {
+    fill = isDark ? '#2563eb' : '#1d4ed8'; // bold blue — high contrast on light OSM tiles
+    stroke = isDark ? '#bfdbfe' : '#ffffff';
+    strokeW = 1.5;
+  }
+
   const size = isOwn ? 18 : 12;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size + 8}" height="${size + 8}" viewBox="0 0 ${size + 8} ${size + 8}">
-    <circle cx="${(size + 8) / 2}" cy="${(size + 8) / 2}" r="${size / 2}" fill="${color}" stroke="white" stroke-width="2" opacity="0.95"/>
+  const total = size + 8;
+  const cx = total / 2;
+  const r = size / 2;
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${total}" height="${total}" viewBox="0 0 ${total} ${total}">
+    <circle cx="${cx}" cy="${cx}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}"/>
   </svg>`;
+
   return L.divIcon({
     html: svg,
     className: '',
-    iconSize: [size + 8, size + 8],
-    iconAnchor: [(size + 8) / 2, (size + 8) / 2],
-    popupAnchor: [0, -((size + 8) / 2)],
+    iconSize: [total, total],
+    iconAnchor: [cx, cx],
+    popupAnchor: [0, -cx],
   });
 }
 
@@ -69,6 +95,8 @@ function FitBounds({ nodes }) {
 }
 
 export default function NodeMap({ nodes, ownNode }) {
+  const { resolved } = useTheme();
+  const isDark = resolved === 'dark';
   const withPos = nodes.filter(n => n.latitude && n.longitude);
 
   if (withPos.length === 0) {
@@ -103,7 +131,7 @@ export default function NodeMap({ nodes, ownNode }) {
             <Marker
               key={node.id}
               position={[node.latitude, node.longitude]}
-              icon={createIcon(node, isOwn)}
+              icon={createIcon(node, isOwn, isDark)}
             >
               <Popup maxWidth={280} className="node-popup">
                 <div className="font-sans text-sm min-w-[220px]">
