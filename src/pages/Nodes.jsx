@@ -163,7 +163,7 @@ export default function Nodes() {
         ) : view === 'map' ? (
           <NodeMap nodes={nodes} ownNode={ownNode} />
         ) : view === 'stats' ? (
-          <NodeStats nodes={nodes} />
+          <NodeStats nodes={nodes} ownNode={ownNode} />
         ) : (
           <NodeTable nodes={nodes} onFavoriteToggle={fetchNodes} />
         )}
