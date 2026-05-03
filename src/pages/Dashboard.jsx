@@ -62,46 +62,12 @@ export default function Dashboard() {
     return unsub;
   }, [fetchMessages]);
 
-  // Auto-poll continuously: trigger immediately on load/focus, and run a fresh 30s poll
-  // as soon as the previous one finishes while the tab is visible.
+  // Run a single poll on initial page load so messages appear without waiting for auto-poll
+  const initialPollRef = useRef(false);
   useEffect(() => {
-    if (!currentUser?.node_id) return;
-
-    let cancelled = false;
-
-    const loop = async () => {
-      while (!cancelled) {
-        if (document.visibilityState !== 'visible') {
-          // wait for visibility before polling again
-          await new Promise(resolve => {
-            const onVis = () => {
-              if (document.visibilityState === 'visible') {
-                document.removeEventListener('visibilitychange', onVis);
-                resolve();
-              }
-            };
-            document.addEventListener('visibilitychange', onVis);
-          });
-          if (cancelled) return;
-        }
-        await autoPoll();
-      }
-    };
-
-    loop();
-
-    // Kick a fresh poll immediately when tab regains focus (loop will pick up after current poll)
-    const handleFocus = () => {
-      if (document.visibilityState === 'visible') autoPoll();
-    };
-    document.addEventListener('visibilitychange', handleFocus);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      cancelled = true;
-      document.removeEventListener('visibilitychange', handleFocus);
-      window.removeEventListener('focus', handleFocus);
-    };
+    if (!currentUser?.node_id || initialPollRef.current) return;
+    initialPollRef.current = true;
+    autoPoll();
   }, [currentUser?.node_id, autoPoll]);
 
   const loadUser = async () => {
