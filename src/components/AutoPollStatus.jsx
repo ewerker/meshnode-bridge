@@ -53,16 +53,16 @@ export default function AutoPollStatus({ currentUser }) {
     };
   }, [currentUser?.id]);
 
-  // Load poll status and subscribe to updates
+  // Load poll status (latest entry) and subscribe to updates
   useEffect(() => {
     const load = async () => {
-      const data = await base44.entities.PollStatus.filter({ key: 'auto_poll' });
+      const data = await base44.entities.PollStatus.filter({ key: 'auto_poll' }, '-created_date', 1);
       if (data.length > 0) setStatus(data[0]);
     };
     load();
 
     const unsub = base44.entities.PollStatus.subscribe((event) => {
-      if (event.data?.key === 'auto_poll') setStatus(event.data);
+      if (event.type === 'create' && event.data?.key === 'auto_poll') setStatus(event.data);
     });
     return unsub;
   }, []);

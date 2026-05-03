@@ -8,6 +8,7 @@ import MessageList from '@/components/MessageList';
 import SendMessageForm from '@/components/SendMessageForm';
 import PollPanel from '@/components/PollPanel';
 import AutoPollStatus from '@/components/AutoPollStatus';
+import PollLog from '@/components/PollLog';
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
@@ -181,6 +182,15 @@ export default function Dashboard() {
             Manual Receive
           </h2>
           <PollPanel onReceived={fetchMessages} userSettings={currentUser} />
+        </section>
+
+        {/* Auto-Poll Log */}
+        <section className="bg-card rounded-2xl border border-border p-5">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            Auto-Poll Log
+          </h2>
+          <PollLog />
         </section>
 
         {/* Send Form */}

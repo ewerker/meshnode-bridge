@@ -4,13 +4,9 @@ import * as mqtt from 'npm:mqtt@5.10.1';
 const POLL_STATUS_KEY = 'auto_poll';
 const SESSION_TIMEOUT_SECONDS = 120; // 2 minutes — heartbeat runs every 60s, so 2x interval
 
-async function upsertPollStatus(base44, data) {
-  const existing = await base44.asServiceRole.entities.PollStatus.filter({ key: POLL_STATUS_KEY });
-  if (existing.length > 0) {
-    await base44.asServiceRole.entities.PollStatus.update(existing[0].id, data);
-  } else {
-    await base44.asServiceRole.entities.PollStatus.create({ key: POLL_STATUS_KEY, ...data });
-  }
+async function logPollRun(base44, data) {
+  // Append a new PollStatus entry per run so the history is preserved
+  await base44.asServiceRole.entities.PollStatus.create({ key: POLL_STATUS_KEY, ...data });
 }
 
 Deno.serve(async (req) => {
@@ -31,7 +27,7 @@ Deno.serve(async (req) => {
 
     if (secondsSinceActive > SESSION_TIMEOUT_SECONDS) {
       console.log(`[MQTT-AUTO] skipped — admin last active ${secondsSinceActive}s ago (threshold: ${SESSION_TIMEOUT_SECONDS}s)`);
-      await upsertPollStatus(base44, {
+      await logPollRun(base44, {
         last_run_at: nowTs,
         skipped: true,
         skip_reason: `Admin inaktiv seit ${Math.round(secondsSinceActive / 60)} Minuten`,
@@ -153,7 +149,7 @@ Deno.serve(async (req) => {
 
     console.log('[MQTT-AUTO] saved:', savedCount, 'of', messages.length);
 
-    await upsertPollStatus(base44, {
+    await logPollRun(base44, {
       last_run_at: nowTs,
       last_polled_at: nowTs,
       last_received: messages.length,
