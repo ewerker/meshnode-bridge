@@ -3,7 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
-export default function MessageList({ messages, onDelete, channels }) {
+export default function MessageList({ messages, onDelete, channels, onReply }) {
   const [nodeMap, setNodeMap] = useState({});
 
   useEffect(() => {
@@ -48,10 +48,11 @@ export default function MessageList({ messages, onDelete, channels }) {
         return (
         <div
           key={msg.id}
+          onClick={() => msg.direction === 'inbound' && msg.from_node && onReply?.(msg.from_node)}
           className={`flex gap-3 p-3 rounded-xl border transition-all ${
             msg.direction === 'outbound'
               ? 'bg-primary/10 border-primary/30'
-              : 'bg-emerald-500/10 border-emerald-500/30'
+              : 'bg-emerald-500/10 border-emerald-500/30 cursor-pointer hover:border-emerald-400/60 hover:bg-emerald-500/15'
           }`}
         >
           <div className={`mt-0.5 p-2 rounded-lg ${msg.direction === 'outbound' ? 'bg-primary/20 border border-primary/40' : 'bg-emerald-500/20 border border-emerald-500/40'}`}>

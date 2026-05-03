@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [nodeName, setNodeName] = useState('');
+  const [replyTo, setReplyTo] = useState(null);
 
   const fetchMessages = useCallback(async () => {
     const data = await base44.entities.MeshMessage.list('-meshtastic_timestamp', 100);
@@ -178,7 +179,7 @@ export default function Dashboard() {
             <Radio className="w-4 h-4" />
             Send Message
           </h2>
-          <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} />
+          <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} replyTo={replyTo} onReplyToClear={() => setReplyTo(null)} />
         </section>
 
         {/* Manual Poll */}
@@ -207,7 +208,7 @@ export default function Dashboard() {
               <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
             </div>
           ) : (
-            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} />
+            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} onReply={(nodeId) => { setReplyTo(nodeId); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           )}
         </section>
         </>

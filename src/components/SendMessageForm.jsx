@@ -7,7 +7,7 @@ const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7];
 const LS_CHANNEL = 'mesh_last_channel';
 const LS_MODE = 'mesh_send_mode';
 
-export default function SendMessageForm({ onMessageSent, userSettings }) {
+export default function SendMessageForm({ onMessageSent, userSettings, replyTo, onReplyToClear }) {
   const [mode, setMode] = useState(() => localStorage.getItem(LS_MODE) || 'channel');
   const [channel, setChannel] = useState(() => {
     const saved = localStorage.getItem(LS_CHANNEL);
@@ -23,6 +23,14 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
   const [wantAck, setWantAck] = useState(true);
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
+
+  // Switch to DM mode and set recipient when replyTo changes
+  useEffect(() => {
+    if (replyTo) {
+      switchMode('dm');
+      setDmNodeId(replyTo);
+    }
+  }, [replyTo]);
 
   useEffect(() => {
     if (userSettings?.default_channel !== undefined && userSettings.default_channel !== null) {
@@ -65,6 +73,7 @@ export default function SendMessageForm({ onMessageSent, userSettings }) {
       });
       const { client_ref: ref, final_status } = res.data;
       setText('');
+      onReplyToClear?.();
       onMessageSent?.();
 
       if (!ref) {
