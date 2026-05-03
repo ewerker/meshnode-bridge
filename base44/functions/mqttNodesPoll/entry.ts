@@ -4,14 +4,19 @@ import * as mqtt from 'npm:mqtt@5.10.1';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = await base44.auth.me().catch(() => null);
 
     const body = await req.json().catch(() => ({}));
-    const { fromNode } = body;
+    const { fromNode, pollType } = body;
+    const runStartedAt = Math.floor(Date.now() / 1000);
 
-    if (!fromNode) {
-      return Response.json({ error: 'fromNode is required' }, { status: 400 });
+    const adminUsers = !user ? await base44.asServiceRole.entities.User.filter({ role: 'admin' }) : [];
+    const settingsUser = user || adminUsers[0];
+    const resolvedFromNode = fromNode || settingsUser?.node_id;
+    const pollKey = pollType === 'daily_nodes_poll' || !user ? 'daily_nodes_poll' : 'manual_nodes_poll';
+
+    if (!settingsUser || !resolvedFromNode) {
+      return Response.json({ error: 'Node-ID nicht in Einstellungen gesetzt' }, { status: 400 });
     }
 
     const brokerUrl = Deno.env.get('MQTT_BROKER_URL');
@@ -22,9 +27,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'MQTT_BROKER_URL not configured' }, { status: 500 });
     }
 
-    const regionStr = user.region || 'EU_868';
-    const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
-    const topic = `${prefix}/nodes/${fromNode}/all`;
+    const regionStr = settingsUser.region || 'EU_868';
+    const prefix = settingsUser.topic_prefix || `msh/${regionStr}/proxy`;
+    const topic = `${prefix}/nodes/${resolvedFromNode}/all`;
     console.log('[NODES] subscribing to topic:', topic);
 
     const messages = await new Promise((resolve, reject) => {
@@ -76,6 +81,15 @@ Deno.serve(async (req) => {
     });
 
     if (messages.length === 0) {
+      await base44.asServiceRole.entities.PollStatus.create({
+        key: pollKey,
+        last_run_at: runStartedAt,
+        last_polled_at: Math.floor(Date.now() / 1000),
+        last_received: 0,
+        last_saved: 0,
+        skipped: false,
+        skip_reason: 'Keine Node-Daten vom Broker erhalten',
+      });
       return Response.json({ success: true, updated: 0, created: 0, total: 0, log: ['Keine Daten vom Broker erhalten.'] });
     }
 
@@ -190,6 +204,16 @@ Deno.serve(async (req) => {
 
     log.push(`Fertig: ${created} neu, ${updated} aktualisiert${errors > 0 ? `, ${errors} Fehler` : ''}.`);
     console.log('[NODES] done:', created, 'created,', updated, 'updated,', errors, 'errors');
+
+    await base44.asServiceRole.entities.PollStatus.create({
+      key: pollKey,
+      last_run_at: runStartedAt,
+      last_polled_at: Math.floor(Date.now() / 1000),
+      last_received: nodes.length,
+      last_saved: created + updated,
+      skipped: false,
+      skip_reason: errors > 0 ? `${errors} Node-Update-Fehler` : '',
+    });
 
     return Response.json({ success: true, updated, created, errors, total: nodes.length, log });
   } catch (error) {

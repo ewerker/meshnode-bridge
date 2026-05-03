@@ -49,6 +49,8 @@ export default function PollLog() {
           auto_poll: 'Auto',
           manual_poll: 'Manual',
           initial_poll: 'Initial',
+          manual_nodes_poll: 'Nodes',
+          daily_nodes_poll: 'Nodes daily',
         };
         const label = labels[log.key] || 'Poll';
         const ts = log.last_run_at

@@ -46,7 +46,7 @@ export default function Nodes() {
     setResult(null);
     setLogLines([]);
     try {
-      const res = await base44.functions.invoke('mqttNodesPoll', { fromNode });
+      const res = await base44.functions.invoke('mqttNodesPoll', { fromNode, pollType: 'manual_nodes_poll' });
       const d = res.data;
       setLogLines(d.log || []);
       const errText = d.errors ? `, ${d.errors} errors` : '';
