@@ -37,7 +37,7 @@ export default function MessageList({ messages, onDelete, channels, onReply }) {
   };
 
   return (
-    <div className="space-y-2 max-h-[80vh] overflow-y-auto pr-1">
+    <div className="space-y-2">
       {messages.map((msg) => {
         const raw = parseRaw(msg.raw_payload);
         const fromLabel = raw.from_label || '';
