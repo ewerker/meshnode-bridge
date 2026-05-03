@@ -8,7 +8,9 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const { listenSeconds, region } = body;
+    const { listenSeconds, region, pollType } = body;
+    const pollKey = pollType === 'initial_poll' ? 'initial_poll' : 'manual_poll';
+    const runStartedAt = Math.floor(Date.now() / 1000);
     const listenTime = (listenSeconds || 30) * 1000;
 
     const brokerUrl = Deno.env.get('MQTT_BROKER_URL');
@@ -137,6 +139,16 @@ Deno.serve(async (req) => {
       });
       saved.push(record);
     }
+
+    await base44.entities.PollStatus.create({
+      key: pollKey,
+      last_run_at: runStartedAt,
+      last_polled_at: Math.floor(Date.now() / 1000),
+      last_received: messages.length,
+      last_saved: saved.length,
+      skipped: false,
+      skip_reason: '',
+    });
 
     return Response.json({ received: messages.length, saved: saved.length, messages });
   } catch (error) {

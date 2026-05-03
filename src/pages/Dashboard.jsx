@@ -39,7 +39,7 @@ export default function Dashboard() {
       setIsPolling(false);
     }, 32000);
     try {
-      await base44.functions.invoke('mqttPoll', { region: currentUser.region || 'EU_868', listenSeconds: 30 });
+      await base44.functions.invoke('mqttPoll', { region: currentUser.region || 'EU_868', listenSeconds: 30, pollType: 'initial_poll' });
       fetchMessages();
     } catch (_) { /* silent */ }
     finally {
@@ -208,7 +208,7 @@ export default function Dashboard() {
         </CollapsibleSection>
 
         {/* Auto-Poll Log (bottom) */}
-        <CollapsibleSection id="auto_poll_log" icon={Activity} title="Auto-Poll Log" defaultOpen={false}>
+        <CollapsibleSection id="poll_log" icon={Activity} title="Poll Log" defaultOpen={false}>
           <PollLog />
         </CollapsibleSection>
         </>

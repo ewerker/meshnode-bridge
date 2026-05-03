@@ -43,7 +43,7 @@ export default function PollPanel({ onReceived, userSettings }) {
     setPolling(true);
     setResult(null);
     try {
-      const res = await base44.functions.invoke('mqttPoll', { region, listenSeconds: seconds });
+      const res = await base44.functions.invoke('mqttPoll', { region, listenSeconds: seconds, pollType: 'manual_poll' });
       setResult({ type: 'success', msg: `${res.data.received} message(s) received, ${res.data.saved} saved.` });
       onReceived?.();
     } catch (err) {

@@ -10,7 +10,7 @@ export default function PollLog() {
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const data = await base44.entities.PollStatus.filter({ key: 'auto_poll' }, '-created_date', PAGE_SIZE);
+    const data = await base44.entities.PollStatus.list('-created_date', PAGE_SIZE);
     setLogs(data);
     setLoading(false);
   };
@@ -18,7 +18,7 @@ export default function PollLog() {
   useEffect(() => {
     load();
     const unsub = base44.entities.PollStatus.subscribe((event) => {
-      if (event.type === 'create' && event.data?.key === 'auto_poll') {
+      if (event.type === 'create') {
         setLogs(prev => [event.data, ...prev].slice(0, PAGE_SIZE));
       }
     });
@@ -45,6 +45,12 @@ export default function PollLog() {
   return (
     <div className="space-y-1.5">
       {logs.map((log) => {
+        const labels = {
+          auto_poll: 'Auto',
+          manual_poll: 'Manual',
+          initial_poll: 'Initial',
+        };
+        const label = labels[log.key] || 'Poll';
         const ts = log.last_run_at
           ? format(new Date(log.last_run_at * 1000), 'HH:mm:ss')
           : log.created_date
@@ -70,6 +76,9 @@ export default function PollLog() {
                 <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
               )}
             </div>
+            <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground border border-border">
+              {label}
+            </span>
             <span className="font-mono text-muted-foreground whitespace-nowrap">
               {date} {ts}
             </span>
