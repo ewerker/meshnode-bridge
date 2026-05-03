@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Download, Wifi } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
@@ -24,7 +24,6 @@ export default function PollPanel({ onReceived, userSettings }) {
   });
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
-  const initialPollRef = useRef(false);
 
   const handleListenChange = (val) => {
     const s = parseInt(val);
@@ -55,14 +54,6 @@ export default function PollPanel({ onReceived, userSettings }) {
   };
 
   const handlePoll = () => runPoll(listenSeconds);
-
-  // Auto-start a 5-minute poll once on mount when node is configured
-  useEffect(() => {
-    if (initialPollRef.current) return;
-    if (!nodeId) return;
-    initialPollRef.current = true;
-    runPoll(300);
-  }, [nodeId]);
 
   const topic = nodeId ? `${prefix}/rx/${nodeId}/#` : '—';
   const listenLabel = LISTEN_OPTIONS.find(o => o.seconds === listenSeconds)?.label || `${listenSeconds}s`;
