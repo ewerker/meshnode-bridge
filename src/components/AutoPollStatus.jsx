@@ -19,19 +19,29 @@ export default function AutoPollStatus({ currentUser }) {
       base44.auth.updateMe({ last_active: ts });
     };
 
+    // Reset last_active to 0 so the poller pauses immediately on tab close/hide
+    const markInactive = () => {
+      base44.auth.updateMe({ last_active: 0 });
+    };
+
     // Send immediately if visible
     sendHeartbeat();
     const interval = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
 
-    // Also send when tab becomes visible again
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') sendHeartbeat();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        sendHeartbeat();
+      } else {
+        markInactive();
+      }
     };
-    document.addEventListener('visibilitychange', onVisible);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', markInactive);
 
     return () => {
       clearInterval(interval);
-      document.removeEventListener('visibilitychange', onVisible);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', markInactive);
     };
   }, [currentUser?.id]);
 
