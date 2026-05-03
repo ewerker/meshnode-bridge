@@ -26,11 +26,14 @@ Deno.serve(async (req) => {
     const secondsSinceActive = nowTs - lastActive;
 
     if (secondsSinceActive > SESSION_TIMEOUT_SECONDS) {
-      console.log(`[MQTT-AUTO] skipped — admin last active ${secondsSinceActive}s ago (threshold: ${SESSION_TIMEOUT_SECONDS}s)`);
+      const reason = lastActive === 0
+        ? 'Kein aktiver Admin (noch nie eingeloggt)'
+        : `Admin inaktiv seit ${Math.round(secondsSinceActive / 60)} Minuten`;
+      console.log(`[MQTT-AUTO] skipped — ${reason}`);
       await logPollRun(base44, {
         last_run_at: nowTs,
         skipped: true,
-        skip_reason: `Admin inaktiv seit ${Math.round(secondsSinceActive / 60)} Minuten`,
+        skip_reason: reason,
       });
       return Response.json({ skipped: true, reason: 'No active admin session' });
     }
