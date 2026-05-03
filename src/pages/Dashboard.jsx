@@ -32,7 +32,7 @@ export default function Dashboard() {
     if (!currentUser?.node_id || pollingRef.current) return;
     pollingRef.current = true;
     try {
-      await base44.functions.invoke('mqttPoll', { region: currentUser.region || 'EU_868', listenSeconds: 10 });
+      await base44.functions.invoke('mqttPoll', { region: currentUser.region || 'EU_868', listenSeconds: 30 });
       fetchMessages();
     } catch (_) { /* silent */ }
     finally { pollingRef.current = false; }
@@ -62,26 +62,45 @@ export default function Dashboard() {
     return unsub;
   }, [fetchMessages]);
 
-  // Auto-poll on page load, tab focus, and every 2 minutes while active
+  // Auto-poll continuously: trigger immediately on load/focus, and run a fresh 30s poll
+  // as soon as the previous one finishes while the tab is visible.
   useEffect(() => {
     if (!currentUser?.node_id) return;
-    // Poll on initial load
-    autoPoll();
 
-    // Poll when tab becomes visible again
-    const handleVisibility = () => {
+    let cancelled = false;
+
+    const loop = async () => {
+      while (!cancelled) {
+        if (document.visibilityState !== 'visible') {
+          // wait for visibility before polling again
+          await new Promise(resolve => {
+            const onVis = () => {
+              if (document.visibilityState === 'visible') {
+                document.removeEventListener('visibilitychange', onVis);
+                resolve();
+              }
+            };
+            document.addEventListener('visibilitychange', onVis);
+          });
+          if (cancelled) return;
+        }
+        await autoPoll();
+      }
+    };
+
+    loop();
+
+    // Kick a fresh poll immediately when tab regains focus (loop will pick up after current poll)
+    const handleFocus = () => {
       if (document.visibilityState === 'visible') autoPoll();
     };
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    // Poll every 2 minutes while tab is visible
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') autoPoll();
-    }, 120000);
+    document.addEventListener('visibilitychange', handleFocus);
+    window.addEventListener('focus', handleFocus);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      clearInterval(interval);
+      cancelled = true;
+      document.removeEventListener('visibilitychange', handleFocus);
+      window.removeEventListener('focus', handleFocus);
     };
   }, [currentUser?.node_id, autoPoll]);
 
