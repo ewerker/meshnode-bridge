@@ -9,6 +9,7 @@ import SendMessageForm from '@/components/SendMessageForm';
 import PollPanel from '@/components/PollPanel';
 import AutoPollStatus from '@/components/AutoPollStatus';
 import PollLog from '@/components/PollLog';
+import CollapsibleSection from '@/components/CollapsibleSection';
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
@@ -176,31 +177,14 @@ export default function Dashboard() {
         )}
         <>
         {/* Manual Poll */}
-        <section className="bg-card rounded-2xl border border-border p-5">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-            <Layers className="w-4 h-4" />
-            Manual Receive
-          </h2>
+        <CollapsibleSection id="manual_receive" icon={Layers} title="Manual Receive">
           <PollPanel onReceived={fetchMessages} userSettings={currentUser} />
-        </section>
-
-        {/* Auto-Poll Log */}
-        <section className="bg-card rounded-2xl border border-border p-5">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-            <Activity className="w-4 h-4" />
-            Auto-Poll Log
-          </h2>
-          <PollLog />
-        </section>
+        </CollapsibleSection>
 
         {/* Send Form */}
-        <section className="bg-card rounded-2xl border border-border p-5">
-          <h2 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Radio className="w-4 h-4" />
-            Send Message
-          </h2>
+        <CollapsibleSection id="send_message" icon={Radio} title="Send Message" headerColorClass="text-primary">
           <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} replyTo={replyTo} replyHopLimit={replyHopLimit} onReplyToClear={() => { setReplyTo(null); setReplyHopLimit(null); }} />
-        </section>
+        </CollapsibleSection>
 
 
         {/* Message Log */}
@@ -221,6 +205,11 @@ export default function Dashboard() {
             <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} onReply={(nodeId, hopStart) => { setReplyTo(nodeId); setReplyHopLimit(hopStart !== undefined && hopStart > 3 ? hopStart : null); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           )}
         </section>
+
+        {/* Auto-Poll Log (bottom) */}
+        <CollapsibleSection id="auto_poll_log" icon={Activity} title="Auto-Poll Log" defaultOpen={false}>
+          <PollLog />
+        </CollapsibleSection>
         </>
       </main>
     </div>
