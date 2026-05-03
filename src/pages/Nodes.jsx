@@ -88,15 +88,23 @@ export default function Nodes() {
 
         let updated = 0;
         let errors = 0;
-        const BATCH_SIZE = 5;
+        const BATCH_SIZE = 3;
         const delay = ms => new Promise(r => setTimeout(r, ms));
         
         for (let i = 0; i < toUpdate.length; i += BATCH_SIZE) {
           setPollProgress({ phase: 'updating', current: i, total: toUpdate.length });
           const batch = toUpdate.slice(i, i + BATCH_SIZE);
           const results = await Promise.allSettled(batch.map(item => base44.entities.MeshNode.update(item.id, item.record)));
-          results.forEach(r => { if (r.status === 'fulfilled') updated++; else errors++; });
-          await delay(1500); // 1.5 seconds delay between batches
+          results.forEach((r, idx) => { 
+            if (r.status === 'fulfilled') {
+              updated++; 
+            } else {
+              errors++; 
+              const errMsg = r.reason?.message || String(r.reason);
+              setLogLines(prev => [`Fehler ${batch[idx].record.node_id}: ${errMsg}`, ...prev].slice(0, 50));
+            }
+          });
+          await delay(2000); // 2.0 seconds delay
         }
         
         setPollProgress({ phase: 'done', current: toUpdate.length, total: toUpdate.length });
