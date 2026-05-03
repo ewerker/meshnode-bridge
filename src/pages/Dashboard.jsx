@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const [nodeName, setNodeName] = useState('');
   const [replyTo, setReplyTo] = useState(null);
+  const [replyHopLimit, setReplyHopLimit] = useState(null);
 
   const fetchMessages = useCallback(async () => {
     const data = await base44.entities.MeshMessage.list('-meshtastic_timestamp', 100);
@@ -188,7 +189,7 @@ export default function Dashboard() {
             <Radio className="w-4 h-4" />
             Send Message
           </h2>
-          <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} replyTo={replyTo} onReplyToClear={() => setReplyTo(null)} />
+          <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} replyTo={replyTo} replyHopLimit={replyHopLimit} onReplyToClear={() => { setReplyTo(null); setReplyHopLimit(null); }} />
         </section>
 
 
@@ -207,7 +208,7 @@ export default function Dashboard() {
               <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
             </div>
           ) : (
-            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} onReply={(nodeId) => { setReplyTo(nodeId); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} onReply={(nodeId, hopStart) => { setReplyTo(nodeId); setReplyHopLimit(hopStart !== undefined && hopStart > 3 ? hopStart : null); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           )}
         </section>
         </>

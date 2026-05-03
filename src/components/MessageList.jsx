@@ -44,11 +44,14 @@ export default function MessageList({ messages, onDelete, channels, onReply }) {
         const rxSnr = raw.rx_snr;
         const rxRssi = raw.rx_rssi;
         const gatewayId = raw.gateway_id;
+        const hopStart = raw.hop_start;
+        const hopLimit = raw.hop_limit;
+        const hopsUsed = (hopStart !== undefined && hopLimit !== undefined) ? (hopStart - hopLimit) : null;
 
         return (
         <div
           key={msg.id}
-          onClick={() => msg.direction === 'inbound' && msg.from_node && onReply?.(msg.from_node)}
+          onClick={() => msg.direction === 'inbound' && msg.from_node && onReply?.(msg.from_node, hopStart)}
           className={`flex gap-3 p-3 rounded-xl border transition-all ${
             msg.direction === 'outbound'
               ? 'bg-primary/10 border-primary/30'
@@ -115,6 +118,11 @@ export default function MessageList({ messages, onDelete, channels, onReply }) {
             </div>
             <p className="text-sm text-foreground break-words">{msg.text}</p>
             <div className="flex items-center gap-3 mt-1 flex-wrap">
+              {hopsUsed !== null && (
+                <span className={`text-xs font-medium flex items-center gap-1 ${hopsUsed >= 3 ? 'text-yellow-400' : 'text-muted-foreground'}`}>
+                  🔁 {hopsUsed} hop{hopsUsed !== 1 ? 's' : ''}
+                </span>
+              )}
               {(rxSnr !== undefined && rxSnr !== null) && (
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <Wifi className="w-3 h-3" /> SNR {rxSnr}
