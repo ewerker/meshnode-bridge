@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Download, Wifi } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
@@ -8,16 +8,23 @@ const LISTEN_OPTIONS = [
   { label: '1 min', seconds: 60 },
   { label: '2 min', seconds: 120 },
   { label: '3 min', seconds: 180 },
-  { label: '10 min', seconds: 600 },
-  { label: '20 min', seconds: 1200 },
+  { label: '4 min', seconds: 240 },
+  { label: '5 min', seconds: 300 },
 ];
 
 const LS_LISTEN = 'mesh_poll_listen_seconds';
 
 export default function PollPanel({ onReceived, userSettings }) {
-  const [listenSeconds, setListenSeconds] = useState(() => parseInt(localStorage.getItem(LS_LISTEN) ?? '60'));
+  const [listenSeconds, setListenSeconds] = useState(() => {
+    const saved = parseInt(localStorage.getItem(LS_LISTEN) ?? '60');
+    // Clamp to new bounds (10s – 300s)
+    if (isNaN(saved) || saved < 10) return 60;
+    if (saved > 300) return 300;
+    return saved;
+  });
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
+  const initialPollRef = useRef(false);
 
   const handleListenChange = (val) => {
     const s = parseInt(val);
@@ -29,7 +36,7 @@ export default function PollPanel({ onReceived, userSettings }) {
   const region = userSettings?.region || 'EU_868';
   const prefix = userSettings?.topic_prefix || `msh/${region}/proxy`;
 
-  const handlePoll = async () => {
+  const runPoll = async (seconds) => {
     if (!nodeId) {
       setResult({ type: 'error', msg: 'Please set your Node ID in Settings first.' });
       return;
@@ -37,7 +44,7 @@ export default function PollPanel({ onReceived, userSettings }) {
     setPolling(true);
     setResult(null);
     try {
-      const res = await base44.functions.invoke('mqttPoll', { region, listenSeconds });
+      const res = await base44.functions.invoke('mqttPoll', { region, listenSeconds: seconds });
       setResult({ type: 'success', msg: `${res.data.received} message(s) received, ${res.data.saved} saved.` });
       onReceived?.();
     } catch (err) {
@@ -46,6 +53,16 @@ export default function PollPanel({ onReceived, userSettings }) {
       setPolling(false);
     }
   };
+
+  const handlePoll = () => runPoll(listenSeconds);
+
+  // Auto-start a 5-minute poll once on mount when node is configured
+  useEffect(() => {
+    if (initialPollRef.current) return;
+    if (!nodeId) return;
+    initialPollRef.current = true;
+    runPoll(300);
+  }, [nodeId]);
 
   const topic = nodeId ? `${prefix}/rx/${nodeId}/#` : '—';
   const listenLabel = LISTEN_OPTIONS.find(o => o.seconds === listenSeconds)?.label || `${listenSeconds}s`;
