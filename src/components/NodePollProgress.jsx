@@ -16,9 +16,9 @@ export default function NodePollProgress({ active }) {
 
   if (!active) return null;
 
-  const listenSeconds = 30;
-  const percent = Math.min(100, Math.round((elapsed / listenSeconds) * 100));
-  const listening = elapsed < listenSeconds;
+  const estimatedSeconds = 90;
+  const percent = Math.min(95, Math.round((elapsed / estimatedSeconds) * 100));
+  const listening = percent < 35;
 
   return (
     <div className="bg-card border border-primary/30 rounded-lg px-3 py-3 space-y-2">
@@ -34,16 +34,16 @@ export default function NodePollProgress({ active }) {
               {listening ? 'Node-Daten werden empfangen…' : 'Nodes werden verarbeitet…'}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              {listening ? `${Math.max(0, listenSeconds - elapsed)}s Empfangsfenster` : `läuft seit ${elapsed}s`}
+              {listening ? 'Daten werden vom Broker gelesen' : 'Daten werden in 5er-Batches gespeichert'}
             </p>
           </div>
         </div>
-        <span className="text-xs font-mono text-primary whitespace-nowrap">{elapsed}s</span>
+        <span className="text-xs font-mono text-primary whitespace-nowrap">{percent}%</span>
       </div>
       <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
         <div
           className={`h-full bg-primary transition-all duration-300 ${listening ? '' : 'animate-pulse'}`}
-          style={{ width: `${listening ? percent : 100}%` }}
+          style={{ width: `${percent}%` }}
         />
       </div>
     </div>

@@ -149,8 +149,8 @@ Deno.serve(async (req) => {
     }
 
     // Update existing nodes in batches with delay and retry
-    const BATCH_SIZE = 25;
-    const BATCH_DELAY_MS = 0;
+    const BATCH_SIZE = 5;
+    const BATCH_DELAY_MS = 1000;
     const MAX_RETRIES = 1;
     let updated = 0;
     let errors = 0;
