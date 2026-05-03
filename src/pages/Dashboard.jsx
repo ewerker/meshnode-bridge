@@ -173,15 +173,12 @@ export default function Dashboard() {
 
 
         {/* Message Log */}
-        <section className="bg-card rounded-2xl border border-border p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">
-              Message History
-            </h2>
-            <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
-              {stats.total} total
-            </span>
-          </div>
+        <CollapsibleSection
+          id="message_history"
+          icon={Layers}
+          title={`Message History (${stats.total})`}
+          headerColorClass="text-foreground"
+        >
           {loading ? (
             <div className="flex justify-center py-12">
               <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
@@ -189,7 +186,7 @@ export default function Dashboard() {
           ) : (
             <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} onReply={(nodeId, hopStart) => { setReplyTo(nodeId); setReplyHopLimit(hopStart !== undefined && hopStart > 3 ? hopStart : null); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           )}
-        </section>
+        </CollapsibleSection>
 
         {/* Auto-Poll Log (bottom) */}
         <CollapsibleSection id="auto_poll_log" icon={Activity} title="Auto-Poll Log" defaultOpen={false}>
