@@ -34,11 +34,16 @@ export default function Dashboard() {
     if (!currentUser?.node_id || pollingRef.current) return;
     pollingRef.current = true;
     setIsPolling(true);
+    const releaseUi = setTimeout(() => {
+      pollingRef.current = false;
+      setIsPolling(false);
+    }, 32000);
     try {
       await base44.functions.invoke('mqttPoll', { region: currentUser.region || 'EU_868', listenSeconds: 30 });
       fetchMessages();
     } catch (_) { /* silent */ }
     finally {
+      clearTimeout(releaseUi);
       pollingRef.current = false;
       setIsPolling(false);
     }
@@ -67,6 +72,13 @@ export default function Dashboard() {
     });
     return unsub;
   }, [fetchMessages]);
+
+  const initialPollRef = useRef(false);
+  useEffect(() => {
+    if (!currentUser?.node_id || initialPollRef.current) return;
+    initialPollRef.current = true;
+    autoPoll();
+  }, [currentUser?.node_id, autoPoll]);
 
   const loadUser = async () => {
     const me = await base44.auth.me();
