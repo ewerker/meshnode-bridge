@@ -8,6 +8,7 @@ import MessageList from '@/components/MessageList';
 import SendMessageForm from '@/components/SendMessageForm';
 import PollPanel from '@/components/PollPanel';
 import AutoPollStatus from '@/components/AutoPollStatus';
+import PollCountdown from '@/components/PollCountdown';
 import PollLog from '@/components/PollLog';
 import CollapsibleSection from '@/components/CollapsibleSection';
 
@@ -27,15 +28,20 @@ export default function Dashboard() {
   }, []);
 
   const pollingRef = useRef(false);
+  const [isPolling, setIsPolling] = useState(false);
 
   const autoPoll = useCallback(async () => {
     if (!currentUser?.node_id || pollingRef.current) return;
     pollingRef.current = true;
+    setIsPolling(true);
     try {
       await base44.functions.invoke('mqttPoll', { region: currentUser.region || 'EU_868', listenSeconds: 30 });
       fetchMessages();
     } catch (_) { /* silent */ }
-    finally { pollingRef.current = false; }
+    finally {
+      pollingRef.current = false;
+      setIsPolling(false);
+    }
   }, [currentUser, fetchMessages]);
 
   const sortMessages = (msgs) => {
@@ -144,6 +150,7 @@ export default function Dashboard() {
             >
               <RefreshCw className="w-4 h-4 text-muted-foreground" />
             </button>
+            <PollCountdown active={isPolling} seconds={30} />
             <AutoPollStatus currentUser={currentUser} />
             <ThemeToggle />
           </div>
