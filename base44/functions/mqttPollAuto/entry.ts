@@ -1,16 +1,43 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import * as mqtt from 'npm:mqtt@5.10.1';
 
+const POLL_STATUS_KEY = 'auto_poll';
+const SESSION_TIMEOUT_SECONDS = 600; // 10 minutes — user must have been active within this window
+
+async function upsertPollStatus(base44, data) {
+  const existing = await base44.asServiceRole.entities.PollStatus.filter({ key: POLL_STATUS_KEY });
+  if (existing.length > 0) {
+    await base44.asServiceRole.entities.PollStatus.update(existing[0].id, data);
+  } else {
+    await base44.asServiceRole.entities.PollStatus.create({ key: POLL_STATUS_KEY, ...data });
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const nowTs = Math.floor(Date.now() / 1000);
 
-    // Find the admin user to read their settings (node_id, region, topic_prefix)
+    // Find the admin user
     const users = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
     if (!users || users.length === 0) {
       return Response.json({ error: 'No admin user found' }, { status: 500 });
     }
     const admin = users[0];
+
+    // Check if admin has an active session (heartbeat within SESSION_TIMEOUT_SECONDS)
+    const lastActive = admin.last_active || 0;
+    const secondsSinceActive = nowTs - lastActive;
+
+    if (secondsSinceActive > SESSION_TIMEOUT_SECONDS) {
+      console.log(`[MQTT-AUTO] skipped — admin last active ${secondsSinceActive}s ago (threshold: ${SESSION_TIMEOUT_SECONDS}s)`);
+      await upsertPollStatus(base44, {
+        last_run_at: nowTs,
+        skipped: true,
+        skip_reason: `Admin inaktiv seit ${Math.round(secondsSinceActive / 60)} Minuten`,
+      });
+      return Response.json({ skipped: true, reason: 'No active admin session' });
+    }
 
     const nodeId = admin.node_id;
     if (!nodeId) {
@@ -29,10 +56,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'MQTT_BROKER_URL not configured' }, { status: 500 });
     }
 
-    // Listen for 2.5 minutes (must finish within 3-min platform timeout)
-    const listenTime = 150000;
-
-    console.log('[MQTT-AUTO] subscribing to:', wildcardTopic);
+    const listenTime = 150000; // 2.5 minutes
+    console.log('[MQTT-AUTO] active session confirmed, subscribing to:', wildcardTopic);
 
     const messages = await new Promise((resolve, reject) => {
       const collected = [];
@@ -97,7 +122,7 @@ Deno.serve(async (req) => {
       });
     });
 
-    // Save received messages (skip duplicates by packet_id) using service role
+    // Save received messages (skip duplicates)
     let savedCount = 0;
     for (const msg of messages) {
       const p = msg.payload;
@@ -127,6 +152,16 @@ Deno.serve(async (req) => {
     }
 
     console.log('[MQTT-AUTO] saved:', savedCount, 'of', messages.length);
+
+    await upsertPollStatus(base44, {
+      last_run_at: nowTs,
+      last_polled_at: nowTs,
+      last_received: messages.length,
+      last_saved: savedCount,
+      skipped: false,
+      skip_reason: '',
+    });
+
     return Response.json({ received: messages.length, saved: savedCount });
   } catch (error) {
     console.log('[MQTT-AUTO] fatal error:', error.message);

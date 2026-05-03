@@ -38,6 +38,14 @@
         }
       },
       "description": "Benannte Kan\u00e4le 0-7"
+    },
+    "topic_prefix": {
+      "type": "string",
+      "description": "MQTT Topic Prefix"
+    },
+    "last_active": {
+      "type": "integer",
+      "description": "Unix timestamp of last heartbeat from active browser session"
     }
   },
   "required": [

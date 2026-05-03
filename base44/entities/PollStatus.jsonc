@@ -1,0 +1,38 @@
+{
+  "name": "PollStatus",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unique key, e.g. 'auto_poll'"
+    },
+    "last_run_at": {
+      "type": "integer",
+      "description": "Unix timestamp of last run attempt"
+    },
+    "last_polled_at": {
+      "type": "integer",
+      "description": "Unix timestamp of last successful poll (session was active)"
+    },
+    "last_received": {
+      "type": "integer",
+      "description": "Number of messages received in last poll"
+    },
+    "last_saved": {
+      "type": "integer",
+      "description": "Number of messages saved in last poll"
+    },
+    "skipped": {
+      "type": "boolean",
+      "description": "Was the last run skipped due to no active session?",
+      "default": false
+    },
+    "skip_reason": {
+      "type": "string",
+      "description": "Reason for skipping"
+    }
+  },
+  "required": [
+    "key"
+  ]
+}

@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import MessageList from '@/components/MessageList';
 import SendMessageForm from '@/components/SendMessageForm';
 import PollPanel from '@/components/PollPanel';
+import AutoPollStatus from '@/components/AutoPollStatus';
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
@@ -154,6 +155,7 @@ export default function Dashboard() {
             >
               <RefreshCw className="w-4 h-4 text-muted-foreground" />
             </button>
+            <AutoPollStatus currentUser={currentUser} />
             <ThemeToggle />
           </div>
         </div>
