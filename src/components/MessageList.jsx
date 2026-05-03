@@ -44,9 +44,10 @@ export default function MessageList({ messages, onDelete, channels, onReply }) {
         const rxSnr = raw.rx_snr;
         const rxRssi = raw.rx_rssi;
         const gatewayId = raw.gateway_id;
-        const hopStart = raw.hop_start;
-        const hopLimit = raw.hop_limit;
-        const hopsUsed = (hopStart !== undefined && hopLimit !== undefined) ? (hopStart - hopLimit) : null;
+        const hopStart = raw.hop_start ?? raw.hopStart;
+        const hopLimit = raw.hop_limit ?? raw.hopLimit;
+        const hopsUsed = (hopStart !== undefined && hopStart !== null && hopLimit !== undefined && hopLimit !== null)
+          ? (hopStart - hopLimit) : null;
 
         return (
         <div
