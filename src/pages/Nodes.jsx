@@ -6,6 +6,7 @@ import NodeTable from '@/components/NodeTable';
 import NodeStats from '@/components/nodes/NodeStats';
 import NodeMap from '@/components/nodes/NodeMap';
 import ThemeToggle from '@/components/ThemeToggle';
+import NodePollProgress from '@/components/NodePollProgress';
 
 export default function Nodes() {
   const [nodes, setNodes] = useState([]);
@@ -137,8 +138,9 @@ export default function Nodes() {
             <ThemeToggle />
           </div>
         </div>
-        {(result || logLines.length > 0) && (
+        {(polling || result || logLines.length > 0) && (
           <div className="max-w-6xl mx-auto px-4 pb-3 space-y-2">
+            <NodePollProgress active={polling} />
             {result && (
               <div className={`text-xs px-3 py-2 rounded-lg ${result.type === 'success' ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-destructive/10 text-destructive border border-destructive/30'}`}>
                 {result.msg}
