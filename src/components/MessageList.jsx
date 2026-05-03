@@ -85,12 +85,12 @@ export default function MessageList({ messages, onDelete, channels, onReply }) {
                   <span className="text-muted-foreground/60">·</span>
                 </>
               )}
-              {msg.direction === 'outbound' && msg.to_node && msg.to_node !== '^all' && nodeMap[msg.to_node] && (
+              {msg.direction === 'outbound' && msg.to_node && msg.to_node !== '^all' && (
                 <>
                   <span className="flex items-center gap-1 text-xs text-foreground font-medium">
                     {nodeMap[msg.to_node]?.is_favorite && <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 flex-shrink-0" />}
-                    {nodeMap[msg.to_node].long_name || msg.to_node}
-                    {nodeMap[msg.to_node].short_name && (
+                    {nodeMap[msg.to_node]?.long_name || nodeMap[msg.to_node]?.short_name || msg.to_node}
+                    {nodeMap[msg.to_node]?.short_name && nodeMap[msg.to_node]?.long_name && (
                       <span className="text-muted-foreground font-normal">({nodeMap[msg.to_node].short_name})</span>
                     )}
                   </span>
@@ -100,8 +100,7 @@ export default function MessageList({ messages, onDelete, channels, onReply }) {
               )}
               {msg.to_node && msg.to_node !== '^all' ? (
                 <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-purple-500/15 text-purple-400">
-                  {nodeMap[msg.to_node]?.is_favorite && <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />}
-                  DM → {msg.to_node}
+                  DM
                 </span>
               ) : (
                 <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
@@ -132,7 +131,7 @@ export default function MessageList({ messages, onDelete, channels, onReply }) {
             </div>
             <p className="text-sm text-foreground break-words">{msg.text}</p>
             <div className="flex items-center gap-3 mt-1 flex-wrap">
-              {hopsUsed !== null && (
+              {msg.direction === 'inbound' && hopsUsed !== null && hopsUsed >= 0 && (
                 <span className={`text-xs font-medium flex items-center gap-1 ${hopsUsed >= 3 ? 'text-yellow-400' : 'text-muted-foreground'}`}>
                   🔁 {hopsUsed} hop{hopsUsed !== 1 ? 's' : ''}
                 </span>
