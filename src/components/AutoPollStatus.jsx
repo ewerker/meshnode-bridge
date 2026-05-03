@@ -9,19 +9,30 @@ const HEARTBEAT_INTERVAL_MS = 120000;
 export default function AutoPollStatus({ currentUser }) {
   const [status, setStatus] = useState(null);
 
-  // Heartbeat: keep last_active fresh while page is open
+  // Heartbeat: keep last_active fresh ONLY while tab is visible
   useEffect(() => {
     if (!currentUser?.id) return;
 
     const sendHeartbeat = () => {
+      if (document.visibilityState !== 'visible') return;
       const ts = Math.floor(Date.now() / 1000);
       base44.auth.updateMe({ last_active: ts });
     };
 
-    // Send immediately on mount
+    // Send immediately if visible
     sendHeartbeat();
     const interval = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
-    return () => clearInterval(interval);
+
+    // Also send when tab becomes visible again
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') sendHeartbeat();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [currentUser?.id]);
 
   // Load poll status and subscribe to updates
