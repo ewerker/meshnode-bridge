@@ -19,7 +19,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   });
   const [text, setText] = useState('');
   const [dmNodeId, setDmNodeId] = useState('');
-  const [hopLimit, setHopLimit] = useState(3);
+  const [hopLimit, setHopLimit] = useState(6);
   const [wantAck, setWantAck] = useState(true);
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
