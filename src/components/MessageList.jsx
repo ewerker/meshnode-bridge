@@ -3,8 +3,19 @@ import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
+const PAGE_SIZE_OPTIONS = [20, 50, 100];
+
 export default function MessageList({ messages, onDelete, channels, onReply }) {
   const [nodeMap, setNodeMap] = useState({});
+  const [pageSize, setPageSize] = useState(20);
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil((messages?.length || 0) / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const startIdx = (currentPage - 1) * pageSize;
+  const visibleMessages = (messages || []).slice(startIdx, startIdx + pageSize);
+
+  useEffect(() => { setPage(1); }, [pageSize]);
 
   useEffect(() => {
     base44.entities.MeshNode.list('-last_heard', 500).then(nodes => {
@@ -38,7 +49,7 @@ export default function MessageList({ messages, onDelete, channels, onReply }) {
 
   return (
     <div className="space-y-2">
-      {messages.map((msg) => {
+      {visibleMessages.map((msg) => {
         const raw = parseRaw(msg.raw_payload);
         const fromLabel = raw.from_label || '';
         const rxSnr = raw.rx_snr;
@@ -166,6 +177,43 @@ export default function MessageList({ messages, onDelete, channels, onReply }) {
         </div>
         );
       })}
+
+      {messages.length > 0 && (
+        <div className="flex items-center justify-between gap-3 pt-3 mt-2 border-t border-border flex-wrap">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Per page:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(parseInt(e.target.value))}
+              className="bg-secondary border border-border rounded px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary"
+            >
+              {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <span className="ml-2">
+              {startIdx + 1}–{Math.min(startIdx + pageSize, messages.length)} of {messages.length}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 text-xs rounded bg-secondary hover:bg-secondary/80 disabled:opacity-40 disabled:cursor-not-allowed text-foreground transition-colors"
+            >
+              ← Prev
+            </button>
+            <span className="text-xs text-muted-foreground">
+              Page {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 text-xs rounded bg-secondary hover:bg-secondary/80 disabled:opacity-40 disabled:cursor-not-allowed text-foreground transition-colors"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
