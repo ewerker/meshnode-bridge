@@ -149,9 +149,9 @@ Deno.serve(async (req) => {
     }
 
     // Update existing nodes in batches with delay and retry
-    const BATCH_SIZE = 3;
-    const BATCH_DELAY_MS = 2000;
-    const MAX_RETRIES = 3;
+    const BATCH_SIZE = 25;
+    const BATCH_DELAY_MS = 0;
+    const MAX_RETRIES = 1;
     let updated = 0;
     let errors = 0;
 
@@ -194,8 +194,8 @@ Deno.serve(async (req) => {
         console.log('[NODES] update failed after retries:', item.record.node_id);
       }
 
-      // Pause between batches to avoid rate limits
-      if (i + BATCH_SIZE < toUpdate.length) {
+      // Optional pause between batches
+      if (BATCH_DELAY_MS > 0 && i + BATCH_SIZE < toUpdate.length) {
         await delay(BATCH_DELAY_MS);
       }
 
