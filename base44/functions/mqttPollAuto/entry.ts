@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'MQTT_BROKER_URL not configured' }, { status: 500 });
     }
 
-    const listenTime = 150000; // 2.5 minutes
+    const listenTime = 110000; // ~1.8 min, leaves buffer for save phase within isolate timeout
     console.log('[MQTT-AUTO] active session confirmed, subscribing to:', wildcardTopic);
 
     const messages = await new Promise((resolve, reject) => {
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
         resolve(collected);
       };
 
-      const timer = setTimeout(done, listenTime + 10000);
+      const timer = setTimeout(done, listenTime + 5000);
 
       client.on('message', (t, msgBuf) => {
         try {
