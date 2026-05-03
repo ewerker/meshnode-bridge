@@ -162,6 +162,15 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        {isPolling && (
+          <div className="bg-card rounded-2xl border border-primary/30 p-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-primary">Empfang beim Seitenladen läuft</p>
+              <p className="text-xs text-muted-foreground">Manual Receive ist danach wieder nutzbar.</p>
+            </div>
+            <PollCountdown active={isPolling} seconds={30} />
+          </div>
+        )}
         {showSettings && (
           <section className="bg-card rounded-2xl border border-border p-5">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
