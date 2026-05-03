@@ -9,46 +9,31 @@ const HEARTBEAT_INTERVAL_MS = 60000;
 export default function AutoPollStatus({ currentUser }) {
   const [status, setStatus] = useState(null);
 
-  // Heartbeat: keep last_active fresh ONLY while tab is visible
+  // Heartbeat: keep last_active fresh while page is open.
+  // Inactivity is detected automatically when no heartbeat has been sent for >SESSION_TIMEOUT_SECONDS.
   useEffect(() => {
     if (!currentUser?.id) return;
 
     const sendHeartbeat = () => {
-      // Require BOTH visibility and focus — visibilityState alone can be unreliable
-      if (document.visibilityState !== 'visible' || !document.hasFocus()) return;
       const ts = Math.floor(Date.now() / 1000);
       base44.auth.updateMe({ last_active: ts });
     };
 
-    // Reset last_active to 0 so the poller pauses immediately on tab close/hide
-    const markInactive = () => {
-      base44.auth.updateMe({ last_active: 0 });
-    };
-
-    // Send immediately if visible
+    // Send immediately on mount, then on every interval and when tab regains focus
     sendHeartbeat();
     const interval = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
 
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        sendHeartbeat();
-      } else {
-        markInactive();
-      }
-    };
-    const onBlur = () => markInactive();
     const onFocus = () => sendHeartbeat();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') sendHeartbeat();
+    };
 
     document.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('pagehide', markInactive);
-    window.addEventListener('blur', onBlur);
     window.addEventListener('focus', onFocus);
 
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('pagehide', markInactive);
-      window.removeEventListener('blur', onBlur);
       window.removeEventListener('focus', onFocus);
     };
   }, [currentUser?.id]);
