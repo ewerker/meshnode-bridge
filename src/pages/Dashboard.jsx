@@ -68,14 +68,6 @@ export default function Dashboard() {
     return unsub;
   }, [fetchMessages]);
 
-  // Run a single poll on initial page load so messages appear without waiting for auto-poll
-  const initialPollRef = useRef(false);
-  useEffect(() => {
-    if (!currentUser?.node_id || initialPollRef.current) return;
-    initialPollRef.current = true;
-    autoPoll();
-  }, [currentUser?.node_id, autoPoll]);
-
   const loadUser = async () => {
     const me = await base44.auth.me();
     setCurrentUser(me);
