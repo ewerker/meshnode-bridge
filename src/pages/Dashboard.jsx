@@ -154,7 +154,6 @@ export default function Dashboard() {
             >
               <RefreshCw className="w-4 h-4 text-muted-foreground" />
             </button>
-            <PollCountdown active={isPolling} seconds={30} />
             <AutoPollStatus currentUser={currentUser} />
             <ThemeToggle />
           </div>
