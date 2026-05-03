@@ -16,7 +16,7 @@ export default function NodePollProgress({ active, progress }) {
     percent = 10;
   } else if (total > 0) {
     percent = Math.round((current / total) * 100);
-    statusText = `${current} von ${total} Nodes gespeichert (in 5er Batches)`;
+    statusText = `${current} von ${total} Nodes gespeichert (in 3er Batches)`;
   }
 
   return (
