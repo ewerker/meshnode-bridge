@@ -15,8 +15,8 @@ export default function AutoPollStatus({ currentUser }) {
     if (!currentUser?.id) return;
 
     const sendHeartbeat = () => {
-      const ts = Math.floor(Date.now() / 1000);
-      base44.auth.updateMe({ last_active: ts });
+      // Call the backend function so the timestamp is generated on the server (avoids clock skew)
+      base44.functions.invoke('heartbeat').catch(() => {});
     };
 
     // Send immediately on mount, then on every interval and when tab regains focus
