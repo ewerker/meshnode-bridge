@@ -97,6 +97,10 @@ Deno.serve(async (req) => {
     const nodes = data.nodes || [];
     console.log('[NODES] received', nodes.length, 'nodes');
 
+    if (pollType === 'manual_nodes_poll') {
+      return Response.json({ success: true, nodes });
+    }
+
     // Load all existing nodes in one call
     const existingNodes = await base44.asServiceRole.entities.MeshNode.list('-last_heard', 1000);
     const existingMap = {};
@@ -108,20 +112,6 @@ Deno.serve(async (req) => {
     const toCreate = [];
     const toUpdate = [];
     const log = [`${nodes.length} Nodes vom Broker empfangen.`];
-
-    let pollRecordId = null;
-    try {
-      const pollRecord = await base44.asServiceRole.entities.PollStatus.create({
-        key: pollKey,
-        last_run_at: runStartedAt,
-        last_polled_at: Math.floor(Date.now() / 1000),
-        last_received: nodes.length,
-        last_saved: 0,
-        skipped: false,
-        skip_reason: 'Processing...',
-      });
-      pollRecordId = pollRecord.id;
-    } catch(e) {}
 
     for (const node of nodes) {
       const record = {
@@ -160,14 +150,11 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.MeshNode.bulkCreate(batch);
       created += batch.length;
       console.log('[NODES] created batch:', batch.length, 'total:', created);
-      if (pollRecordId) {
-        await base44.asServiceRole.entities.PollStatus.update(pollRecordId, { last_saved: created });
-      }
     }
 
     // Update existing nodes in batches with delay and retry
     const BATCH_SIZE = 5;
-    const BATCH_DELAY_MS = 1500;
+    const BATCH_DELAY_MS = 1000;
     const MAX_RETRIES = 1;
     let updated = 0;
     let errors = 0;
@@ -216,32 +203,21 @@ Deno.serve(async (req) => {
         await delay(BATCH_DELAY_MS);
       }
 
-      if (pollRecordId) {
-        await base44.asServiceRole.entities.PollStatus.update(pollRecordId, { last_saved: created + updated });
-      }
-
       console.log('[NODES] update progress:', updated, '/', toUpdate.length);
     }
 
     log.push(`Fertig: ${created} neu, ${updated} aktualisiert${errors > 0 ? `, ${errors} Fehler` : ''}.`);
     console.log('[NODES] done:', created, 'created,', updated, 'updated,', errors, 'errors');
 
-    if (pollRecordId) {
-      await base44.asServiceRole.entities.PollStatus.update(pollRecordId, {
-        last_saved: created + updated,
-        skip_reason: errors > 0 ? `${errors} Node-Update-Fehler` : '',
-      });
-    } else {
-      await base44.asServiceRole.entities.PollStatus.create({
-        key: pollKey,
-        last_run_at: runStartedAt,
-        last_polled_at: Math.floor(Date.now() / 1000),
-        last_received: nodes.length,
-        last_saved: created + updated,
-        skipped: false,
-        skip_reason: errors > 0 ? `${errors} Node-Update-Fehler` : '',
-      });
-    }
+    await base44.asServiceRole.entities.PollStatus.create({
+      key: pollKey,
+      last_run_at: runStartedAt,
+      last_polled_at: Math.floor(Date.now() / 1000),
+      last_received: nodes.length,
+      last_saved: created + updated,
+      skipped: false,
+      skip_reason: errors > 0 ? `${errors} Node-Update-Fehler` : '',
+    });
 
     return Response.json({ success: true, updated, created, errors, total: nodes.length, log });
   } catch (error) {
