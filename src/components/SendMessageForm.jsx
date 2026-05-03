@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Send, Radio, Users, User } from 'lucide-react';
+import { Send, Radio, Users, User, Download, Wifi } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import NodePicker from '@/components/NodePicker';
 
 const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7];
 const LS_CHANNEL = 'mesh_last_channel';
 const LS_MODE = 'mesh_send_mode';
+const LS_LISTEN = 'mesh_poll_listen_seconds';
+
+const LISTEN_OPTIONS = [
+  { label: '10 sec', seconds: 10 },
+  { label: '30 sec', seconds: 30 },
+  { label: '1 min', seconds: 60 },
+  { label: '2 min', seconds: 120 },
+  { label: '3 min', seconds: 180 },
+  { label: '10 min', seconds: 600 },
+];
 
 export default function SendMessageForm({ onMessageSent, userSettings, replyTo, onReplyToClear }) {
   const [mode, setMode] = useState(() => localStorage.getItem(LS_MODE) || 'channel');
@@ -23,6 +33,9 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const [wantAck, setWantAck] = useState(true);
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [listenSeconds, setListenSeconds] = useState(() => parseInt(localStorage.getItem(LS_LISTEN) ?? '60'));
+  const [polling, setPolling] = useState(false);
+  const [pollResult, setPollResult] = useState(null);
 
   // Switch to DM mode and set recipient when replyTo changes
   useEffect(() => {
@@ -52,6 +65,24 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const updateChannel = (val) => {
     setChannel(val);
     localStorage.setItem(LS_CHANNEL, String(val));
+  };
+
+  const handlePoll = async () => {
+    if (!userSettings?.node_id) {
+      setPollResult({ type: 'error', msg: 'Please set your Node ID in Settings first.' });
+      return;
+    }
+    setPolling(true);
+    setPollResult(null);
+    try {
+      const res = await base44.functions.invoke('mqttPoll', { region: userSettings?.region || 'EU_868', listenSeconds });
+      setPollResult({ type: 'success', msg: `${res.data.received} empfangen, ${res.data.saved} gespeichert.` });
+      onMessageSent?.();
+    } catch (err) {
+      setPollResult({ type: 'error', msg: err.message });
+    } finally {
+      setPolling(false);
+    }
   };
 
   const region = userSettings?.region || 'EU_868';
@@ -220,6 +251,33 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           {feedback.msg}
         </div>
       )}
+
+      {/* Manual Poll */}
+      <div className="border-t border-border pt-3 flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-muted-foreground whitespace-nowrap">Manuell empfangen:</span>
+        <select
+          value={listenSeconds}
+          onChange={e => { const s = parseInt(e.target.value); setListenSeconds(s); localStorage.setItem(LS_LISTEN, String(s)); }}
+          disabled={polling}
+          className="bg-secondary border border-border rounded px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary"
+        >
+          {LISTEN_OPTIONS.map(o => <option key={o.seconds} value={o.seconds}>{o.label}</option>)}
+        </select>
+        <button
+          type="button"
+          onClick={handlePoll}
+          disabled={polling || !userSettings?.node_id}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-secondary/80 disabled:opacity-50 text-foreground rounded-lg text-xs font-medium transition-colors"
+        >
+          {polling ? <Wifi className="w-3.5 h-3.5 text-primary animate-pulse" /> : <Download className="w-3.5 h-3.5" />}
+          {polling ? 'Lausche…' : 'Receive'}
+        </button>
+        {pollResult && (
+          <span className={`text-xs ${pollResult.type === 'success' ? 'text-primary' : 'text-destructive'}`}>
+            {pollResult.msg}
+          </span>
+        )}
+      </div>
     </form>
   );
 }

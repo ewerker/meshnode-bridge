@@ -6,7 +6,6 @@ import ThemeToggle from '@/components/ThemeToggle';
 import { Link } from 'react-router-dom';
 import MessageList from '@/components/MessageList';
 import SendMessageForm from '@/components/SendMessageForm';
-import PollPanel from '@/components/PollPanel';
 import AutoPollStatus from '@/components/AutoPollStatus';
 
 export default function Dashboard() {
@@ -181,16 +180,6 @@ export default function Dashboard() {
           </h2>
           <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} replyTo={replyTo} onReplyToClear={() => setReplyTo(null)} />
         </section>
-
-        {/* Manual Poll */}
-        <section className="bg-card rounded-2xl border border-border p-5">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-            <Layers className="w-4 h-4" />
-            Manual Receive
-          </h2>
-          <PollPanel onReceived={fetchMessages} userSettings={currentUser} />
-        </section>
-
 
 
         {/* Message Log */}

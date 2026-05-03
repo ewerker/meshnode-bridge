@@ -105,7 +105,7 @@ export default function MessageList({ messages, onDelete, channels, onReply }) {
               )}
               {onDelete && (
                 <button
-                  onClick={() => onDelete(msg.id)}
+                  onClick={(e) => { e.stopPropagation(); onDelete(msg.id); }}
                   className="p-1 rounded hover:bg-destructive/15 text-muted-foreground hover:text-destructive transition-colors"
                   title="Delete"
                 >
