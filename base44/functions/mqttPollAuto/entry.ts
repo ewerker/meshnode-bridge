@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import * as mqtt from 'npm:mqtt@5.10.1';
 
 const POLL_STATUS_KEY = 'auto_poll';
-const SESSION_TIMEOUT_SECONDS = 240; // 4 minutes — heartbeat runs every 2 min, so 2x interval + buffer
+const SESSION_TIMEOUT_SECONDS = 120; // 2 minutes — heartbeat runs every 60s, so 2x interval
 
 async function upsertPollStatus(base44, data) {
   const existing = await base44.asServiceRole.entities.PollStatus.filter({ key: POLL_STATUS_KEY });

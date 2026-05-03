@@ -3,8 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { Wifi, WifiOff, Clock, SkipForward } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
-// Heartbeat interval: update last_active every 2 minutes
-const HEARTBEAT_INTERVAL_MS = 120000;
+// Heartbeat interval: update last_active every 60 seconds
+const HEARTBEAT_INTERVAL_MS = 60000;
 
 export default function AutoPollStatus({ currentUser }) {
   const [status, setStatus] = useState(null);
@@ -14,7 +14,8 @@ export default function AutoPollStatus({ currentUser }) {
     if (!currentUser?.id) return;
 
     const sendHeartbeat = () => {
-      if (document.visibilityState !== 'visible') return;
+      // Require BOTH visibility and focus — visibilityState alone can be unreliable
+      if (document.visibilityState !== 'visible' || !document.hasFocus()) return;
       const ts = Math.floor(Date.now() / 1000);
       base44.auth.updateMe({ last_active: ts });
     };
@@ -35,13 +36,20 @@ export default function AutoPollStatus({ currentUser }) {
         markInactive();
       }
     };
+    const onBlur = () => markInactive();
+    const onFocus = () => sendHeartbeat();
+
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('pagehide', markInactive);
+    window.addEventListener('blur', onBlur);
+    window.addEventListener('focus', onFocus);
 
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pagehide', markInactive);
+      window.removeEventListener('blur', onBlur);
+      window.removeEventListener('focus', onFocus);
     };
   }, [currentUser?.id]);
 
