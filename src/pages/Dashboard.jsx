@@ -22,8 +22,8 @@ export default function Dashboard() {
   const [replyHopLimit, setReplyHopLimit] = useState(null);
 
   const fetchMessages = useCallback(async () => {
-    const data = await base44.entities.MeshMessage.list('-meshtastic_timestamp', 100);
-    setMessages(data);
+    const data = await base44.entities.MeshMessage.list('-created_date', 100);
+    setMessages(sortMessages(data));
     setLoading(false);
   }, []);
 
@@ -50,7 +50,11 @@ export default function Dashboard() {
   }, [currentUser, fetchMessages]);
 
   const sortMessages = (msgs) => {
-    return [...msgs].sort((a, b) => {
+    const uniqueMap = new Map();
+    msgs.forEach(m => { uniqueMap.set(m.id, m); });
+    const uniqueMsgs = Array.from(uniqueMap.values());
+
+    return uniqueMsgs.sort((a, b) => {
       const aTime = a.meshtastic_timestamp || (a.created_date ? new Date(a.created_date.endsWith('Z') ? a.created_date : a.created_date + 'Z').getTime() / 1000 : 0);
       const bTime = b.meshtastic_timestamp || (b.created_date ? new Date(b.created_date.endsWith('Z') ? b.created_date : b.created_date + 'Z').getTime() / 1000 : 0);
       return bTime - aTime;

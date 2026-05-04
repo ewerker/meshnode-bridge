@@ -131,7 +131,12 @@ Deno.serve(async (req) => {
     let savedCount = 0;
     for (const msg of messages) {
       const p = msg.payload;
-      const msgId = p.packet_id !== undefined ? String(p.packet_id) : null;
+      let msgId = p.packet_id !== undefined ? String(p.packet_id) : null;
+
+      if (!msgId) {
+         const textHash = (p.text || '').substring(0, 20).replace(/\s+/g, '_');
+         msgId = `fallback_${p.from_id || 'unknown'}_${p.mirrored_at || 'no_ts'}_${textHash}`;
+      }
 
       if (msgId) {
         const existing = await base44.asServiceRole.entities.MeshMessage.filter({ message_id: msgId });

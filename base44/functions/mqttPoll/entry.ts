@@ -115,7 +115,13 @@ Deno.serve(async (req) => {
       const p = msg.payload;
 
       // Use packet_id as unique message ID
-      const msgId = p.packet_id !== undefined ? String(p.packet_id) : null;
+      let msgId = p.packet_id !== undefined ? String(p.packet_id) : null;
+      
+      // Fallback for deduplication if no packet_id is provided
+      if (!msgId) {
+         const textHash = (p.text || '').substring(0, 20).replace(/\s+/g, '_');
+         msgId = `fallback_${p.from_id || 'unknown'}_${p.mirrored_at || 'no_ts'}_${textHash}`;
+      }
 
       if (msgId) {
         const existing = await base44.entities.MeshMessage.filter({ message_id: msgId });
