@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [nodeName, setNodeName] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [replyHopLimit, setReplyHopLimit] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchMessages = useCallback(async (gw) => {
     const me = gw || (await base44.auth.me()).node_id;
@@ -185,7 +186,7 @@ export default function Dashboard() {
               <Settings className="w-4 h-4" />
               Settings
             </h2>
-            <SettingsPanel onSettingsChanged={() => loadUser()} />
+            <SettingsPanel onSettingsChanged={() => { loadUser(); fetchMessages(); setRefreshKey(k => k + 1); }} />
           </section>
         )}
         <>
@@ -212,7 +213,7 @@ export default function Dashboard() {
               <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
             </div>
           ) : (
-            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} onReply={(nodeId, hopStart) => { setReplyTo(nodeId); setReplyHopLimit(hopStart !== undefined && hopStart > 3 ? hopStart : null); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} refreshKey={refreshKey} onReply={(nodeId, hopStart) => { setReplyTo(nodeId); setReplyHopLimit(hopStart !== undefined && hopStart > 3 ? hopStart : null); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
           )}
         </CollapsibleSection>
 
