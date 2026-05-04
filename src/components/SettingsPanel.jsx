@@ -14,12 +14,28 @@ export default function SettingsPanel({ onSettingsChanged }) {
   const [topicPrefix, setTopicPrefix] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [knownNodes, setKnownNodes] = useState([]);
 
   const REGIONS = ['EU_868', 'EU_433', 'US', 'ANZ', 'KR', 'TW', 'RU', 'IN', 'NZ_865', 'TH', 'LORA_24', 'UA_433', 'UA_868', 'MY_433', 'MY_919', 'SG_923'];
 
   useEffect(() => {
     loadUser();
+    loadKnownNodes();
   }, []);
+
+  const loadKnownNodes = async () => {
+    // Suggest node IDs of devices we've already seen via any gateway (incl. previously configured ones).
+    // We dedupe by node_id so the user gets a clean list of known IDs to pick from.
+    const all = await base44.entities.MeshNode.list('-last_heard', 1000);
+    const seen = new Set();
+    const unique = [];
+    for (const n of all) {
+      if (!n.node_id || seen.has(n.node_id)) continue;
+      seen.add(n.node_id);
+      unique.push(n);
+    }
+    setKnownNodes(unique);
+  };
 
   const loadUser = async () => {
     const me = await base44.auth.me();
@@ -73,11 +89,24 @@ export default function SettingsPanel({ onSettingsChanged }) {
         </label>
         <input
           type="text"
+          list="known-node-ids"
           value={nodeId}
           onChange={(e) => setNodeId(e.target.value)}
           placeholder="e.g. !49b65bc8"
           className="w-full max-w-xs bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground font-mono focus:outline-none focus:border-primary"
         />
+        <datalist id="known-node-ids">
+          {knownNodes.map(n => (
+            <option key={n.node_id} value={n.node_id}>
+              {[n.long_name, n.short_name].filter(Boolean).join(' / ') || n.node_id}
+            </option>
+          ))}
+        </datalist>
+        {knownNodes.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {knownNodes.length} bekannte Node-ID{knownNodes.length === 1 ? '' : 's'} verfügbar — ins Feld klicken zum Auswählen, oder neue ID frei eintragen.
+          </p>
+        )}
       </div>
 
       {/* Topic Prefix */}
