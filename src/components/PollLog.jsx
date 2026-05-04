@@ -91,6 +91,20 @@ export default function PollLog() {
                 <>
                   <span className="text-primary font-medium">{log.last_received ?? 0} received</span>
                   <span className="text-muted-foreground"> · {log.last_saved ?? 0} saved</span>
+                  {log.gateway_status && (
+                    <span className="ml-2 inline-flex items-center gap-1">
+                      <span className={`inline-block w-1.5 h-1.5 rounded-full ${
+                        log.gateway_status === 'online' ? 'bg-emerald-400' :
+                        log.gateway_status === 'broken' ? 'bg-yellow-400' :
+                        log.gateway_status === 'offline' ? 'bg-red-500' :
+                        'bg-muted-foreground'
+                      }`} />
+                      <span className="text-muted-foreground">
+                        gw {log.gateway_status}
+                        {log.gateway_reasons ? ` (${log.gateway_reasons})` : ''}
+                      </span>
+                    </span>
+                  )}
                 </>
               )}
             </span>

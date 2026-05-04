@@ -164,6 +164,55 @@ Deno.serve(async (req) => {
 
     console.log('[MQTT-AUTO] saved:', savedCount, 'of', messages.length);
 
+    // Read gateway presence (retained) for status logging
+    let gatewayStatus = 'unknown';
+    let gatewayReasons = '';
+    try {
+      const root = `msh/${regionStr}`;
+      const presenceTopic = `${root}/2/stat/${nodeId}`;
+      const detailTopic = `${root}/proxy/status/${nodeId}`;
+      const presenceResult = await new Promise((resolve, reject) => {
+        let presence = null;
+        let detail = null;
+        const opts = { clientId: `mesh_status_auto_${Date.now()}`, connectTimeout: 8000, clean: true, protocolVersion: 4 };
+        if (username) opts.username = username;
+        if (password) opts.password = password;
+        const c = mqtt.connect(brokerUrl, opts);
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          clearTimeout(t);
+          try { c.end(true); } catch (_) { /* ignore */ }
+          resolve({ presence, detail });
+        };
+        const t = setTimeout(finish, 4000);
+        c.on('message', (topic, buf) => {
+          const raw = buf.toString();
+          if (topic === presenceTopic) presence = raw.trim();
+          else if (topic === detailTopic) {
+            try { detail = JSON.parse(raw); } catch { detail = null; }
+          }
+          if (presence !== null && detail !== null) finish();
+        });
+        c.on('connect', () => {
+          c.subscribe([presenceTopic, detailTopic], { qos: 0 }, (err) => {
+            if (err) { clearTimeout(t); try { c.end(true); } catch (_) { /* ignore */ } reject(err); }
+          });
+        });
+        c.on('error', (err) => { if (!done) { done = true; clearTimeout(t); try { c.end(true); } catch (_) { /* ignore */ } reject(err); } });
+      });
+      if (presenceResult.presence === 'online') gatewayStatus = 'online';
+      else if (presenceResult.presence === 'broken') gatewayStatus = 'broken';
+      else if (presenceResult.presence === 'offline') gatewayStatus = 'offline';
+      if (Array.isArray(presenceResult.detail?.reasons) && presenceResult.detail.reasons.length > 0) {
+        gatewayReasons = presenceResult.detail.reasons.join(', ');
+      }
+      console.log('[MQTT-AUTO] gateway status:', gatewayStatus, gatewayReasons ? `(${gatewayReasons})` : '');
+    } catch (e) {
+      console.log('[MQTT-AUTO] gateway status read failed:', e.message);
+    }
+
     await logPollRun(base44, {
       last_run_at: nowTs,
       last_polled_at: nowTs,
@@ -171,9 +220,11 @@ Deno.serve(async (req) => {
       last_saved: savedCount,
       skipped: false,
       skip_reason: '',
+      gateway_status: gatewayStatus,
+      gateway_reasons: gatewayReasons,
     });
 
-    return Response.json({ received: messages.length, saved: savedCount });
+    return Response.json({ received: messages.length, saved: savedCount, gateway_status: gatewayStatus });
   } catch (error) {
     console.log('[MQTT-AUTO] fatal error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });

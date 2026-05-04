@@ -30,6 +30,20 @@
     "skip_reason": {
       "type": "string",
       "description": "Reason for skipping"
+    },
+    "gateway_status": {
+      "type": "string",
+      "enum": [
+        "online",
+        "broken",
+        "offline",
+        "unknown"
+      ],
+      "description": "Gateway presence status read from retained MQTT topic"
+    },
+    "gateway_reasons": {
+      "type": "string",
+      "description": "Optional reasons from gateway detail status (e.g. 'MQTT disconnected')"
     }
   },
   "required": [
