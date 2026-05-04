@@ -11,6 +11,7 @@ import AutoPollStatus from '@/components/AutoPollStatus';
 import PollCountdown from '@/components/PollCountdown';
 import PollLog from '@/components/PollLog';
 import CollapsibleSection from '@/components/CollapsibleSection';
+import GatewayStatusIndicator from '@/components/GatewayStatusIndicator';
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
@@ -117,8 +118,8 @@ export default function Dashboard() {
               <Radio className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="font-bold text-foreground tracking-tight">
-                {nodeName || 'Meshtastic MQTT Bridge'}
+              <h1 className="tracking-tight">
+                <GatewayStatusIndicator nodeName={nodeName} nodeId={currentUser?.node_id} />
               </h1>
               <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
                 {currentUser?.node_id
