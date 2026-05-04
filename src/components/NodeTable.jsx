@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Cpu, Radio, Battery, MapPin, Clock, Wifi, ChevronUp, ChevronDown, Star } from 'lucide-react';
+import { Cpu, Radio, Battery, MapPin, Clock, Wifi, ChevronUp, ChevronDown, Star, Search, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { base44 } from '@/api/base44Client';
 
@@ -78,6 +78,7 @@ function compareNodes(a, b, key, dir) {
 export default function NodeTable({ nodes, onFavoriteToggle }) {
   const [sortKey, setSortKey] = useState('last_heard');
   const [sortDir, setSortDir] = useState('desc');
+  const [search, setSearch] = useState('');
 
   const handleToggleFav = async (e, node) => {
     e.stopPropagation();
@@ -104,7 +105,16 @@ export default function NodeTable({ nodes, onFavoriteToggle }) {
     );
   }
 
-  const sorted = [...nodes].sort((a, b) => compareNodes(a, b, sortKey, sortDir)).sort((a, b) => {
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? nodes.filter(n =>
+        (n.long_name || '').toLowerCase().includes(q) ||
+        (n.short_name || '').toLowerCase().includes(q) ||
+        (n.node_id || '').toLowerCase().includes(q)
+      )
+    : nodes;
+
+  const sorted = [...filtered].sort((a, b) => compareNodes(a, b, sortKey, sortDir)).sort((a, b) => {
     // Sort favorites to top
     if (a.is_favorite && !b.is_favorite) return -1;
     if (!a.is_favorite && b.is_favorite) return 1;
@@ -112,7 +122,40 @@ export default function NodeTable({ nodes, onFavoriteToggle }) {
   });
 
   return (
-    <div className="overflow-x-auto">
+    <div>
+      <div className="mb-3 flex items-center gap-2">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by long/short name or node ID…"
+            className="w-full bg-secondary border border-border rounded-lg pl-9 pr-8 py-2 text-sm text-foreground focus:outline-none focus:border-primary placeholder:text-muted-foreground"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
+              title="Clear"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+        {q && (
+          <span className="text-xs text-muted-foreground">
+            {sorted.length} / {nodes.length}
+          </span>
+        )}
+      </div>
+      {sorted.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+          <Search className="w-8 h-8 mb-2 opacity-30" />
+          <p className="text-sm">No nodes match "{search}"</p>
+        </div>
+      ) : (
+      <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wider">
@@ -191,6 +234,8 @@ export default function NodeTable({ nodes, onFavoriteToggle }) {
           ))}
         </tbody>
       </table>
+      </div>
+      )}
     </div>
   );
 }
