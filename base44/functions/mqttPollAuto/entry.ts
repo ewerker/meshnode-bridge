@@ -30,11 +30,17 @@ Deno.serve(async (req) => {
         ? 'Kein aktiver Admin (noch nie eingeloggt)'
         : `Admin inaktiv seit ${Math.round(secondsSinceActive / 60)} Minuten`;
       console.log(`[MQTT-AUTO] skipped — ${reason}`);
-      await logPollRun(base44, {
-        last_run_at: nowTs,
-        skipped: true,
-        skip_reason: reason,
-      });
+      
+      const lastPolls = await base44.asServiceRole.entities.PollStatus.filter({ key: POLL_STATUS_KEY }, '-created_date', 1);
+      const isAlreadySkipping = lastPolls.length > 0 && lastPolls[0].skipped;
+      
+      if (!isAlreadySkipping) {
+        await logPollRun(base44, {
+          last_run_at: nowTs,
+          skipped: true,
+          skip_reason: 'Admin ist offline (Browser geschlossen)',
+        });
+      }
       return Response.json({ skipped: true, reason: 'No active admin session' });
     }
 

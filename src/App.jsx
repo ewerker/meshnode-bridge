@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import GlobalHeartbeat from '@/components/GlobalHeartbeat';
 // Add page imports here
 import Dashboard from './pages/Dashboard';
 import Nodes from './pages/Nodes';
@@ -37,14 +38,17 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <Routes>
-      {/* Add your page Route elements here */}
+    <>
+      <GlobalHeartbeat />
+      <Routes>
+        {/* Add your page Route elements here */}
       <Route path="/" element={<Dashboard />} />
       <Route path="/nodes" element={<Nodes />} />
       <Route path="/about" element={<About />} />
       <Route path="/imprint" element={<Imprint />} />
       <Route path="*" element={<PageNotFound />} />
-    </Routes>
+      </Routes>
+    </>
   );
 };
 

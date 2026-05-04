@@ -3,40 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { Wifi, WifiOff, Clock, SkipForward } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
-// Heartbeat interval: update last_active every 60 seconds
-const HEARTBEAT_INTERVAL_MS = 60000;
-
 export default function AutoPollStatus({ currentUser }) {
   const [status, setStatus] = useState(null);
-
-  // Heartbeat: keep last_active fresh while page is open.
-  // Inactivity is detected automatically when no heartbeat has been sent for >SESSION_TIMEOUT_SECONDS.
-  useEffect(() => {
-    if (!currentUser?.id) return;
-
-    const sendHeartbeat = () => {
-      // Call the backend function so the timestamp is generated on the server (avoids clock skew)
-      base44.functions.invoke('heartbeat').catch(() => {});
-    };
-
-    // Send immediately on mount, then on every interval and when tab regains focus
-    sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
-
-    const onFocus = () => sendHeartbeat();
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') sendHeartbeat();
-    };
-
-    document.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('focus', onFocus);
-
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('focus', onFocus);
-    };
-  }, [currentUser?.id]);
 
   // Load poll status (latest entry) and subscribe to updates
   useEffect(() => {
