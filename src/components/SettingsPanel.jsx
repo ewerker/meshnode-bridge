@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Save, Radio, Hash, Globe, Link2 } from 'lucide-react';
+import DangerZone from '@/components/DangerZone';
 
 const DEFAULT_CHANNELS = Array.from({ length: 8 }, (_, i) => ({ number: i, name: '' }));
 
@@ -161,6 +162,9 @@ export default function SettingsPanel({ onSettingsChanged }) {
           {saved ? 'Saved ✓' : saving ? 'Saving…' : 'Save Settings'}
         </button>
       </div>
+
+      {/* Danger Zone */}
+      <DangerZone nodeId={user?.node_id} onChanged={onSettingsChanged} />
     </div>
   );
 }
