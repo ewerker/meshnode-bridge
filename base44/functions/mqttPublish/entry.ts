@@ -29,15 +29,16 @@ Deno.serve(async (req) => {
     const regionStr = user.region || 'EU_868';
     const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
 
+    // VERSION_MARKER_V3_GATEWAY_TOPIC
     const gatewayNodeId = user.node_id || '!gateway';
-    console.log('[PUB] gatewayNodeId:', gatewayNodeId, 'mode:', mode, 'toNode:', toNode);
+    console.log('[PUB-V3] gatewayNodeId:', gatewayNodeId, '| mode:', mode, '| toNode:', toNode);
     let topic;
     if (mode === 'dm' && toNode) {
       topic = `${prefix}/send/${gatewayNodeId}/direct/${toNode}`;
     } else {
       topic = `${prefix}/send/${gatewayNodeId}/group/${channelNum}`;
     }
-    console.log('[PUB] resolved topic:', topic);
+    console.log('[PUB-V3] FINAL topic:', topic);
 
     const payload = {
       text,
