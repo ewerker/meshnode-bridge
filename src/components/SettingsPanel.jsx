@@ -60,8 +60,10 @@ export default function SettingsPanel({ onSettingsChanged }) {
   const handleSave = async () => {
     setSaving(true);
     const channelsToSave = channels.filter(c => c.name.trim());
+    const prevNodeId = user?.node_id || '';
+    const newNodeId = nodeId.trim();
     await base44.auth.updateMe({
-      node_id: nodeId.trim(),
+      node_id: newNodeId,
       region,
       default_channel: defaultChannel,
       channels: channelsToSave,
@@ -69,6 +71,12 @@ export default function SettingsPanel({ onSettingsChanged }) {
     });
     setSaving(false);
     setSaved(true);
+    // If the gateway node_id actually changed, do a full reload so all views (messages, nodes,
+    // subscriptions, auto-poll status) re-bind to the new gateway from a clean state.
+    if (newNodeId && newNodeId !== prevNodeId) {
+      setTimeout(() => window.location.reload(), 600);
+      return;
+    }
     setTimeout(() => setSaved(false), 2000);
     onSettingsChanged?.();
   };
