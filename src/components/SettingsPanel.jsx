@@ -24,9 +24,9 @@ export default function SettingsPanel({ onSettingsChanged }) {
   }, []);
 
   const loadKnownNodes = async () => {
-    // Suggest node IDs of devices we've already seen via any gateway (incl. previously configured ones).
-    // We dedupe by node_id so the user gets a clean list of known IDs to pick from.
-    const all = await base44.entities.MeshNode.list('-last_heard', 1000);
+    // Suggest gateway-capable nodes (is_gateway=true) we've seen — these are valid "own" node IDs.
+    // Dedupe by node_id so each ID appears only once.
+    const all = await base44.entities.MeshNode.filter({ is_gateway: true }, '-last_heard', 200);
     const seen = new Set();
     const unique = [];
     for (const n of all) {
@@ -102,9 +102,31 @@ export default function SettingsPanel({ onSettingsChanged }) {
             </option>
           ))}
         </datalist>
-        {knownNodes.length > 0 && (
+        {knownNodes.length > 0 ? (
+          <div className="mt-2">
+            <p className="text-xs text-muted-foreground mb-1.5">Bekannte Gateway-Nodes (zum Übernehmen klicken):</p>
+            <div className="flex flex-wrap gap-1.5">
+              {knownNodes.map(n => (
+                <button
+                  key={n.node_id}
+                  type="button"
+                  onClick={() => setNodeId(n.node_id)}
+                  className={`text-xs px-2 py-1 rounded font-mono border transition-colors ${
+                    nodeId === n.node_id
+                      ? 'bg-primary/20 border-primary/50 text-primary'
+                      : 'bg-secondary border-border text-foreground hover:border-primary/50'
+                  }`}
+                  title={[n.long_name, n.short_name].filter(Boolean).join(' / ')}
+                >
+                  {n.node_id}
+                  {n.long_name && <span className="text-muted-foreground font-sans ml-1.5">({n.long_name})</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
           <p className="text-xs text-muted-foreground mt-1">
-            {knownNodes.length} bekannte Node-ID{knownNodes.length === 1 ? '' : 's'} verfügbar — ins Feld klicken zum Auswählen, oder neue ID frei eintragen.
+            Noch keine Gateway-Nodes bekannt — trage deine Node-ID ein, um zum ersten Mal zu senden.
           </p>
         )}
       </div>
