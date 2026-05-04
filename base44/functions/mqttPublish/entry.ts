@@ -29,9 +29,9 @@ Deno.serve(async (req) => {
     const regionStr = user.region || 'EU_868';
     const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
 
-    // VERSION_MARKER_V3_GATEWAY_TOPIC
     const gatewayNodeId = user.node_id || '!gateway';
     console.log('[PUB-V3] gatewayNodeId:', gatewayNodeId, '| mode:', mode, '| toNode:', toNode);
+
     let topic;
     if (mode === 'dm' && toNode) {
       topic = `${prefix}/send/${gatewayNodeId}/direct/${toNode}`;
@@ -49,14 +49,13 @@ Deno.serve(async (req) => {
     if (client_ref) payload.client_ref = client_ref;
     const payloadStr = JSON.stringify(payload);
 
-    // If no ACK wanted, just publish and return
     if (!wantAckFlag) {
       await publishOnly(brokerUrl, username, password, topic, payloadStr);
       await base44.entities.MeshMessage.create({
         direction: 'outbound',
         text,
         channel: String(channelNum),
-        from_node: user.node_id || '!gateway',
+        from_node: gatewayNodeId,
         to_node: toNode || '^all',
         mqtt_topic: topic,
         status: 'sent',
@@ -65,7 +64,6 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, topic, client_ref: null });
     }
 
-    // With ACK: subscribe to ACK topic FIRST, then publish, then wait for ACK
     const ackTopic = `${prefix}/ack/${gatewayNodeId}/${client_ref}`;
     const ACK_TIMEOUT_MS = 70000;
 
@@ -123,7 +121,6 @@ Deno.serve(async (req) => {
 
       client.on('connect', () => {
         console.log('[PUB+ACK] connected');
-        // Subscribe to ACK topic FIRST
         client.subscribe(ackTopic, { qos: 1 }, (err) => {
           if (err) {
             console.log('[PUB+ACK] subscribe error:', err.message);
@@ -133,7 +130,6 @@ Deno.serve(async (req) => {
             return;
           }
           console.log('[PUB+ACK] subscribed to ACK, now publishing...');
-          // THEN publish the message
           client.publish(topic, payloadStr, { qos: 1 }, (pubErr) => {
             if (pubErr) {
               console.log('[PUB+ACK] publish error:', pubErr.message);
@@ -158,12 +154,11 @@ Deno.serve(async (req) => {
       });
     });
 
-    // Save message to DB with final status
     await base44.entities.MeshMessage.create({
       direction: 'outbound',
       text,
       channel: String(channelNum),
-      from_node: user.node_id || '!gateway',
+      from_node: gatewayNodeId,
       to_node: toNode || '^all',
       mqtt_topic: topic,
       status: result.final_status,
