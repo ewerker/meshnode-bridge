@@ -23,9 +23,9 @@ export default function DangerZone({ nodeId, onChanged }) {
       return;
     }
     const labels = {
-      sent: `alle GESENDETEN Nachrichten über Gateway ${nodeId}`,
-      received: `alle EMPFANGENEN Nachrichten über Gateway ${nodeId}`,
-      nodes: `alle Nodes, die über Gateway ${nodeId} entdeckt wurden`,
+      sent: `alle GESENDETEN Nachrichten der Node-ID ${nodeId}`,
+      received: `alle EMPFANGENEN Nachrichten der Node-ID ${nodeId}`,
+      nodes: `alle Nodes der Node-ID ${nodeId}`,
     };
     if (!confirm(`Wirklich ${labels[kind]} löschen? Das kann nicht rückgängig gemacht werden.`)) return;
 
