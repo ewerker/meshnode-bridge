@@ -55,7 +55,7 @@ export default function PollPanel({ onReceived, userSettings }) {
 
   const handlePoll = () => runPoll(listenSeconds);
 
-  const topic = nodeId ? `${prefix}/rx/${nodeId}/#` : '—';
+  const topic = nodeId ? `${prefix}/+/${nodeId}/#` : '—';
   const listenLabel = LISTEN_OPTIONS.find(o => o.seconds === listenSeconds)?.label || `${listenSeconds}s`;
 
   return (

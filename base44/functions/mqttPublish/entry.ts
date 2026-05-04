@@ -29,11 +29,12 @@ Deno.serve(async (req) => {
     const regionStr = user.region || 'EU_868';
     const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
 
+    const gatewayNodeId = user.node_id || '!gateway';
     let topic;
     if (mode === 'dm' && toNode) {
-      topic = `${prefix}/send/direct/${toNode}`;
+      topic = `${prefix}/send/${gatewayNodeId}/direct/${toNode}`;
     } else {
-      topic = `${prefix}/send/group/${channelNum}`;
+      topic = `${prefix}/send/${gatewayNodeId}/group/${channelNum}`;
     }
 
     const payload = {
@@ -62,7 +63,7 @@ Deno.serve(async (req) => {
     }
 
     // With ACK: subscribe to ACK topic FIRST, then publish, then wait for ACK
-    const ackTopic = `${prefix}/ack/${client_ref}`;
+    const ackTopic = `${prefix}/ack/${gatewayNodeId}/${client_ref}`;
     const ACK_TIMEOUT_MS = 70000;
 
     console.log('[PUB+ACK] publish topic:', topic);

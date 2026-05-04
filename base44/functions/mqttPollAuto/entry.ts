@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
 
     const regionStr = admin.region || 'EU_868';
     const prefix = admin.topic_prefix || `msh/${regionStr}/proxy`;
-    const wildcardTopic = `${prefix}/rx/${nodeId}/#`;
+    const wildcardTopic = `${prefix}/+/${nodeId}/#`;
 
     const brokerUrl = Deno.env.get('MQTT_BROKER_URL');
     const username = Deno.env.get('MQTT_USERNAME');

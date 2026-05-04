@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     const regionStr = region || user.region || 'EU_868';
     // Build topics from user's configured prefix
     const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
-    const wildcardTopic = `${prefix}/rx/${nodeId}/#`;
+    const wildcardTopic = `${prefix}/+/${nodeId}/#`;
     console.log('[MQTT] params:', { region, listenSeconds, nodeId });
     console.log('[MQTT] subscribing to wildcard topic:', wildcardTopic);
 

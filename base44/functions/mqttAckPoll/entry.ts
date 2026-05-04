@@ -25,7 +25,8 @@ Deno.serve(async (req) => {
     // Subscribe to ACK topic using user's configured prefix
     const regionStr = user.region || 'EU_868';
     const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
-    const ackTopic = `${prefix}/ack/${client_ref}`;
+    const gatewayNodeId = user.node_id || '!gateway';
+    const ackTopic = `${prefix}/ack/${gatewayNodeId}/${client_ref}`;
     console.log('[ACK] subscribing to:', ackTopic);
 
     const LISTEN_MS = 70000; // 70 seconds to allow for ~60s of ack window

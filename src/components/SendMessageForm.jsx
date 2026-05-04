@@ -59,7 +59,8 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
 
   const region = userSettings?.region || 'EU_868';
   const prefix = userSettings?.topic_prefix || `msh/${region}/proxy`;
-  const topic = `${prefix}/send/group/${channel}`;
+  const gatewayNodeId = userSettings?.node_id || '!gateway';
+  const topic = `${prefix}/send/${gatewayNodeId}/group/${channel}`;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -160,7 +161,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           <div className="mt-1.5 flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Topic:</span>
             <span className="text-xs text-primary font-mono bg-secondary px-2 py-0.5 rounded">
-              {prefix}/send/direct/{dmNodeId || '…'}
+              {prefix}/send/{userSettings?.node_id || '!gateway'}/direct/{dmNodeId || '…'}
             </span>
           </div>
         </div>
