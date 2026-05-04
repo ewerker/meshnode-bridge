@@ -120,8 +120,23 @@ export default function Dashboard() {
               <h1 className="font-bold text-foreground tracking-tight">
                 {nodeName || 'Meshtastic MQTT Bridge'}
               </h1>
-              <p className="text-xs text-muted-foreground">
-                {currentUser?.node_id ? <span className="font-mono text-primary">{currentUser.node_id}</span> : 'Web ↔ MQTT ↔ Meshtastic Network'}
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                {currentUser?.node_id
+                  ? <span className="font-mono text-primary">{currentUser.node_id}</span>
+                  : <span>Web ↔ MQTT ↔ Meshtastic Network</span>}
+                {currentUser?.email && (
+                  <>
+                    <span className="text-muted-foreground/50">·</span>
+                    <span className="truncate max-w-[180px]" title={currentUser.email}>
+                      {currentUser.full_name || currentUser.email}
+                    </span>
+                    {currentUser.role === 'admin' && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/15 text-primary uppercase tracking-wider font-semibold">
+                        admin
+                      </span>
+                    )}
+                  </>
+                )}
               </p>
             </div>
           </div>
