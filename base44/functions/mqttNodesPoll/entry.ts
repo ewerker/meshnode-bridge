@@ -101,8 +101,8 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, nodes });
     }
 
-    // Load all existing nodes in one call
-    const existingNodes = await base44.asServiceRole.entities.MeshNode.list('-last_heard', 1000);
+    // Load existing nodes for THIS gateway only
+    const existingNodes = await base44.asServiceRole.entities.MeshNode.filter({ gateway_node_id: resolvedFromNode }, '-last_heard', 1000);
     const existingMap = {};
     for (const n of existingNodes) {
       existingMap[n.node_id] = n;
@@ -117,6 +117,7 @@ Deno.serve(async (req) => {
       const record = {
         node_id: node.node_id,
         node_num: node.node_num,
+        gateway_node_id: resolvedFromNode,
         long_name: node.long_name || '',
         short_name: node.short_name || '',
         hw_model: node.hw_model || '',

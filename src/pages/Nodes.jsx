@@ -18,8 +18,10 @@ export default function Nodes() {
   const [user, setUser] = useState(null);
   const [view, setView] = useState('table');
   const [ownNode, setOwnNode] = useState(null);
-  const fetchNodes = useCallback(async () => {
-    const data = await base44.entities.MeshNode.list('-last_heard', 500);
+  const fetchNodes = useCallback(async (gw) => {
+    const me = gw || (await base44.auth.me()).node_id;
+    if (!me) { setNodes([]); setLoading(false); return; }
+    const data = await base44.entities.MeshNode.filter({ gateway_node_id: me }, '-last_heard', 500);
     setNodes(data);
     setLoading(false);
   }, []);
@@ -33,7 +35,7 @@ export default function Nodes() {
     const me = await base44.auth.me();
     setUser(me);
     if (me?.node_id) {
-      const matches = await base44.entities.MeshNode.filter({ node_id: me.node_id });
+      const matches = await base44.entities.MeshNode.filter({ node_id: me.node_id, gateway_node_id: me.node_id });
       setOwnNode(matches[0] || null);
     }
   };
@@ -57,7 +59,7 @@ export default function Nodes() {
         setLogLines([`${d.nodes.length} Nodes empfangen. Starte Datenbank-Update...`]);
         setPollProgress({ phase: 'updating', current: 0, total: d.nodes.length });
         
-        const existingNodes = await base44.entities.MeshNode.list('-last_heard', 1000);
+        const existingNodes = await base44.entities.MeshNode.filter({ gateway_node_id: fromNode }, '-last_heard', 1000);
         const existingMap = {};
         for (const n of existingNodes) { existingMap[n.node_id] = n; }
         
@@ -65,7 +67,7 @@ export default function Nodes() {
         const toUpdate = [];
         for (const node of d.nodes) {
           const record = {
-            node_id: node.node_id, node_num: node.node_num, long_name: node.long_name || '',
+            node_id: node.node_id, node_num: node.node_num, gateway_node_id: fromNode, long_name: node.long_name || '',
             short_name: node.short_name || '', hw_model: node.hw_model || '', is_gateway: node.is_gateway || false,
             last_heard: node.last_heard || null, snr: node.snr || null, battery_level: node.battery_level || null,
             voltage: node.raw?.deviceMetrics?.voltage || null, latitude: node.latitude || null,

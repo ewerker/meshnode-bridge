@@ -152,6 +152,7 @@ Deno.serve(async (req) => {
         channel: channelStr,
         from_node: p.from_id || '',
         to_node: isDM ? (nodeId || '') : (p.to_id || '^all'),
+        gateway_node_id: nodeId,
         mqtt_topic: msg.topic,
         status: 'received',
         raw_payload: JSON.stringify(p),

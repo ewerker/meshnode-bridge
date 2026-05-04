@@ -11,7 +11,12 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
   const ref = useRef(null);
 
   useEffect(() => {
-    base44.entities.MeshNode.list('-last_heard', 500).then(setNodes);
+    (async () => {
+      const me = await base44.auth.me();
+      if (!me?.node_id) { setNodes([]); return; }
+      const data = await base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 500);
+      setNodes(data);
+    })();
   }, []);
 
   useEffect(() => {

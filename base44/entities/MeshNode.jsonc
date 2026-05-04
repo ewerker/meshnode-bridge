@@ -10,6 +10,10 @@
       "type": "integer",
       "description": "Numerische Node-ID"
     },
+    "gateway_node_id": {
+      "type": "string",
+      "description": "Gateway-Node-ID (configured user node) over which this node was discovered"
+    },
     "long_name": {
       "type": "string",
       "description": "Langer Name des Nodes"

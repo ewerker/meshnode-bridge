@@ -23,9 +23,9 @@ export default function DangerZone({ nodeId, onChanged }) {
       return;
     }
     const labels = {
-      sent: `alle GESENDETEN Nachrichten von ${nodeId}`,
-      received: `alle EMPFANGENEN Nachrichten an ${nodeId}`,
-      nodes: `den Node-Eintrag für ${nodeId} (eigener Node)`,
+      sent: `alle GESENDETEN Nachrichten über Gateway ${nodeId}`,
+      received: `alle EMPFANGENEN Nachrichten über Gateway ${nodeId}`,
+      nodes: `alle Nodes, die über Gateway ${nodeId} entdeckt wurden`,
     };
     if (!confirm(`Wirklich ${labels[kind]} löschen? Das kann nicht rückgängig gemacht werden.`)) return;
 
@@ -34,13 +34,13 @@ export default function DangerZone({ nodeId, onChanged }) {
     try {
       let deleted = 0;
       if (kind === 'sent') {
-        const records = await base44.entities.MeshMessage.filter({ direction: 'outbound', from_node: nodeId }, '-created_date', 1000);
+        const records = await base44.entities.MeshMessage.filter({ direction: 'outbound', gateway_node_id: nodeId }, '-created_date', 1000);
         deleted = await deleteInBatches(records, (id) => base44.entities.MeshMessage.delete(id));
       } else if (kind === 'received') {
-        const records = await base44.entities.MeshMessage.filter({ direction: 'inbound', to_node: nodeId }, '-created_date', 1000);
+        const records = await base44.entities.MeshMessage.filter({ direction: 'inbound', gateway_node_id: nodeId }, '-created_date', 1000);
         deleted = await deleteInBatches(records, (id) => base44.entities.MeshMessage.delete(id));
       } else if (kind === 'nodes') {
-        const records = await base44.entities.MeshNode.filter({ node_id: nodeId });
+        const records = await base44.entities.MeshNode.filter({ gateway_node_id: nodeId }, '-last_heard', 1000);
         deleted = await deleteInBatches(records, (id) => base44.entities.MeshNode.delete(id));
       }
       setFeedback({ type: 'success', msg: `${deleted} Eintrag/Einträge gelöscht.` });
@@ -79,7 +79,7 @@ export default function DangerZone({ nodeId, onChanged }) {
       <div className="flex flex-wrap gap-2">
         <Btn kind="sent" icon={Send} label="Gesendete Messages löschen" />
         <Btn kind="received" icon={Inbox} label="Empfangene Messages löschen" />
-        <Btn kind="nodes" icon={Cpu} label="Eigenen Node-Eintrag löschen" />
+        <Btn kind="nodes" icon={Cpu} label="Alle Nodes löschen" />
       </div>
       {feedback && (
         <div className={`mt-3 text-xs px-3 py-2 rounded-lg ${feedback.type === 'success' ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-destructive/10 text-destructive border border-destructive/30'}`}>

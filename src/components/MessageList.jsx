@@ -18,11 +18,14 @@ export default function MessageList({ messages, onDelete, channels, onReply }) {
   useEffect(() => { setPage(1); }, [pageSize]);
 
   useEffect(() => {
-    base44.entities.MeshNode.list('-last_heard', 500).then(nodes => {
+    (async () => {
+      const me = await base44.auth.me();
+      if (!me?.node_id) return;
+      const nodes = await base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 500);
       const map = {};
       nodes.forEach(n => { map[n.node_id] = n; });
       setNodeMap(map);
-    });
+    })();
   }, []);
 
   const getChannelName = (ch) => {

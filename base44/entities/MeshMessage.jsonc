@@ -26,6 +26,10 @@
       "type": "string",
       "description": "Recipient node ID (broadcast = ^all)"
     },
+    "gateway_node_id": {
+      "type": "string",
+      "description": "Gateway-Node-ID (configured user node) used for this message routing"
+    },
     "mqtt_topic": {
       "type": "string",
       "description": "MQTT topic used"

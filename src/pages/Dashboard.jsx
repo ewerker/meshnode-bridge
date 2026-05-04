@@ -21,8 +21,10 @@ export default function Dashboard() {
   const [replyTo, setReplyTo] = useState(null);
   const [replyHopLimit, setReplyHopLimit] = useState(null);
 
-  const fetchMessages = useCallback(async () => {
-    const data = await base44.entities.MeshMessage.list('-created_date', 100);
+  const fetchMessages = useCallback(async (gw) => {
+    const me = gw || (await base44.auth.me()).node_id;
+    if (!me) { setMessages([]); setLoading(false); return; }
+    const data = await base44.entities.MeshMessage.filter({ gateway_node_id: me }, '-created_date', 100);
     setMessages(sortMessages(data));
     setLoading(false);
   }, []);
@@ -71,6 +73,9 @@ export default function Dashboard() {
     loadUser();
     const unsub = base44.entities.MeshMessage.subscribe((event) => {
       if (event.type === 'create') {
+        // Only show messages for the currently configured gateway
+        const myGw = currentUser?.node_id;
+        if (myGw && event.data?.gateway_node_id !== myGw) return;
         setMessages((prev) => sortMessages([event.data, ...prev]));
       }
     });
