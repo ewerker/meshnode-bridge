@@ -133,8 +133,8 @@ export default function Nodes() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 w-full xl:w-auto">
             <Link to="/" className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
               <ArrowLeft className="w-4 h-4 text-muted-foreground" />
             </Link>
@@ -146,7 +146,7 @@ export default function Nodes() {
               <p className="text-xs text-muted-foreground">{nodes.length} nodes known</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center xl:justify-end gap-2 sm:gap-3 w-full xl:w-auto">
             {user?.node_id && (
               <span className="text-xs font-mono text-primary bg-secondary border border-border rounded-lg px-3 py-2">
                 {user.node_id}
