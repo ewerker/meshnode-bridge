@@ -30,12 +30,14 @@ Deno.serve(async (req) => {
     const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
 
     const gatewayNodeId = user.node_id || '!gateway';
+    console.log('[PUB] gatewayNodeId:', gatewayNodeId, 'mode:', mode, 'toNode:', toNode);
     let topic;
     if (mode === 'dm' && toNode) {
       topic = `${prefix}/send/${gatewayNodeId}/direct/${toNode}`;
     } else {
       topic = `${prefix}/send/${gatewayNodeId}/group/${channelNum}`;
     }
+    console.log('[PUB] resolved topic:', topic);
 
     const payload = {
       text,
