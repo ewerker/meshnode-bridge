@@ -33,7 +33,6 @@ export default function PollPanel({ onReceived, userSettings }) {
 
   const nodeId = userSettings?.node_id;
   const region = userSettings?.region || 'EU_868';
-  const prefix = userSettings?.topic_prefix || `msh/${region}/proxy`;
 
   const runPoll = async (seconds) => {
     if (!nodeId) {
@@ -55,17 +54,10 @@ export default function PollPanel({ onReceived, userSettings }) {
 
   const handlePoll = () => runPoll(listenSeconds);
 
-  const topic = nodeId ? `${prefix}/+/${nodeId}/#` : '—';
   const listenLabel = LISTEN_OPTIONS.find(o => o.seconds === listenSeconds)?.label || `${listenSeconds}s`;
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">Topic:</span>
-          <span className="text-xs text-primary font-mono bg-secondary px-2 py-0.5 rounded">{topic}</span>
-        </div>
-      </div>
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground whitespace-nowrap">Listen time:</span>
