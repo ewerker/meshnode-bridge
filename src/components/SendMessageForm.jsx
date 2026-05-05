@@ -132,7 +132,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
         <div>
           <label className="block text-xs font-medium text-primary mb-1 uppercase tracking-wider">
             <Radio className="inline w-3 h-3 mr-1" />
-            Group
+            Channel
           </label>
           <select
             value={channel}
@@ -141,7 +141,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           >
             {CHANNELS.map(c => {
               const ch = (userSettings?.channels || []).find(x => x.number === c);
-              return <option key={c} value={c}>{ch?.name ? `${ch.name} (${c})` : `Group ${c}`}</option>;
+              return <option key={c} value={c}>{ch?.name ? `${ch.name} (${c})` : `Channel ${c}`}</option>;
             })}
           </select>
           <div className="mt-1.5 flex items-center gap-2">
