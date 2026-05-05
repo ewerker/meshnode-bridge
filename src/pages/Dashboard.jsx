@@ -244,15 +244,15 @@ export default function Dashboard() {
             <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} refreshKey={refreshKey} onReply={(req) => {
               const hopStart = req?.hopStart;
               const adjustedHop = hopStart !== undefined && hopStart > 3 ? hopStart : null;
-              if (req?.mode === 'dm') {
-                setReplyTo(req.fromNode);
-                setReplyHopLimit(adjustedHop);
-                setReplyRequest({ mode: 'dm', fromNode: req.fromNode, hopStart: adjustedHop, ts: Date.now() });
-              } else {
-                setReplyTo(null);
-                setReplyHopLimit(adjustedHop);
-                setReplyRequest({ mode: 'channel', channel: req?.channel ?? null, hopStart: adjustedHop, ts: Date.now() });
-              }
+              // Send both candidates; SendMessageForm applies whichever fits its current mode.
+              setReplyTo(req?.fromNode || null);
+              setReplyHopLimit(adjustedHop);
+              setReplyRequest({
+                fromNode: req?.fromNode || null,
+                channel: req?.channel ?? null,
+                hopStart: adjustedHop,
+                ts: Date.now(),
+              });
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }} />
           )}

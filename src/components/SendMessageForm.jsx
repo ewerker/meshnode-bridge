@@ -30,14 +30,13 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  // React to a structured reply request: pick mode (DM/channel), recipient or channel, and hop limit.
+  // React to a reply request: keep the user's currently selected mode, only fill in the
+  // matching field — sender for DM mode, channel index for channel mode.
   useEffect(() => {
     if (!replyRequest) return;
-    if (replyRequest.mode === 'dm' && replyRequest.fromNode) {
-      switchMode('dm');
-      setDmNodeId(replyRequest.fromNode);
-    } else if (replyRequest.mode === 'channel') {
-      switchMode('channel');
+    if (mode === 'dm') {
+      if (replyRequest.fromNode) setDmNodeId(replyRequest.fromNode);
+    } else if (mode === 'channel') {
       if (replyRequest.channel !== null && replyRequest.channel !== undefined && !isNaN(replyRequest.channel)) {
         updateChannel(parseInt(replyRequest.channel));
       }

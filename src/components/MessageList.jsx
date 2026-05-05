@@ -93,14 +93,14 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
           key={msg.id}
           onClick={() => {
             if (msg.direction !== 'inbound' || !msg.from_node) return;
-            const isDM = msg.to_node && msg.to_node !== '^all';
             const chNum = (msg.channel !== undefined && msg.channel !== null && msg.channel !== '')
               ? parseInt(msg.channel) : null;
+            // Pass both the sender (for DM) and channel (for channel mode); the form picks
+            // which one to apply based on its currently selected mode.
             onReply?.({
-              mode: isDM ? 'dm' : 'channel',
               fromNode: msg.from_node,
+              channel: chNum !== null && !isNaN(chNum) ? chNum : null,
               hopStart,
-              channel: !isDM && chNum !== null && !isNaN(chNum) ? chNum : null,
             });
           }}
           className={`flex gap-3 p-3 rounded-xl border transition-all ${
