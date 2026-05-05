@@ -155,6 +155,7 @@ Deno.serve(async (req) => {
       last_saved: saved.length,
       skipped: false,
       skip_reason: '',
+      gateway_node_id: nodeId,
     });
 
     return Response.json({ received: messages.length, saved: saved.length, messages });
