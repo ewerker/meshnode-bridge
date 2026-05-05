@@ -95,6 +95,12 @@ export default function SettingsPanel({ onSettingsChanged }) {
     </div>
   );
 
+  const isAdmin = user?.role === 'admin';
+  const ro = !isAdmin;
+  const inputClass = (extra = '') => `w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary ${
+    ro ? 'text-muted-foreground cursor-not-allowed opacity-70' : 'text-foreground'
+  } ${extra}`;
+
   return (
     <div className="space-y-5">
       {/* Node-ID */}
@@ -170,7 +176,9 @@ export default function SettingsPanel({ onSettingsChanged }) {
           value={topicPrefix}
           onChange={(e) => setTopicPrefix(e.target.value)}
           placeholder={`msh/${region}/proxy`}
-          className="w-full max-w-md bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground font-mono focus:outline-none focus:border-primary"
+          readOnly={ro}
+          disabled={ro}
+          className={inputClass('max-w-md font-mono')}
         />
         <p className="text-xs text-muted-foreground mt-1">
           Default: <span className="font-mono text-muted-foreground">msh/{region}/proxy</span> — Topics: <span className="font-mono text-muted-foreground">{topicPrefix || `msh/${region}/proxy`}/send/{nodeId || '!gateway'}/group/0</span>, <span className="font-mono text-muted-foreground">{topicPrefix || `msh/${region}/proxy`}/rx/{nodeId || '…'}/scope/group</span>
@@ -187,7 +195,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
           <select
             value={region}
             onChange={(e) => setRegion(e.target.value)}
-            className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+            disabled={ro}
+            className={inputClass()}
           >
             {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
@@ -197,7 +206,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
           <select
             value={defaultChannel}
             onChange={(e) => setDefaultChannel(parseInt(e.target.value))}
-            className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+            disabled={ro}
+            className={inputClass()}
           >
             {channels.map(c => (
               <option key={c.number} value={c.number}>
@@ -223,7 +233,11 @@ export default function SettingsPanel({ onSettingsChanged }) {
                 value={c.name}
                 onChange={(e) => updateChannelName(c.number, e.target.value)}
                 placeholder={`Channel ${c.number}`}
-                className="flex-1 bg-secondary border border-border rounded px-2 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary placeholder:text-muted-foreground"
+                readOnly={ro}
+                disabled={ro}
+                className={`flex-1 bg-secondary border border-border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-primary placeholder:text-muted-foreground ${
+                  ro ? 'text-muted-foreground cursor-not-allowed opacity-70' : 'text-foreground'
+                }`}
               />
             </div>
           ))}
@@ -231,11 +245,21 @@ export default function SettingsPanel({ onSettingsChanged }) {
       </div>
 
       {/* Speichern */}
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-3">
+        {!isAdmin && (
+          <span className="text-xs text-muted-foreground">
+            Einstellungen können nur von einem Administrator geändert werden.
+          </span>
+        )}
         <button
           onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground rounded-lg text-sm font-medium transition-colors"
+          disabled={saving || !isAdmin}
+          title={!isAdmin ? 'Nur Administratoren dürfen Einstellungen speichern' : undefined}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            !isAdmin
+              ? 'bg-secondary text-muted-foreground cursor-not-allowed opacity-60'
+              : 'bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground'
+          }`}
         >
           <Save className="w-4 h-4" />
           {saved ? 'Saved ✓' : saving ? 'Saving…' : 'Save Settings'}

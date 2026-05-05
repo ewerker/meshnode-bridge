@@ -22,6 +22,14 @@ export default function AutoPollStatus({ currentUser }) {
 
   if (!status) return null;
 
+  // Hide for non-admin users whose configured node_id differs from the admin's gateway node
+  // (the auto-poll runs on the admin's gateway, so it's irrelevant for them).
+  const userNode = currentUser?.node_id;
+  const isAdmin = currentUser?.role === 'admin';
+  if (!isAdmin && status.gateway_node_id && userNode && status.gateway_node_id !== userNode) {
+    return null;
+  }
+
   const skipped = status.skipped;
   const lastPolled = status.last_polled_at
     ? formatDistanceToNow(new Date(status.last_polled_at * 1000), { addSuffix: true })
