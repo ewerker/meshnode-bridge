@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [replyRequest, setReplyRequest] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [pollLogCount, setPollLogCount] = useState(0);
+  const settingsRef = useRef(null);
 
   const fetchMessages = useCallback(async (gw) => {
     const me = gw || (await base44.auth.me()).node_id;
@@ -179,7 +180,16 @@ export default function Dashboard() {
               <HelpCircle className="w-4 h-4 text-muted-foreground" />
             </Link>
             <button
-              onClick={() => setShowSettings(s => !s)}
+              onClick={() => {
+                setShowSettings(s => {
+                  const next = !s;
+                  if (next) {
+                    // Wait for the panel to render, then scroll it into view.
+                    setTimeout(() => settingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                  }
+                  return next;
+                });
+              }}
               className={`p-2 rounded-lg transition-colors ${showSettings ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-secondary/80 text-muted-foreground'}`}
               title="Settings"
             >
@@ -209,7 +219,7 @@ export default function Dashboard() {
           </div>
         )}
         {showSettings && (
-          <section className="bg-card rounded-2xl border border-border p-5">
+          <section ref={settingsRef} className="bg-card rounded-2xl border border-border p-5 scroll-mt-24">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
               <Settings className="w-4 h-4" />
               Settings
