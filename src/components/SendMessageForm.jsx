@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Send, Radio, Users, User } from 'lucide-react';
+import { Send, Radio, Users, User, Bell } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import NodePicker from '@/components/NodePicker';
 
@@ -27,6 +27,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const [dmNodeId, setDmNodeId] = useState('');
   const [hopLimit, setHopLimit] = useState(6);
   const [wantAck, setWantAck] = useState(true);
+  const [withBell, setWithBell] = useState(false);
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
@@ -103,9 +104,10 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
     setSending(true);
     setFeedback(null);
     try {
+      const finalText = withBell ? `${text}\u0007` : text;
       const res = await base44.functions.invoke('mqttPublish', {
         mode,
-        text,
+        text: finalText,
         channel,
         toNode: mode === 'dm' ? dmNodeId : '^all',
         hop_limit: hopLimit,
@@ -232,6 +234,17 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
         >
           <span className={`inline-block w-2 h-2 rounded-full ${wantAck ? 'bg-primary' : 'bg-muted-foreground'}`} />
           Acknowledge (ACK)
+        </button>
+        <button
+          type="button"
+          onClick={() => setWithBell(v => !v)}
+          title="Glockenzeichen (U+0007) an die Nachricht anhängen"
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            withBell ? 'bg-yellow-400/15 text-yellow-400 border border-yellow-400/40' : 'bg-secondary text-muted-foreground border border-border'
+          }`}
+        >
+          <Bell className={`w-3.5 h-3.5 ${withBell ? 'fill-yellow-400' : ''}`} />
+          Bell
         </button>
       </div>
 
