@@ -8,12 +8,11 @@ const LS_CHANNEL = 'mesh_last_channel';
 const LS_MODE = 'mesh_send_mode';
 
 export default function SendMessageForm({ onMessageSent, userSettings, replyTo, replyHopLimit, replyRequest, editRequest, onReplyToClear }) {
-  const isAdmin = userSettings?.role === 'admin';
-  // Admins see all 8 channels; regular users only see channels with a configured name.
+  // Only channels with a configured name are offered (applies to admins and regular users).
   const namedChannelNumbers = (userSettings?.channels || [])
     .filter(c => c?.name && c.name.trim())
     .map(c => c.number);
-  const CHANNELS = isAdmin ? ALL_CHANNELS : ALL_CHANNELS.filter(c => namedChannelNumbers.includes(c));
+  const CHANNELS = ALL_CHANNELS.filter(c => namedChannelNumbers.includes(c));
   const [mode, setMode] = useState(() => localStorage.getItem(LS_MODE) || 'channel');
   const [channel, setChannel] = useState(() => {
     const saved = localStorage.getItem(LS_CHANNEL);
