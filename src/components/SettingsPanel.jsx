@@ -24,6 +24,12 @@ export default function SettingsPanel({ onSettingsChanged }) {
   }, []);
 
   const loadKnownNodes = async () => {
+    // Only admins can see/select gateway node suggestions.
+    const me = await base44.auth.me().catch(() => null);
+    if (me?.role !== 'admin') {
+      setKnownNodes([]);
+      return;
+    }
     // Suggest gateway-capable nodes (is_gateway=true) we've seen — these are valid "own" node IDs.
     // Dedupe by node_id so each ID appears only once.
     const all = await base44.entities.MeshNode.filter({ is_gateway: true }, '-last_heard', 200);
@@ -60,15 +66,17 @@ export default function SettingsPanel({ onSettingsChanged }) {
   const handleSave = async () => {
     setSaving(true);
     const channelsToSave = channels.filter(c => c.name.trim());
+    const isAdmin = user?.role === 'admin';
     const prevNodeId = user?.node_id || '';
-    const newNodeId = nodeId.trim();
-    await base44.auth.updateMe({
-      node_id: newNodeId,
+    const newNodeId = isAdmin ? nodeId.trim() : prevNodeId;
+    const updatePayload = {
       region,
       default_channel: defaultChannel,
       channels: channelsToSave,
       topic_prefix: topicPrefix.trim(),
-    });
+    };
+    if (isAdmin) updatePayload.node_id = newNodeId;
+    await base44.auth.updateMe(updatePayload);
     setSaving(false);
     setSaved(true);
     // If the gateway node_id actually changed, do a full reload so all views (messages, nodes,
@@ -97,44 +105,56 @@ export default function SettingsPanel({ onSettingsChanged }) {
         </label>
         <input
           type="text"
-          list="known-node-ids"
+          list={user?.role === 'admin' ? 'known-node-ids' : undefined}
           value={nodeId}
           onChange={(e) => setNodeId(e.target.value)}
           placeholder="e.g. !49b65bc8"
-          className="w-full max-w-xs bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground font-mono focus:outline-none focus:border-primary"
+          readOnly={user?.role !== 'admin'}
+          disabled={user?.role !== 'admin'}
+          className={`w-full max-w-xs bg-secondary border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-primary ${
+            user?.role !== 'admin' ? 'text-muted-foreground cursor-not-allowed opacity-70' : 'text-foreground'
+          }`}
         />
-        <datalist id="known-node-ids">
-          {knownNodes.map(n => (
-            <option key={n.node_id} value={n.node_id}>
-              {[n.long_name, n.short_name].filter(Boolean).join(' / ') || n.node_id}
-            </option>
-          ))}
-        </datalist>
-        {knownNodes.length > 0 ? (
-          <div className="mt-2">
-            <p className="text-xs text-muted-foreground mb-1.5">Bekannte Gateway-Nodes (zum Übernehmen klicken):</p>
-            <div className="flex flex-wrap gap-1.5">
-              {knownNodes.map(n => (
-                <button
-                  key={n.node_id}
-                  type="button"
-                  onClick={() => setNodeId(n.node_id)}
-                  className={`text-xs px-2 py-1 rounded font-mono border transition-colors ${
-                    nodeId === n.node_id
-                      ? 'bg-primary/20 border-primary/50 text-primary'
-                      : 'bg-secondary border-border text-foreground hover:border-primary/50'
-                  }`}
-                  title={[n.long_name, n.short_name].filter(Boolean).join(' / ')}
-                >
-                  {n.node_id}
-                  {n.long_name && <span className="text-muted-foreground font-sans ml-1.5">({n.long_name})</span>}
-                </button>
-              ))}
+        {user?.role === 'admin' && (
+          <datalist id="known-node-ids">
+            {knownNodes.map(n => (
+              <option key={n.node_id} value={n.node_id}>
+                {[n.long_name, n.short_name].filter(Boolean).join(' / ') || n.node_id}
+              </option>
+            ))}
+          </datalist>
+        )}
+        {user?.role === 'admin' ? (
+          knownNodes.length > 0 ? (
+            <div className="mt-2">
+              <p className="text-xs text-muted-foreground mb-1.5">Bekannte Gateway-Nodes (zum Übernehmen klicken):</p>
+              <div className="flex flex-wrap gap-1.5">
+                {knownNodes.map(n => (
+                  <button
+                    key={n.node_id}
+                    type="button"
+                    onClick={() => setNodeId(n.node_id)}
+                    className={`text-xs px-2 py-1 rounded font-mono border transition-colors ${
+                      nodeId === n.node_id
+                        ? 'bg-primary/20 border-primary/50 text-primary'
+                        : 'bg-secondary border-border text-foreground hover:border-primary/50'
+                    }`}
+                    title={[n.long_name, n.short_name].filter(Boolean).join(' / ')}
+                  >
+                    {n.node_id}
+                    {n.long_name && <span className="text-muted-foreground font-sans ml-1.5">({n.long_name})</span>}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <p className="text-xs text-muted-foreground mt-1">
+              Noch keine Gateway-Nodes bekannt — trage deine Node-ID ein, um zum ersten Mal zu senden.
+            </p>
+          )
         ) : (
           <p className="text-xs text-muted-foreground mt-1">
-            Noch keine Gateway-Nodes bekannt — trage deine Node-ID ein, um zum ersten Mal zu senden.
+            Die Node-ID kann nur von einem Administrator geändert werden.
           </p>
         )}
       </div>
