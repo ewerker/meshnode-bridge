@@ -39,6 +39,7 @@ Deno.serve(async (req) => {
           last_run_at: nowTs,
           skipped: true,
           skip_reason: 'Admin ist offline (Browser geschlossen)',
+          gateway_node_id: admin.node_id || '',
         });
       }
       return Response.json({ skipped: true, reason: 'No active admin session' });
@@ -222,6 +223,7 @@ Deno.serve(async (req) => {
       skip_reason: '',
       gateway_status: gatewayStatus,
       gateway_reasons: gatewayReasons,
+      gateway_node_id: nodeId,
     });
 
     return Response.json({ received: messages.length, saved: savedCount, gateway_status: gatewayStatus });

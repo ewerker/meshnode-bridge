@@ -44,6 +44,10 @@
     "gateway_reasons": {
       "type": "string",
       "description": "Optional reasons from gateway detail status (e.g. 'MQTT disconnected')"
+    },
+    "gateway_node_id": {
+      "type": "string",
+      "description": "Active gateway node ID this poll was executed for"
     }
   },
   "required": [

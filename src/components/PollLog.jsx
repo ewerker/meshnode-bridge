@@ -84,6 +84,11 @@ export default function PollLog() {
             <span className="font-mono text-muted-foreground whitespace-nowrap">
               {date} {ts}
             </span>
+            {log.gateway_node_id && (
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-secondary text-primary border border-border whitespace-nowrap" title="Aktive Gateway-Node-ID">
+                {log.gateway_node_id}
+              </span>
+            )}
             <span className="flex-1 text-foreground truncate">
               {log.skipped ? (
                 <span className="text-muted-foreground">Skipped · {log.skip_reason}</span>

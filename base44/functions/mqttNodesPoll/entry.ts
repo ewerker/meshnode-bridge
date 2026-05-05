@@ -89,6 +89,7 @@ Deno.serve(async (req) => {
         last_saved: 0,
         skipped: false,
         skip_reason: 'Keine Node-Daten vom Broker erhalten',
+        gateway_node_id: resolvedFromNode,
       });
       return Response.json({ success: true, updated: 0, created: 0, total: 0, log: ['Keine Daten vom Broker erhalten.'] });
     }
@@ -218,6 +219,7 @@ Deno.serve(async (req) => {
       last_saved: created + updated,
       skipped: false,
       skip_reason: errors > 0 ? `${errors} Node-Update-Fehler` : '',
+      gateway_node_id: resolvedFromNode,
     });
 
     return Response.json({ success: true, updated, created, errors, total: nodes.length, log });
