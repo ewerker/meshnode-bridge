@@ -49,6 +49,11 @@ Deno.serve(async (req) => {
     if (client_ref) payload.client_ref = client_ref;
     const payloadStr = JSON.stringify(payload);
 
+    // Diagnostic: log byte codes of last 4 chars of text to verify BEL (0x07) is present
+    const lastChars = text.slice(-4).split('').map(c => `${c}=0x${c.charCodeAt(0).toString(16).padStart(2,'0')}`).join(' ');
+    console.log('[PUB-V3] text bytes (last 4):', lastChars);
+    console.log('[PUB-V3] payloadStr:', payloadStr);
+
     if (!wantAckFlag) {
       await publishOnly(brokerUrl, username, password, topic, payloadStr);
       await base44.entities.MeshMessage.create({
