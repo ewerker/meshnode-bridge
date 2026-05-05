@@ -1,10 +1,15 @@
-import { useState } from 'react';
-import { Trash2, AlertTriangle, Send, Inbox, Cpu } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Trash2, AlertTriangle, Send, Inbox, Cpu, Lock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function DangerZone({ nodeId, onChanged }) {
   const [busy, setBusy] = useState(null);
   const [feedback, setFeedback] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    base44.auth.me().then(me => setIsAdmin(me?.role === 'admin')).catch(() => setIsAdmin(false));
+  }, []);
 
   const deleteInBatches = async (records, deleteFn) => {
     let count = 0;
@@ -18,6 +23,10 @@ export default function DangerZone({ nodeId, onChanged }) {
   };
 
   const handleDelete = async (kind) => {
+    if (!isAdmin) {
+      setFeedback({ type: 'error', msg: 'Nur Administratoren dürfen Daten löschen.' });
+      return;
+    }
     if (!nodeId) {
       setFeedback({ type: 'error', msg: 'Bitte zuerst Node-ID setzen und speichern.' });
       return;
@@ -52,20 +61,30 @@ export default function DangerZone({ nodeId, onChanged }) {
     }
   };
 
-  const Btn = ({ kind, icon: Icon, label }) => (
-    <button
-      onClick={() => handleDelete(kind)}
-      disabled={busy !== null || !nodeId}
-      className="flex items-center gap-2 px-3 py-2 bg-destructive/10 hover:bg-destructive/20 disabled:opacity-50 text-destructive border border-destructive/30 rounded-lg text-xs font-medium transition-colors"
-    >
-      {busy === kind ? (
-        <div className="w-3.5 h-3.5 border-2 border-destructive border-t-transparent rounded-full animate-spin" />
-      ) : (
-        <Icon className="w-3.5 h-3.5" />
-      )}
-      <span>{label}</span>
-    </button>
-  );
+  const Btn = ({ kind, icon: Icon, label }) => {
+    const disabled = busy !== null || !nodeId || !isAdmin;
+    return (
+      <button
+        onClick={() => handleDelete(kind)}
+        disabled={disabled}
+        title={!isAdmin ? 'Nur Administratoren dürfen löschen' : undefined}
+        className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-xs font-medium transition-colors ${
+          !isAdmin
+            ? 'bg-secondary text-muted-foreground border-border cursor-not-allowed opacity-60'
+            : 'bg-destructive/10 hover:bg-destructive/20 disabled:opacity-50 text-destructive border-destructive/30'
+        }`}
+      >
+        {busy === kind ? (
+          <div className="w-3.5 h-3.5 border-2 border-destructive border-t-transparent rounded-full animate-spin" />
+        ) : !isAdmin ? (
+          <Lock className="w-3.5 h-3.5" />
+        ) : (
+          <Icon className="w-3.5 h-3.5" />
+        )}
+        <span>{label}</span>
+      </button>
+    );
+  };
 
   return (
     <div className="border-t border-border pt-5">
@@ -75,6 +94,9 @@ export default function DangerZone({ nodeId, onChanged }) {
       </label>
       <p className="text-xs text-muted-foreground mb-3">
         Löscht nur Daten, die zur konfigurierten Node-ID <span className="font-mono text-foreground">{nodeId || '—'}</span> gehören.
+        {!isAdmin && (
+          <span className="block mt-1 text-muted-foreground/80">Diese Aktionen sind nur für Administratoren verfügbar.</span>
+        )}
       </p>
       <div className="flex flex-wrap gap-2">
         <Btn kind="sent" icon={Send} label="Gesendete Messages löschen" />

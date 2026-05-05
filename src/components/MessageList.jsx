@@ -9,6 +9,7 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
   const [nodeMap, setNodeMap] = useState({});
   const [pageSize, setPageSize] = useState(20);
   const [page, setPage] = useState(1);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const totalPages = Math.max(1, Math.ceil((messages?.length || 0) / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -19,7 +20,8 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
 
   useEffect(() => {
     (async () => {
-      const me = await base44.auth.me();
+      const me = await base44.auth.me().catch(() => null);
+      setIsAdmin(me?.role === 'admin');
       if (!me?.node_id) { setNodeMap({}); return; }
       const nodes = await base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 500);
       const map = {};
@@ -133,7 +135,7 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
                   {msg.status === 'acked' ? '✓ ACK' : msg.status === 'implicit_ack' ? '⚡ Implicit' : msg.status === 'failed' ? '✗ NAK' : msg.status}
                 </span>
               )}
-              {onDelete && (
+              {onDelete && isAdmin && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onDelete(msg.id); }}
                   className="p-1 rounded hover:bg-destructive/15 text-muted-foreground hover:text-destructive transition-colors"
@@ -141,6 +143,14 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>
+              )}
+              {onDelete && !isAdmin && (
+                <span
+                  className="p-1 rounded text-muted-foreground/40 cursor-not-allowed"
+                  title="Nur Admins können Nachrichten löschen"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </span>
               )}
             </div>
             <p className="text-sm text-foreground break-words">{msg.text}</p>
