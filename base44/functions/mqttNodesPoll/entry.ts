@@ -115,6 +115,9 @@ Deno.serve(async (req) => {
     const log = [`${nodes.length} Nodes vom Broker empfangen.`];
 
     for (const node of nodes) {
+      // The active gateway node we polled through IS by definition a gateway,
+      // even if the proxy didn't flag it as such in its own node list.
+      const isSelfGateway = node.node_id === resolvedFromNode;
       const record = {
         node_id: node.node_id,
         node_num: node.node_num,
@@ -122,7 +125,7 @@ Deno.serve(async (req) => {
         long_name: node.long_name || '',
         short_name: node.short_name || '',
         hw_model: node.hw_model || '',
-        is_gateway: node.is_gateway || false,
+        is_gateway: node.is_gateway || isSelfGateway || false,
         last_heard: node.last_heard || null,
         snr: node.snr || null,
         battery_level: node.battery_level || null,
