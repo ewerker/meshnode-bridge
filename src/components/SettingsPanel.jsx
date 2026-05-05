@@ -30,17 +30,29 @@ export default function SettingsPanel({ onSettingsChanged }) {
       setKnownNodes([]);
       return;
     }
-    // Suggest gateway-capable nodes (is_gateway=true) we've seen — these are valid "own" node IDs.
-    // Dedupe by node_id so each ID appears only once.
-    const all = await base44.entities.MeshNode.filter({ is_gateway: true }, '-last_heard', 200);
-    const seen = new Set();
-    const unique = [];
-    for (const n of all) {
-      if (!n.node_id || seen.has(n.node_id)) continue;
-      seen.add(n.node_id);
-      unique.push(n);
+    // Two sources of "gateway" identity:
+    //  1) Nodes flagged is_gateway=true (as reported by the MQTT proxy).
+    //  2) Distinct gateway_node_id values across all MeshNode records — every such id IS by
+    //     definition a gateway we've polled through, even if its own record hasn't been
+    //     flagged is_gateway:true in this gateway's view.
+    const [flagged, all] = await Promise.all([
+      base44.entities.MeshNode.filter({ is_gateway: true }, '-last_heard', 500),
+      base44.entities.MeshNode.list('-last_heard', 1000),
+    ]);
+
+    const byId = new Map();
+    for (const n of flagged) {
+      if (n.node_id && !byId.has(n.node_id)) byId.set(n.node_id, n);
     }
-    setKnownNodes(unique);
+    // Add distinct gateway_node_ids as gateway candidates. Try to enrich with a matching
+    // node record (any gateway_node_id scope) so we can show a name.
+    const gwIds = new Set(all.map(n => n.gateway_node_id).filter(Boolean));
+    for (const gid of gwIds) {
+      if (byId.has(gid)) continue;
+      const enrich = all.find(n => n.node_id === gid);
+      byId.set(gid, enrich || { node_id: gid });
+    }
+    setKnownNodes(Array.from(byId.values()));
   };
 
   const loadUser = async () => {
