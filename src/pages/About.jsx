@@ -90,8 +90,9 @@ export default function About() {
               provides the readable topics this dashboard subscribes to.
             </p>
             <p className="text-muted-foreground leading-relaxed mb-3">
-              Compatible proxy: <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">ewerker/mqtt-proxy</a>. 
-              Install and run it on the same server as your broker, or anywhere with network access to it.
+              <span className="text-primary font-semibold">Recommended proxy:</span> <a href="https://github.com/ewerker/mqtt-proxy/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">ewerker/mqtt-proxy</a> — 
+              the preferred device-side software for this dashboard. It runs on <span className="text-foreground">all major desktop and server operating systems</span> (Linux, macOS, Windows, BSD), 
+              so you can deploy it on a Raspberry Pi, NAS, VPS, or any always-on machine alongside your MQTT broker.
             </p>
             <p className="text-sm text-muted-foreground mb-3">
               Default topic structure: <code className="text-xs bg-secondary px-1.5 py-0.5 rounded font-mono text-primary">msh/&lt;region&gt;/proxy/...</code>
