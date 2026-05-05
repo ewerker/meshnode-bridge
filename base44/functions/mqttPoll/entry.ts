@@ -34,6 +34,54 @@ Deno.serve(async (req) => {
     console.log('[MQTT] params:', { region, listenSeconds, nodeId });
     console.log('[MQTT] subscribing to wildcard topic:', wildcardTopic);
 
+    // Read gateway presence (retained) so Initial/Manual logs show the same status indicator as Auto
+    let gatewayStatus = 'unknown';
+    let gatewayReasons = '';
+    try {
+      const root = `msh/${regionStr}`;
+      const presenceTopic = `${root}/2/stat/${nodeId}`;
+      const detailTopic = `${root}/proxy/status/${nodeId}`;
+      const presenceResult = await new Promise((resolve, reject) => {
+        let presence = null;
+        let detail = null;
+        const opts = { clientId: `mesh_status_poll_${Date.now()}`, connectTimeout: 8000, clean: true, protocolVersion: 4 };
+        if (username) opts.username = username;
+        if (password) opts.password = password;
+        const c = mqtt.connect(brokerUrl, opts);
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          clearTimeout(t);
+          try { c.end(true); } catch (_) { /* ignore */ }
+          resolve({ presence, detail });
+        };
+        const t = setTimeout(finish, 4000);
+        c.on('message', (topic, buf) => {
+          const raw = buf.toString();
+          if (topic === presenceTopic) presence = raw.trim();
+          else if (topic === detailTopic) {
+            try { detail = JSON.parse(raw); } catch { detail = null; }
+          }
+          if (presence !== null && detail !== null) finish();
+        });
+        c.on('connect', () => {
+          c.subscribe([presenceTopic, detailTopic], { qos: 0 }, (err) => {
+            if (err) { clearTimeout(t); try { c.end(true); } catch (_) { /* ignore */ } reject(err); }
+          });
+        });
+        c.on('error', (err) => { if (!done) { done = true; clearTimeout(t); try { c.end(true); } catch (_) { /* ignore */ } reject(err); } });
+      });
+      if (presenceResult.presence === 'online') gatewayStatus = 'online';
+      else if (presenceResult.presence === 'broken') gatewayStatus = 'broken';
+      else if (presenceResult.presence === 'offline') gatewayStatus = 'offline';
+      if (Array.isArray(presenceResult.detail?.reasons) && presenceResult.detail.reasons.length > 0) {
+        gatewayReasons = presenceResult.detail.reasons.join(', ');
+      }
+    } catch (e) {
+      console.log('[MQTT] gateway status read failed:', e.message);
+    }
+
     const messages = await new Promise((resolve, reject) => {
       const collected = [];
       const clientOpts = {
@@ -156,6 +204,8 @@ Deno.serve(async (req) => {
       skipped: false,
       skip_reason: '',
       gateway_node_id: nodeId,
+      gateway_status: gatewayStatus,
+      gateway_reasons: gatewayReasons,
     });
 
     return Response.json({ received: messages.length, saved: saved.length, messages });
