@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [replyTo, setReplyTo] = useState(null);
   const [replyHopLimit, setReplyHopLimit] = useState(null);
   const [replyRequest, setReplyRequest] = useState(null);
+  const [editRequest, setEditRequest] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [pollLogCount, setPollLogCount] = useState(0);
   const settingsRef = useRef(null);
@@ -71,6 +72,42 @@ export default function Dashboard() {
   const handleDelete = async (id) => {
     await base44.entities.MeshMessage.delete(id);
     setMessages(prev => prev.filter(m => m.id !== id));
+  };
+
+  const handleResend = async (msg) => {
+    const isDM = msg.to_node && msg.to_node !== '^all';
+    const channelNum = msg.channel !== undefined && msg.channel !== null && msg.channel !== ''
+      ? parseInt(msg.channel) : 0;
+    try {
+      await base44.functions.invoke('mqttPublish', {
+        mode: isDM ? 'dm' : 'channel',
+        text: msg.text,
+        channel: isNaN(channelNum) ? 0 : channelNum,
+        toNode: isDM ? msg.to_node : '^all',
+        hop_limit: 3,
+        want_ack: false,
+      });
+      fetchMessages();
+      autoPoll();
+    } catch (_) { /* silent */ }
+  };
+
+  const handleEdit = (msg) => {
+    const isDM = msg.to_node && msg.to_node !== '^all';
+    const channelNum = msg.channel !== undefined && msg.channel !== null && msg.channel !== ''
+      ? parseInt(msg.channel) : null;
+    // Strip trailing BEL for editing; flag bell so the form can re-attach it.
+    const hasBell = msg.text?.endsWith('\u0007');
+    const cleanText = hasBell ? msg.text.slice(0, -1) : (msg.text || '');
+    setEditRequest({
+      text: cleanText,
+      withBell: !!hasBell,
+      mode: isDM ? 'dm' : 'channel',
+      toNode: isDM ? msg.to_node : '',
+      channel: channelNum !== null && !isNaN(channelNum) ? channelNum : null,
+      ts: Date.now(),
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -235,7 +272,7 @@ export default function Dashboard() {
 
         {/* Send Form */}
         <CollapsibleSection id="send_message" icon={Radio} title="Send Message" headerColorClass="text-primary">
-          <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} replyTo={replyTo} replyHopLimit={replyHopLimit} replyRequest={replyRequest} onReplyToClear={() => { setReplyTo(null); setReplyHopLimit(null); setReplyRequest(null); }} />
+          <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} replyTo={replyTo} replyHopLimit={replyHopLimit} replyRequest={replyRequest} editRequest={editRequest} onReplyToClear={() => { setReplyTo(null); setReplyHopLimit(null); setReplyRequest(null); setEditRequest(null); }} />
         </CollapsibleSection>
 
 
@@ -251,7 +288,7 @@ export default function Dashboard() {
               <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
             </div>
           ) : (
-            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} refreshKey={refreshKey} onReply={(req) => {
+            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} onResend={handleResend} onEdit={handleEdit} channels={currentUser?.channels} refreshKey={refreshKey} onReply={(req) => {
               const hopStart = req?.hopStart;
               const adjustedHop = hopStart !== undefined && hopStart > 3 ? hopStart : null;
               // Send both candidates; SendMessageForm applies whichever fits its current mode.

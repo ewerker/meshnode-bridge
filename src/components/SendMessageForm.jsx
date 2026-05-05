@@ -7,7 +7,7 @@ const ALL_CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7];
 const LS_CHANNEL = 'mesh_last_channel';
 const LS_MODE = 'mesh_send_mode';
 
-export default function SendMessageForm({ onMessageSent, userSettings, replyTo, replyHopLimit, replyRequest, onReplyToClear }) {
+export default function SendMessageForm({ onMessageSent, userSettings, replyTo, replyHopLimit, replyRequest, editRequest, onReplyToClear }) {
   const isAdmin = userSettings?.role === 'admin';
   // Admins see all 8 channels; regular users only see channels with a configured name.
   const namedChannelNumbers = (userSettings?.channels || [])
@@ -50,6 +50,22 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
       setHopLimit(replyRequest.hopStart);
     }
   }, [replyRequest]);
+
+  // Edit request: load an existing outbound message into the form for adjustment.
+  useEffect(() => {
+    if (!editRequest) return;
+    setText(editRequest.text || '');
+    setWithBell(!!editRequest.withBell);
+    if (editRequest.mode === 'dm') {
+      switchMode('dm');
+      if (editRequest.toNode) setDmNodeId(editRequest.toNode);
+    } else if (editRequest.mode === 'channel') {
+      switchMode('channel');
+      if (editRequest.channel !== null && editRequest.channel !== undefined) {
+        updateChannel(editRequest.channel);
+      }
+    }
+  }, [editRequest]);
 
   // Backwards compatibility: legacy replyTo prop still switches to DM mode.
   useEffect(() => {

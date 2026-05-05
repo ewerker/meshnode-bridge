@@ -1,11 +1,11 @@
-import { ArrowUpRight, ArrowDownLeft, Radio, Trash2, Wifi, Star, Bell } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Radio, Trash2, Wifi, Star, Bell, RotateCw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
-export default function MessageList({ messages, onDelete, channels, onReply, refreshKey }) {
+export default function MessageList({ messages, onDelete, channels, onReply, onResend, onEdit, refreshKey }) {
   const [nodeMap, setNodeMap] = useState({});
   const [pageSize, setPageSize] = useState(20);
   const [page, setPage] = useState(1);
@@ -112,22 +112,26 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
         <div
           key={msg.id}
           onClick={() => {
-            if (msg.direction !== 'inbound' || !msg.from_node) return;
-            const chNum = (msg.channel !== undefined && msg.channel !== null && msg.channel !== '')
-              ? parseInt(msg.channel) : null;
-            const isDM = msg.to_node && msg.to_node !== '^all';
-            // Received DMs always reply via DM; group messages follow the form's current mode
-            // (sender for DM mode, channel for channel mode).
-            onReply?.({
-              fromNode: msg.from_node,
-              channel: chNum !== null && !isNaN(chNum) ? chNum : null,
-              hopStart,
-              forceDM: !!isDM,
-            });
+            if (msg.direction === 'inbound' && msg.from_node) {
+              const chNum = (msg.channel !== undefined && msg.channel !== null && msg.channel !== '')
+                ? parseInt(msg.channel) : null;
+              const isDM = msg.to_node && msg.to_node !== '^all';
+              onReply?.({
+                fromNode: msg.from_node,
+                channel: chNum !== null && !isNaN(chNum) ? chNum : null,
+                hopStart,
+                forceDM: !!isDM,
+              });
+              return;
+            }
+            // Outbound: load into send form for editing
+            if (msg.direction === 'outbound' && onEdit) {
+              onEdit(msg);
+            }
           }}
           className={`flex gap-3 p-3 rounded-xl border transition-all ${
             msg.direction === 'outbound'
-              ? 'bg-primary/10 border-primary/30'
+              ? 'bg-primary/10 border-primary/30 cursor-pointer hover:border-primary/60 hover:bg-primary/15'
               : 'bg-emerald-500/10 border-emerald-500/30 cursor-pointer hover:border-emerald-400/60 hover:bg-emerald-500/15'
           }`}
         >
@@ -197,6 +201,18 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
                 }`}>
                   {msg.status === 'acked' ? '✓ ACK' : msg.status === 'implicit_ack' ? '⚡ Implicit' : msg.status === 'failed' ? '✗ NAK' : msg.status}
                 </span>
+              )}
+              {msg.direction === 'outbound' && onResend && (msg.status === 'sent' || msg.status === 'implicit_ack') && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm('Diese Nachricht erneut senden?')) onResend(msg);
+                  }}
+                  className="p-1 rounded hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
+                  title="Erneut senden"
+                >
+                  <RotateCw className="w-3 h-3" />
+                </button>
               )}
               {onDelete && isAdmin && (
                 <button
