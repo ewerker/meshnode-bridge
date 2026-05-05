@@ -75,16 +75,24 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
     try { return JSON.parse(raw); } catch { return {}; }
   };
 
-  // Replace Meshtastic bell character (U+0007 BEL) with a golden bell icon.
+  // Render text with the Meshtastic bell character (U+0007 BEL) shown as a golden bell icon.
+  // Other non-printable C0/C1 control chars and the replacement char are stripped so they
+  // don't render as empty squares.
   const renderTextWithBell = (text) => {
     if (!text) return text;
-    const parts = text.split('\u0007');
-    if (parts.length === 1) return text;
-    return parts.flatMap((p, i) =>
-      i === 0
-        ? [p]
-        : [<Bell key={`bell-${i}`} className="inline w-4 h-4 text-yellow-400 fill-yellow-400 mx-0.5 -mt-0.5" />, p]
-    );
+    const cleaned = text.replace(/[\u0000-\u0006\u0008-\u001F\u007F-\u009F\uFFFD]/g, '');
+    const out = [];
+    for (let i = 0; i < cleaned.length; i++) {
+      const ch = cleaned[i];
+      if (ch === '\u0007') {
+        out.push(<Bell key={`bell-${i}`} className="inline w-4 h-4 text-yellow-400 fill-yellow-400 mx-0.5 -mt-0.5" />);
+      } else {
+        const last = out[out.length - 1];
+        if (typeof last === 'string') out[out.length - 1] = last + ch;
+        else out.push(ch);
+      }
+    }
+    return out;
   };
 
   return (
