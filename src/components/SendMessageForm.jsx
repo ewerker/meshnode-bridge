@@ -117,6 +117,10 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (mode === 'dm' && dmNodeId.trim() && userSettings?.node_id && dmNodeId.trim() === userSettings.node_id) {
+      setFeedback({ type: 'error', msg: 'DM an die eigene Node-ID ist nicht möglich.' });
+      return;
+    }
     setSending(true);
     setFeedback(null);
     try {
@@ -267,7 +271,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           </button>
           <button
             type="submit"
-            disabled={sending || !text.trim() || (mode === 'dm' && !dmNodeId.trim())}
+            disabled={sending || !text.trim() || (mode === 'dm' && (!dmNodeId.trim() || (userSettings?.node_id && dmNodeId.trim() === userSettings.node_id)))}
             className="flex-1 px-5 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-1"
           >
             {sending ? (
