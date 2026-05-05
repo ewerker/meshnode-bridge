@@ -135,10 +135,31 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
               : 'bg-emerald-500/10 border-emerald-500/30 cursor-pointer hover:border-emerald-400/60 hover:bg-emerald-500/15'
           }`}
         >
-          <div className={`mt-0.5 p-2 rounded-lg ${msg.direction === 'outbound' ? 'bg-primary/20 border border-primary/40' : 'bg-emerald-500/20 border border-emerald-500/40'}`}>
+          <div className={`mt-0.5 flex flex-col items-center gap-1.5 p-2 rounded-lg ${msg.direction === 'outbound' ? 'bg-primary/20 border border-primary/40' : 'bg-emerald-500/20 border border-emerald-500/40'}`}>
             {msg.direction === 'outbound'
               ? <ArrowUpRight className="w-5 h-5 text-primary" />
               : <ArrowDownLeft className="w-5 h-5 text-emerald-400" />}
+            {msg.direction === 'outbound' && onResend && (msg.status === 'sent' || msg.status === 'implicit_ack') && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm('Diese Nachricht erneut senden?')) onResend(msg);
+                }}
+                className="p-1 rounded hover:bg-primary/30 text-primary/80 hover:text-primary transition-colors"
+                title="Erneut senden"
+              >
+                <RotateCw className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {onDelete && isAdmin && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete(msg.id); }}
+                className="p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+                title="Delete"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
@@ -202,35 +223,7 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
                   {msg.status === 'acked' ? '✓ ACK' : msg.status === 'implicit_ack' ? '⚡ Implicit' : msg.status === 'failed' ? '✗ NAK' : msg.status}
                 </span>
               )}
-              {msg.direction === 'outbound' && onResend && (msg.status === 'sent' || msg.status === 'implicit_ack') && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (confirm('Diese Nachricht erneut senden?')) onResend(msg);
-                  }}
-                  className="p-1 rounded hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
-                  title="Erneut senden"
-                >
-                  <RotateCw className="w-3 h-3" />
-                </button>
-              )}
-              {onDelete && isAdmin && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onDelete(msg.id); }}
-                  className="p-1 rounded hover:bg-destructive/15 text-muted-foreground hover:text-destructive transition-colors"
-                  title="Delete"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              )}
-              {onDelete && !isAdmin && (
-                <span
-                  className="p-1 rounded text-muted-foreground/40 cursor-not-allowed"
-                  title="Nur Admins können Nachrichten löschen"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </span>
-              )}
+
             </div>
             <p className="text-sm text-foreground break-words">{renderTextWithBell(msg.text)}</p>
             <div className="flex items-center gap-3 mt-1 flex-wrap">
