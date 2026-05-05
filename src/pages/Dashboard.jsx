@@ -92,6 +92,16 @@ export default function Dashboard() {
     autoPoll();
   }, [currentUser?.node_id, autoPoll]);
 
+  useEffect(() => {
+    const loadCount = async () => {
+      const data = await base44.entities.PollStatus.list('-created_date', 500);
+      setPollLogCount(data.length);
+    };
+    loadCount();
+    const unsub = base44.entities.PollStatus.subscribe(() => loadCount());
+    return unsub;
+  }, []);
+
   const loadUser = async () => {
     const me = await base44.auth.me();
     setCurrentUser(me);
