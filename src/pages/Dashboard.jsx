@@ -251,6 +251,7 @@ export default function Dashboard() {
                 fromNode: req?.fromNode || null,
                 channel: req?.channel ?? null,
                 hopStart: adjustedHop,
+                forceDM: !!req?.forceDM,
                 ts: Date.now(),
               });
               window.scrollTo({ top: 0, behavior: 'smooth' });

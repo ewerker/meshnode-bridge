@@ -30,11 +30,15 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  // React to a reply request: keep the user's currently selected mode, only fill in the
-  // matching field — sender for DM mode, channel index for channel mode.
+  // React to a reply request:
+  //  - If the source was a received DM (forceDM), always switch to DM mode and set sender.
+  //  - Otherwise keep the user's selected mode and only fill in the matching field.
   useEffect(() => {
     if (!replyRequest) return;
-    if (mode === 'dm') {
+    if (replyRequest.forceDM && replyRequest.fromNode) {
+      switchMode('dm');
+      setDmNodeId(replyRequest.fromNode);
+    } else if (mode === 'dm') {
       if (replyRequest.fromNode) setDmNodeId(replyRequest.fromNode);
     } else if (mode === 'channel') {
       if (replyRequest.channel !== null && replyRequest.channel !== undefined && !isNaN(replyRequest.channel)) {

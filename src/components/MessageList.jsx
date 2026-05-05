@@ -95,12 +95,14 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
             if (msg.direction !== 'inbound' || !msg.from_node) return;
             const chNum = (msg.channel !== undefined && msg.channel !== null && msg.channel !== '')
               ? parseInt(msg.channel) : null;
-            // Pass both the sender (for DM) and channel (for channel mode); the form picks
-            // which one to apply based on its currently selected mode.
+            const isDM = msg.to_node && msg.to_node !== '^all';
+            // Received DMs always reply via DM; group messages follow the form's current mode
+            // (sender for DM mode, channel for channel mode).
             onReply?.({
               fromNode: msg.from_node,
               channel: chNum !== null && !isNaN(chNum) ? chNum : null,
               hopStart,
+              forceDM: !!isDM,
             });
           }}
           className={`flex gap-3 p-3 rounded-xl border transition-all ${
