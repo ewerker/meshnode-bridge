@@ -3,31 +3,28 @@ import { base44 } from '@/api/base44Client';
 import { CheckCircle2, SkipForward, ScrollText } from 'lucide-react';
 import { format } from 'date-fns';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
 export default function PollLog({ onCountChange }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pageSize, setPageSize] = useState(20);
+  const [page, setPage] = useState(1);
 
   const load = async () => {
-    const data = await base44.entities.PollStatus.list('-created_date', 500);
-    setLogs(data.slice(0, PAGE_SIZE));
+    const data = await base44.entities.PollStatus.list('-created_date', 1000);
+    setLogs(data);
     onCountChange?.(data.length);
     setLoading(false);
   };
 
   useEffect(() => {
     load();
-    const unsub = base44.entities.PollStatus.subscribe((event) => {
-      if (event.type === 'create') {
-        setLogs(prev => [event.data, ...prev].slice(0, PAGE_SIZE));
-        load();
-      } else if (event.type === 'delete') {
-        load();
-      }
-    });
+    const unsub = base44.entities.PollStatus.subscribe(() => load());
     return unsub;
   }, []);
+
+  useEffect(() => { setPage(1); }, [pageSize]);
 
   if (loading) {
     return (
@@ -46,9 +43,14 @@ export default function PollLog({ onCountChange }) {
     );
   }
 
+  const totalPages = Math.max(1, Math.ceil(logs.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const startIdx = (currentPage - 1) * pageSize;
+  const visibleLogs = logs.slice(startIdx, startIdx + pageSize);
+
   return (
     <div className="space-y-1.5">
-      {logs.map((log) => {
+      {visibleLogs.map((log) => {
         const labels = {
           auto_poll: 'Auto',
           manual_poll: 'Manual',
@@ -120,6 +122,41 @@ export default function PollLog({ onCountChange }) {
           </div>
         );
       })}
+
+      <div className="flex items-center justify-between gap-3 pt-3 mt-2 border-t border-border flex-wrap">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Per page:</span>
+          <select
+            value={pageSize}
+            onChange={(e) => setPageSize(parseInt(e.target.value))}
+            className="bg-secondary border border-border rounded px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary"
+          >
+            {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <span className="ml-2">
+            {startIdx + 1}–{Math.min(startIdx + pageSize, logs.length)} of {logs.length}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 text-xs rounded bg-secondary hover:bg-secondary/80 disabled:opacity-40 disabled:cursor-not-allowed text-foreground transition-colors"
+          >
+            ← Prev
+          </button>
+          <span className="text-xs text-muted-foreground">
+            Page {currentPage} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 text-xs rounded bg-secondary hover:bg-secondary/80 disabled:opacity-40 disabled:cursor-not-allowed text-foreground transition-colors"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
