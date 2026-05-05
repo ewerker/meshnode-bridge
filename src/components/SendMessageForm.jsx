@@ -188,10 +188,6 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
               })}
             </select>
           )}
-          <div className="mt-1.5 flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Topic:</span>
-            <span className="text-xs text-primary font-mono bg-secondary px-2 py-0.5 rounded">{topic}</span>
-          </div>
         </div>
       )}
 
@@ -202,12 +198,6 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
             Recipient
           </label>
           <NodePicker value={dmNodeId} onChange={setDmNodeId} />
-          <div className="mt-1.5 flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Topic:</span>
-            <span className="text-xs text-primary font-mono bg-secondary px-2 py-0.5 rounded">
-              {prefix}/send/{userSettings?.node_id || '!gateway'}/direct/{dmNodeId || '…'}
-            </span>
-          </div>
         </div>
       )}
 
@@ -235,20 +225,9 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           <span className={`inline-block w-2 h-2 rounded-full ${wantAck ? 'bg-primary' : 'bg-muted-foreground'}`} />
           Acknowledge (ACK)
         </button>
-        <button
-          type="button"
-          onClick={() => setWithBell(v => !v)}
-          title="Glockenzeichen (U+0007) an die Nachricht anhängen"
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            withBell ? 'bg-yellow-400/15 text-yellow-400 border border-yellow-400/40' : 'bg-secondary text-muted-foreground border border-border'
-          }`}
-        >
-          <Bell className={`w-3.5 h-3.5 ${withBell ? 'fill-yellow-400' : ''}`} />
-          Bell
-        </button>
       </div>
 
-      {/* Message + Send */}
+      {/* Message + Bell + Send */}
       <div className="flex gap-3">
         <textarea
           value={text}
@@ -258,20 +237,33 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           placeholder="Enter message..."
           required
         />
-        <button
-          type="submit"
-          disabled={sending || !text.trim() || (mode === 'dm' && !dmNodeId.trim())}
-          className="px-5 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-1 min-w-[64px]"
-        >
-          {sending ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <Send className="w-5 h-5" />
-              <span className="text-xs">Send</span>
-            </>
-          )}
-        </button>
+        <div className="flex flex-col gap-2 min-w-[64px]">
+          <button
+            type="button"
+            onClick={() => setWithBell(v => !v)}
+            title="Glockenzeichen (U+0007) an die Nachricht anhängen"
+            className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+              withBell ? 'bg-yellow-400/15 text-yellow-400 border-yellow-400/40' : 'bg-secondary text-muted-foreground border-border'
+            }`}
+          >
+            <Bell className={`w-3.5 h-3.5 ${withBell ? 'fill-yellow-400' : ''}`} />
+            Bell
+          </button>
+          <button
+            type="submit"
+            disabled={sending || !text.trim() || (mode === 'dm' && !dmNodeId.trim())}
+            className="flex-1 px-5 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-1"
+          >
+            {sending ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <Send className="w-5 h-5" />
+                <span className="text-xs">Send</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {feedback && (
