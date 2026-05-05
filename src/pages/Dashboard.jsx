@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [nodeName, setNodeName] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [replyHopLimit, setReplyHopLimit] = useState(null);
+  const [replyRequest, setReplyRequest] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [pollLogCount, setPollLogCount] = useState(0);
 
@@ -224,7 +225,7 @@ export default function Dashboard() {
 
         {/* Send Form */}
         <CollapsibleSection id="send_message" icon={Radio} title="Send Message" headerColorClass="text-primary">
-          <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} replyTo={replyTo} replyHopLimit={replyHopLimit} onReplyToClear={() => { setReplyTo(null); setReplyHopLimit(null); }} />
+          <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} replyTo={replyTo} replyHopLimit={replyHopLimit} replyRequest={replyRequest} onReplyToClear={() => { setReplyTo(null); setReplyHopLimit(null); setReplyRequest(null); }} />
         </CollapsibleSection>
 
 
@@ -240,7 +241,20 @@ export default function Dashboard() {
               <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
             </div>
           ) : (
-            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} refreshKey={refreshKey} onReply={(nodeId, hopStart) => { setReplyTo(nodeId); setReplyHopLimit(hopStart !== undefined && hopStart > 3 ? hopStart : null); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+            <MessageList messages={sortMessages(messages)} onDelete={handleDelete} channels={currentUser?.channels} refreshKey={refreshKey} onReply={(req) => {
+              const hopStart = req?.hopStart;
+              const adjustedHop = hopStart !== undefined && hopStart > 3 ? hopStart : null;
+              if (req?.mode === 'dm') {
+                setReplyTo(req.fromNode);
+                setReplyHopLimit(adjustedHop);
+                setReplyRequest({ mode: 'dm', fromNode: req.fromNode, hopStart: adjustedHop, ts: Date.now() });
+              } else {
+                setReplyTo(null);
+                setReplyHopLimit(adjustedHop);
+                setReplyRequest({ mode: 'channel', channel: req?.channel ?? null, hopStart: adjustedHop, ts: Date.now() });
+              }
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }} />
           )}
         </CollapsibleSection>
 

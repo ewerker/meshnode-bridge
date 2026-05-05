@@ -7,7 +7,7 @@ const ALL_CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7];
 const LS_CHANNEL = 'mesh_last_channel';
 const LS_MODE = 'mesh_send_mode';
 
-export default function SendMessageForm({ onMessageSent, userSettings, replyTo, replyHopLimit, onReplyToClear }) {
+export default function SendMessageForm({ onMessageSent, userSettings, replyTo, replyHopLimit, replyRequest, onReplyToClear }) {
   const isAdmin = userSettings?.role === 'admin';
   // Admins see all 8 channels; regular users only see channels with a configured name.
   const namedChannelNumbers = (userSettings?.channels || [])
@@ -30,8 +30,26 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  // Switch to DM mode, set recipient and auto-adjust hop limit when replying
+  // React to a structured reply request: pick mode (DM/channel), recipient or channel, and hop limit.
   useEffect(() => {
+    if (!replyRequest) return;
+    if (replyRequest.mode === 'dm' && replyRequest.fromNode) {
+      switchMode('dm');
+      setDmNodeId(replyRequest.fromNode);
+    } else if (replyRequest.mode === 'channel') {
+      switchMode('channel');
+      if (replyRequest.channel !== null && replyRequest.channel !== undefined && !isNaN(replyRequest.channel)) {
+        updateChannel(parseInt(replyRequest.channel));
+      }
+    }
+    if (replyRequest.hopStart !== null && replyRequest.hopStart !== undefined && replyRequest.hopStart > 3) {
+      setHopLimit(replyRequest.hopStart);
+    }
+  }, [replyRequest]);
+
+  // Backwards compatibility: legacy replyTo prop still switches to DM mode.
+  useEffect(() => {
+    if (replyRequest) return; // structured request takes precedence
     if (replyTo) {
       switchMode('dm');
       setDmNodeId(replyTo);
@@ -39,7 +57,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
         setHopLimit(replyHopLimit);
       }
     }
-  }, [replyTo, replyHopLimit]);
+  }, [replyTo, replyHopLimit, replyRequest]);
 
   useEffect(() => {
     if (userSettings?.default_channel !== undefined && userSettings.default_channel !== null) {

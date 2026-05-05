@@ -91,7 +91,18 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
         return (
         <div
           key={msg.id}
-          onClick={() => msg.direction === 'inbound' && msg.from_node && onReply?.(msg.from_node, hopStart)}
+          onClick={() => {
+            if (msg.direction !== 'inbound' || !msg.from_node) return;
+            const isDM = msg.to_node && msg.to_node !== '^all';
+            const chNum = (msg.channel !== undefined && msg.channel !== null && msg.channel !== '')
+              ? parseInt(msg.channel) : null;
+            onReply?.({
+              mode: isDM ? 'dm' : 'channel',
+              fromNode: msg.from_node,
+              hopStart,
+              channel: !isDM && chNum !== null && !isNaN(chNum) ? chNum : null,
+            });
+          }}
           className={`flex gap-3 p-3 rounded-xl border transition-all ${
             msg.direction === 'outbound'
               ? 'bg-primary/10 border-primary/30'
