@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [replyTo, setReplyTo] = useState(null);
   const [replyHopLimit, setReplyHopLimit] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [pollLogCount, setPollLogCount] = useState(0);
 
   const fetchMessages = useCallback(async (gw) => {
     const me = gw || (await base44.auth.me()).node_id;
@@ -234,8 +235,8 @@ export default function Dashboard() {
         </CollapsibleSection>
 
         {/* Auto-Poll Log (bottom) */}
-        <CollapsibleSection id="poll_log" icon={Activity} title="Poll Log" defaultOpen={false}>
-          <PollLog />
+        <CollapsibleSection id="poll_log" icon={Activity} title={`Poll Log (${pollLogCount})`} defaultOpen={false}>
+          <PollLog onCountChange={setPollLogCount} />
         </CollapsibleSection>
         </>
       </main>

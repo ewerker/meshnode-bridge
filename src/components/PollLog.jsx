@@ -5,13 +5,14 @@ import { format } from 'date-fns';
 
 const PAGE_SIZE = 20;
 
-export default function PollLog() {
+export default function PollLog({ onCountChange }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const data = await base44.entities.PollStatus.list('-created_date', PAGE_SIZE);
-    setLogs(data);
+    const data = await base44.entities.PollStatus.list('-created_date', 500);
+    setLogs(data.slice(0, PAGE_SIZE));
+    onCountChange?.(data.length);
     setLoading(false);
   };
 
@@ -20,6 +21,9 @@ export default function PollLog() {
     const unsub = base44.entities.PollStatus.subscribe((event) => {
       if (event.type === 'create') {
         setLogs(prev => [event.data, ...prev].slice(0, PAGE_SIZE));
+        load();
+      } else if (event.type === 'delete') {
+        load();
       }
     });
     return unsub;
