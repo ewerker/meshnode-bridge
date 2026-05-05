@@ -18,6 +18,10 @@
       "type": "string",
       "description": "Meshtastic channel number"
     },
+    "channel_name": {
+      "type": "string",
+      "description": "Meshtastic channel name as reported by the proxy (preferred for display)"
+    },
     "from_node": {
       "type": "string",
       "description": "Sender node ID"

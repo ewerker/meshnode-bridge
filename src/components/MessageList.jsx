@@ -13,10 +13,14 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
 
   const filteredMessages = (() => {
     if (isAdmin) return messages || [];
-    const namedNums = (channels || []).filter(c => c?.name && c.name.trim()).map(c => c.number);
+    const namedChannels = (channels || []).filter(c => c?.name && c.name.trim());
+    const namedNums = namedChannels.map(c => c.number);
+    const namedNamesLc = namedChannels.map(c => c.name.trim().toLowerCase());
     return (messages || []).filter(m => {
       if (m.direction !== 'inbound') return true;
       if (m.to_node && m.to_node !== '^all') return true;
+      // Allow when payload-provided channel_name matches a configured channel name
+      if (m.channel_name && namedNamesLc.includes(String(m.channel_name).trim().toLowerCase())) return true;
       if (m.channel === undefined || m.channel === null || m.channel === '') return true;
       const num = parseInt(m.channel);
       if (isNaN(num)) return true;
@@ -48,6 +52,12 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
     if (isNaN(num)) return null;
     const found = channels.find(c => c.number === num);
     return found?.name || null;
+  };
+
+  // Prefer payload-provided channel_name (truth from bridge), else map from settings.
+  const getDisplayChannelName = (msg) => {
+    if (msg.channel_name && String(msg.channel_name).trim()) return String(msg.channel_name).trim();
+    return getChannelName(msg.channel);
   };
 
   if (!filteredMessages || filteredMessages.length === 0) {
@@ -135,9 +145,14 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
                 <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                   msg.direction === 'outbound' ? 'bg-primary/15 text-primary' : 'bg-emerald-500/15 text-emerald-400'
                 }`}>
-                  {getChannelName(msg.channel)
-                    ? `${getChannelName(msg.channel)} (${msg.channel})`
-                    : `Channel ${msg.channel}`}
+                  {(() => {
+                    const name = getDisplayChannelName(msg);
+                    const hasIdx = msg.channel !== undefined && msg.channel !== null && msg.channel !== '';
+                    if (name && hasIdx) return `${name} (${msg.channel})`;
+                    if (name) return name;
+                    if (hasIdx) return `Channel ${msg.channel}`;
+                    return 'Channel';
+                  })()}
                 </span>
               )}
               {msg.direction === 'outbound' && msg.status && (

@@ -176,13 +176,26 @@ Deno.serve(async (req) => {
         if (existing.length > 0) continue; // already saved
       }
 
-      const isDM = p.scope === 'dm';
-      const channelStr = p.channel !== null && p.channel !== undefined ? String(p.channel) : '';
+      // Resolve channel index: prefer payload channel_index, then legacy `channel`,
+      // then derive from topic path .../group/<idx> as a last resort.
+      let channelIdx = (p.channel_index !== null && p.channel_index !== undefined) ? p.channel_index
+                     : (p.channel !== null && p.channel !== undefined) ? p.channel
+                     : null;
+      if (channelIdx === null) {
+        const m = /\/group\/(\d+)(?:\/|$)/.exec(msg.topic || '');
+        if (m) channelIdx = parseInt(m[1]);
+      }
+      const channelStr = channelIdx !== null && channelIdx !== undefined && !isNaN(channelIdx) ? String(channelIdx) : '';
+      const channelName = (p.channel_name && String(p.channel_name).trim()) ? String(p.channel_name) : '';
+
+      // Determine DM also from topic path /direct/<id> as a fallback
+      const isDM = p.scope === 'dm' || /\/direct\//.test(msg.topic || '');
 
       const record = await base44.entities.MeshMessage.create({
         direction: 'inbound',
         text: p.text || '',
         channel: channelStr,
+        channel_name: channelName,
         from_node: p.from_id || '',
         to_node: isDM ? (nodeId || '') : (p.to_id || '^all'),
         gateway_node_id: nodeId,
