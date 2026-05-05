@@ -1,4 +1,4 @@
-import { ArrowUpRight, ArrowDownLeft, Radio, Trash2, Wifi, Star } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Radio, Trash2, Wifi, Star, Bell } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -73,6 +73,18 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
   const parseRaw = (raw) => {
     if (!raw) return {};
     try { return JSON.parse(raw); } catch { return {}; }
+  };
+
+  // Replace Meshtastic bell character (U+0007 BEL) with a golden bell icon.
+  const renderTextWithBell = (text) => {
+    if (!text) return text;
+    const parts = text.split('\u0007');
+    if (parts.length === 1) return text;
+    return parts.flatMap((p, i) =>
+      i === 0
+        ? [p]
+        : [<Bell key={`bell-${i}`} className="inline w-4 h-4 text-yellow-400 fill-yellow-400 mx-0.5 -mt-0.5" />, p]
+    );
   };
 
   return (
@@ -196,7 +208,7 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
                 </span>
               )}
             </div>
-            <p className="text-sm text-foreground break-words">{msg.text}</p>
+            <p className="text-sm text-foreground break-words">{renderTextWithBell(msg.text)}</p>
             <div className="flex items-center gap-3 mt-1 flex-wrap">
               {msg.direction === 'inbound' && hopsUsed !== null && hopsUsed >= 0 && (
                 <span className={`text-xs font-medium flex items-center gap-1 ${hopsUsed >= 3 ? 'text-yellow-400' : 'text-muted-foreground'}`}>
