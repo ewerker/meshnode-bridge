@@ -3,11 +3,17 @@ import { Send, Radio, Users, User } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import NodePicker from '@/components/NodePicker';
 
-const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7];
+const ALL_CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7];
 const LS_CHANNEL = 'mesh_last_channel';
 const LS_MODE = 'mesh_send_mode';
 
 export default function SendMessageForm({ onMessageSent, userSettings, replyTo, replyHopLimit, onReplyToClear }) {
+  const isAdmin = userSettings?.role === 'admin';
+  // Admins see all 8 channels; regular users only see channels with a configured name.
+  const namedChannelNumbers = (userSettings?.channels || [])
+    .filter(c => c?.name && c.name.trim())
+    .map(c => c.number);
+  const CHANNELS = isAdmin ? ALL_CHANNELS : ALL_CHANNELS.filter(c => namedChannelNumbers.includes(c));
   const [mode, setMode] = useState(() => localStorage.getItem(LS_MODE) || 'channel');
   const [channel, setChannel] = useState(() => {
     const saved = localStorage.getItem(LS_CHANNEL);
@@ -46,6 +52,15 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
       }
     }
   }, [userSettings]);
+
+  // If the currently selected channel is not available for this user, fall back to the first available one.
+  useEffect(() => {
+    if (CHANNELS.length === 0) return;
+    if (!CHANNELS.includes(channel)) {
+      setChannel(CHANNELS[0]);
+      localStorage.setItem(LS_CHANNEL, String(CHANNELS[0]));
+    }
+  }, [CHANNELS.join(',')]);
 
   const switchMode = (m) => {
     setMode(m);
@@ -134,16 +149,22 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
             <Radio className="inline w-3 h-3 mr-1" />
             Channel
           </label>
-          <select
-            value={channel}
-            onChange={(e) => updateChannel(parseInt(e.target.value))}
-            className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
-          >
-            {CHANNELS.map(c => {
-              const ch = (userSettings?.channels || []).find(x => x.number === c);
-              return <option key={c} value={c}>{ch?.name ? `${ch.name} (${c})` : `Channel ${c}`}</option>;
-            })}
-          </select>
+          {CHANNELS.length === 0 ? (
+            <div className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-muted-foreground">
+              Keine Channels verfügbar — bitte einen Administrator bitten, Channel-Namen zu konfigurieren.
+            </div>
+          ) : (
+            <select
+              value={channel}
+              onChange={(e) => updateChannel(parseInt(e.target.value))}
+              className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+            >
+              {CHANNELS.map(c => {
+                const ch = (userSettings?.channels || []).find(x => x.number === c);
+                return <option key={c} value={c}>{ch?.name ? `${ch.name} (${c})` : `Channel ${c}`}</option>;
+              })}
+            </select>
+          )}
           <div className="mt-1.5 flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Topic:</span>
             <span className="text-xs text-primary font-mono bg-secondary px-2 py-0.5 rounded">{topic}</span>

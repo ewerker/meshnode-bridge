@@ -11,10 +11,22 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
   const [page, setPage] = useState(1);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const totalPages = Math.max(1, Math.ceil((messages?.length || 0) / pageSize));
+  const filteredMessages = (() => {
+    if (isAdmin) return messages || [];
+    const namedNums = (channels || []).filter(c => c?.name && c.name.trim()).map(c => c.number);
+    return (messages || []).filter(m => {
+      if (m.direction !== 'inbound') return true;
+      if (m.to_node && m.to_node !== '^all') return true;
+      if (m.channel === undefined || m.channel === null || m.channel === '') return true;
+      const num = parseInt(m.channel);
+      if (isNaN(num)) return true;
+      return namedNums.includes(num);
+    });
+  })();
+  const totalPages = Math.max(1, Math.ceil(filteredMessages.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const startIdx = (currentPage - 1) * pageSize;
-  const visibleMessages = (messages || []).slice(startIdx, startIdx + pageSize);
+  const visibleMessages = filteredMessages.slice(startIdx, startIdx + pageSize);
 
   useEffect(() => { setPage(1); }, [pageSize]);
 
@@ -31,13 +43,14 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
   }, [refreshKey]);
 
   const getChannelName = (ch) => {
-    if (!channels || !ch) return null;
+    if (!channels || ch === undefined || ch === null || ch === '') return null;
     const num = parseInt(ch);
     if (isNaN(num)) return null;
     const found = channels.find(c => c.number === num);
     return found?.name || null;
   };
-  if (!messages || messages.length === 0) {
+
+  if (!filteredMessages || filteredMessages.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
         <Radio className="w-12 h-12 mb-3 opacity-30" />
@@ -122,7 +135,9 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
                 <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                   msg.direction === 'outbound' ? 'bg-primary/15 text-primary' : 'bg-emerald-500/15 text-emerald-400'
                 }`}>
-                  {getChannelName(msg.channel) ? `${getChannelName(msg.channel)} (${msg.channel})` : `Channel ${msg.channel}`}
+                  {getChannelName(msg.channel)
+                    ? `${getChannelName(msg.channel)} (${msg.channel})`
+                    : `Channel ${msg.channel}`}
                 </span>
               )}
               {msg.direction === 'outbound' && msg.status && (
@@ -191,7 +206,7 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
         );
       })}
 
-      {messages.length > 0 && (
+      {filteredMessages.length > 0 && (
         <div className="flex items-center justify-between gap-3 pt-3 mt-2 border-t border-border flex-wrap">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>Per page:</span>
@@ -203,7 +218,7 @@ export default function MessageList({ messages, onDelete, channels, onReply, ref
               {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
             <span className="ml-2">
-              {startIdx + 1}–{Math.min(startIdx + pageSize, messages.length)} of {messages.length}
+              {startIdx + 1}–{Math.min(startIdx + pageSize, filteredMessages.length)} of {filteredMessages.length}
             </span>
           </div>
           <div className="flex items-center gap-2">
