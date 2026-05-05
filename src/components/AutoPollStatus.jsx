@@ -39,23 +39,22 @@ export default function AutoPollStatus({ currentUser }) {
     : '—';
 
   return (
-    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs ${
+    <div
+      title={skipped
+        ? `Auto-Poll pausiert${status.skip_reason ? ` · ${status.skip_reason}` : ''}`
+        : `Auto-Poll aktiv · ${status.last_received ?? 0} empfangen ${lastPolled}`}
+      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-xs ${
       skipped
         ? 'bg-secondary border-border text-muted-foreground'
         : 'bg-primary/10 border-primary/30 text-primary'
     }`}>
       {skipped ? (
-        <>
-          <WifiOff className="w-3.5 h-3.5 flex-shrink-0" />
-          <span className="hidden sm:inline">Auto-Poll pausiert</span>
-          <span className="text-muted-foreground/70 hidden md:inline">· {status.skip_reason}</span>
-        </>
+        <WifiOff className="w-3.5 h-3.5 flex-shrink-0" />
       ) : (
-        <>
-          <Wifi className="w-3.5 h-3.5 flex-shrink-0 animate-pulse" />
-          <span className="hidden sm:inline">Auto-Poll aktiv</span>
-          <span className="text-primary/70 hidden md:inline">· {status.last_received ?? 0} empfangen {lastPolled}</span>
-        </>
+        <Wifi className="w-3.5 h-3.5 flex-shrink-0 animate-pulse" />
+      )}
+      {status.gateway_node_id && (
+        <span className="font-mono">{status.gateway_node_id}</span>
       )}
     </div>
   );
