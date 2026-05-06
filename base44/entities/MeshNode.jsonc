@@ -79,5 +79,17 @@
   },
   "required": [
     "node_id"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
