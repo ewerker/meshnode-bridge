@@ -216,7 +216,7 @@ Deno.serve(async (req) => {
       // recent portal-mirrored copy with matching sender/recipient + prefixed text.
       if (isDM && p.text && p.from_id) {
         try {
-          const mirrorText = `via Portal gespiegelt: ${p.text}`;
+          const mirrorText = `VIA PORTAL: ${p.text}`;
           const since = Math.floor(Date.now() / 1000) - 600;
           const candidates = await base44.asServiceRole.entities.MeshMessage.filter({
             direction: 'inbound',

@@ -250,7 +250,7 @@ Deno.serve(async (req) => {
       // MQTT-delivered copy now wins.
       if (isDM && p.text && p.from_id) {
         try {
-          const mirrorPrefix = 'via Portal gespiegelt: ';
+          const mirrorPrefix = 'VIA PORTAL: ';
           const mirrorText = `${mirrorPrefix}${p.text}`;
           const since = Math.floor(Date.now() / 1000) - 600; // 10 minutes
           const candidates = await base44.asServiceRole.entities.MeshMessage.filter({

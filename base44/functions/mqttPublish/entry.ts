@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
       }
       await base44.asServiceRole.entities.MeshMessage.create({
         direction: 'inbound',
-        text: `via Portal gespiegelt: ${text}`,
+        text: `VIA PORTAL: ${text}`,
         channel: String(channelNum),
         channel_name: '',
         from_node: gatewayNodeId,
@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
         gateway_node_id: recipientGatewayId,
         mqtt_topic: `${prefix}/rx/${recipientGatewayId}/direct/${gatewayNodeId}`,
         status: 'received',
-        raw_payload: JSON.stringify({ ...payload, text: `via Portal gespiegelt: ${text}`, mirror_of_client_ref: client_ref || null }),
+        raw_payload: JSON.stringify({ ...payload, text: `VIA PORTAL: ${text}`, mirror_of_client_ref: client_ref || null }),
         meshtastic_timestamp: Math.floor(Date.now() / 1000),
         client_ref: client_ref || undefined,
       });
