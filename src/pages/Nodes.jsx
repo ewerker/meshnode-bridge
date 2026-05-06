@@ -64,14 +64,45 @@ export default function Nodes() {
     setLogLines([]);
     try {
       setLogLines(['Warte auf MQTT Daten...']);
-      // Use 'daily_nodes_poll' so the backend persists nodes server-side via service role
-      // (avoids RLS "Permission denied" for non-admin users updating MeshNode records).
-      const res = await base44.functions.invoke('mqttNodesPoll', { fromNode, pollType: 'daily_nodes_poll' });
+      // Manual poll: backend returns raw nodes (no persistence). Frontend then saves them
+      // in small visible batches via meshNodeBatchUpsert (service-role inside backend, so
+      // non-admin users do not hit the MeshNode RLS update restriction).
+      const res = await base44.functions.invoke('mqttNodesPoll', { fromNode, pollType: 'manual_nodes_poll' });
       const d = res.data;
-      setPollProgress({ phase: 'done', current: d.total || 0, total: d.total || 0 });
-      setLogLines(d.log || [`${d.total ?? 0} Nodes verarbeitet.`]);
-      const errText = d.errors ? `, ${d.errors} errors` : '';
-      setResult({ type: 'success', msg: `${d.total ?? 0} nodes read (${d.created ?? 0} new, ${d.updated ?? 0} updated${errText})` });
+      const allNodes = d?.nodes || [];
+
+      if (allNodes.length === 0) {
+        setPollProgress({ phase: 'done', current: 0, total: 0 });
+        setLogLines(['Keine Node-Daten vom Broker erhalten.']);
+        setResult({ type: 'error', msg: 'Keine Node-Daten vom Broker erhalten' });
+        return;
+      }
+
+      setLogLines([`${allNodes.length} Nodes empfangen. Speichere in 3er-Batches…`]);
+      setPollProgress({ phase: 'updating', current: 0, total: allNodes.length });
+
+      const BATCH = 3;
+      let created = 0;
+      let updated = 0;
+      let errors = 0;
+      for (let i = 0; i < allNodes.length; i += BATCH) {
+        const batch = allNodes.slice(i, i + BATCH);
+        try {
+          const r = await base44.functions.invoke('meshNodeBatchUpsert', { fromNode, nodes: batch });
+          created += r.data?.created || 0;
+          updated += r.data?.updated || 0;
+          errors += r.data?.errors || 0;
+        } catch (e) {
+          errors += batch.length;
+          setLogLines(prev => [`Fehler Batch ${i}-${i + batch.length}: ${e.message || e}`, ...prev].slice(0, 50));
+        }
+        setPollProgress({ phase: 'updating', current: Math.min(i + BATCH, allNodes.length), total: allNodes.length });
+      }
+
+      setPollProgress({ phase: 'done', current: allNodes.length, total: allNodes.length });
+      const errText = errors ? `, ${errors} errors` : '';
+      setLogLines([`Fertig: ${allNodes.length} Nodes verarbeitet (${created} neu, ${updated} aktualisiert${errText}).`]);
+      setResult({ type: 'success', msg: `${allNodes.length} nodes read (${created} new, ${updated} updated${errText})` });
       fetchNodes();
     } catch (err) {
       setResult({ type: 'error', msg: err.message || 'Error fetching nodes' });

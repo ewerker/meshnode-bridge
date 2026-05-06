@@ -155,7 +155,10 @@ Deno.serve(async (req) => {
       gateways = [{ user: admin, node_id: admin.node_id.trim() }];
     }
 
-    const persist = pollType !== 'manual_nodes_poll';
+    // Manual poll (user-triggered): return raw nodes to the frontend so it can persist
+    // them in small visible batches (RLS-safe via meshNodeBatchUpsert). Daily/automation
+    // poll persists server-side in one go.
+    const persist = !user || pollType === 'daily_nodes_poll';
     const allLog = [];
     let totalNodes = 0;
     let totalCreated = 0;
