@@ -268,7 +268,11 @@ Deno.serve(async (req) => {
         }
       }
 
-      if (!isDM && messageGatewayId.startsWith('!') && channelName && channelName.toLowerCase() !== 'longfast' && p.text) {
+      // Loop-Schutz: Nachrichten, die bereits "VIA PORTAL:" enthalten, niemals
+      // erneut intern weiterleiten — sie wurden schon einmal portalseitig verteilt.
+      const alreadyPortalForwarded = /VIA\s+PORTAL:/i.test(p.text || '');
+
+      if (!alreadyPortalForwarded && !isDM && messageGatewayId.startsWith('!') && channelName && channelName.toLowerCase() !== 'longfast' && p.text) {
         try {
           const users = await base44.asServiceRole.entities.User.list();
           const recipients = users.filter(u => {
@@ -310,8 +314,9 @@ Deno.serve(async (req) => {
 
       // Dedup portal mirror: if this message was also delivered internally via
       // the portal within the last 10 minutes, delete the portal copy — the real
-      // MQTT-delivered copy now wins.
-      if (p.text && p.from_id) {
+      // MQTT-delivered copy now wins. Skip when this message itself already is a
+      // portal-forwarded copy (loop protection).
+      if (!alreadyPortalForwarded && p.text && p.from_id) {
         try {
           const mirrorText = `VIA PORTAL: ${p.text}`;
           const since = Math.floor(Date.now() / 1000) - 600; // 10 minutes

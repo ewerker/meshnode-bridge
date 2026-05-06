@@ -208,7 +208,11 @@ Deno.serve(async (req) => {
         }
       }
 
-      if (!isDM && messageGatewayId.startsWith('!') && channelName && channelName.toLowerCase() !== 'longfast' && p.text) {
+      // Loop-Schutz: Nachrichten, die bereits "VIA PORTAL:" enthalten, niemals
+      // erneut intern weiterleiten — sie wurden schon einmal portalseitig verteilt.
+      const alreadyPortalForwarded = /VIA\s+PORTAL:/i.test(p.text || '');
+
+      if (!alreadyPortalForwarded && !isDM && messageGatewayId.startsWith('!') && channelName && channelName.toLowerCase() !== 'longfast' && p.text) {
         try {
           const recipients = users.filter(u => {
             if (!u.node_id || u.node_id === messageGatewayId) return false;
@@ -247,7 +251,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      if (p.text && p.from_id) {
+      if (!alreadyPortalForwarded && p.text && p.from_id) {
         try {
           const mirrorText = `VIA PORTAL: ${p.text}`;
           const since = Math.floor(Date.now() / 1000) - 600;
