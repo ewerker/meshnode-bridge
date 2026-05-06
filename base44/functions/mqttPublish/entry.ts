@@ -189,14 +189,38 @@ Deno.serve(async (req) => {
         const mirrorText = dummyGroupForward ? effectiveText : `VIA PORTAL: ${text}`;
         for (const recipient of recipients) {
           const since = Math.floor(Date.now() / 1000) - 600;
-          const existing = await base44.asServiceRole.entities.MeshMessage.filter({
+          // Check if an exact mirror already exists (avoid duplicate mirrors).
+          const existingMirror = await base44.asServiceRole.entities.MeshMessage.filter({
             direction: 'inbound',
             from_node: gatewayNodeId,
             gateway_node_id: recipient.node_id,
             channel: String(channelNum),
             text: mirrorText,
           }, '-created_date', 5);
-          if (existing.some(e => (e.meshtastic_timestamp || 0) >= since)) continue;
+          if (existingMirror.some(e => (e.meshtastic_timestamp || 0) >= since)) continue;
+
+          // Check if a radio-relayed copy (without "VIA PORTAL:" prefix) was already
+          // saved by an earlier poll run. If so, replace it with the portal mirror so
+          // recipients see the message attributed correctly to the original sender.
+          const existingRadio = await base44.asServiceRole.entities.MeshMessage.filter({
+            direction: 'inbound',
+            from_node: gatewayNodeId,
+            gateway_node_id: recipient.node_id,
+            channel: String(channelNum),
+            text,
+          }, '-created_date', 5);
+          let dedupRadioCount = 0;
+          for (const r of existingRadio) {
+            if ((r.meshtastic_timestamp || 0) >= since) {
+              try { await base44.asServiceRole.entities.MeshMessage.delete(r.id); dedupRadioCount++; } catch (_) { /* ignore */ }
+            }
+          }
+
+          const mirrorRaw = { ...payload, text: mirrorText, portal_group: true, channel_name: channelName };
+          if (dedupRadioCount > 0) {
+            mirrorRaw.dedup_radio_count = dedupRadioCount;
+            mirrorRaw.dedup_last_at = Math.floor(Date.now() / 1000);
+          }
 
           await base44.asServiceRole.entities.MeshMessage.create({
             direction: 'inbound',
@@ -208,7 +232,7 @@ Deno.serve(async (req) => {
             gateway_node_id: recipient.node_id,
             mqtt_topic: `${prefix}/portal/${recipient.node_id}/group/${channelNum}`,
             status: 'received',
-            raw_payload: JSON.stringify({ ...payload, text: mirrorText, portal_group: true, channel_name: channelName }),
+            raw_payload: JSON.stringify(mirrorRaw),
             meshtastic_timestamp: Math.floor(Date.now() / 1000),
           });
         }
