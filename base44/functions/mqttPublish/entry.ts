@@ -41,6 +41,11 @@ Deno.serve(async (req) => {
     }
 
     const channelNum = typeof channel === 'string' ? parseInt(channel) : (channel !== undefined ? channel : 0);
+    const channelConfig = (user.channels || []).find(c => c.number === channelNum);
+    const channelName = (channelConfig?.name || '').trim();
+    if (senderIsDummy && mode === 'channel' && channelNum === 0 && channelName.toLowerCase() === 'longfast') {
+      return Response.json({ error: 'LongFast auf Gruppe 0 ist für Portal-Versand gesperrt.' }, { status: 400 });
+    }
     const regionStr = user.region || 'EU_868';
     const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
     const gatewayNodeId = user.node_id || '!gateway';
@@ -105,40 +110,67 @@ Deno.serve(async (req) => {
     // We tag the mirror with the same client_ref as the outbound so we can later
     // dedupe it once the real MQTT-delivered copy arrives via mqttPoll.
     const createDuplicate = async () => {
-      if (mode !== 'dm' || !toNode || !recipientGatewayId) return;
-      // Skip mirror if the real MQTT-delivered DM has already been saved for this
-      // recipient within the last 10 minutes (avoids creating a duplicate that would
-      // need to be deduped later).
-      try {
-        const since = Math.floor(Date.now() / 1000) - 600;
-        const existing = await base44.asServiceRole.entities.MeshMessage.filter({
+      if (mode === 'dm') {
+        if (!toNode || !recipientGatewayId) return;
+        // Skip mirror if the real MQTT-delivered DM has already been saved for this
+        // recipient within the last 10 minutes (avoids creating a duplicate that would
+        // need to be deduped later).
+        try {
+          const since = Math.floor(Date.now() / 1000) - 600;
+          const existing = await base44.asServiceRole.entities.MeshMessage.filter({
+            direction: 'inbound',
+            from_node: gatewayNodeId,
+            to_node: toNode,
+            text,
+          }, '-created_date', 5);
+          if (existing.some(e => (e.meshtastic_timestamp || 0) >= since)) {
+            console.log('[PUB-V3] mirror skipped: real MQTT inbound already exists');
+            return;
+          }
+        } catch (e) {
+          console.log('[PUB-V3] pre-mirror check failed:', e.message);
+        }
+        await base44.asServiceRole.entities.MeshMessage.create({
           direction: 'inbound',
+          text: `VIA PORTAL: ${text}`,
+          channel: String(channelNum),
+          channel_name: '',
           from_node: gatewayNodeId,
           to_node: toNode,
-          text,
-        }, '-created_date', 5);
-        if (existing.some(e => (e.meshtastic_timestamp || 0) >= since)) {
-          console.log('[PUB-V3] mirror skipped: real MQTT inbound already exists');
-          return;
-        }
-      } catch (e) {
-        console.log('[PUB-V3] pre-mirror check failed:', e.message);
+          gateway_node_id: recipientGatewayId,
+          mqtt_topic: `${prefix}/rx/${recipientGatewayId}/direct/${gatewayNodeId}`,
+          status: 'received',
+          raw_payload: JSON.stringify({ ...payload, text: `VIA PORTAL: ${text}`, mirror_of_client_ref: client_ref || null }),
+          meshtastic_timestamp: Math.floor(Date.now() / 1000),
+          client_ref: client_ref || undefined,
+        });
+        console.log('[PUB-V3] duplicate inbound created for recipient:', recipientGatewayId, 'client_ref:', client_ref);
+        return;
       }
-      await base44.asServiceRole.entities.MeshMessage.create({
-        direction: 'inbound',
-        text: `VIA PORTAL: ${text}`,
-        channel: String(channelNum),
-        channel_name: '',
-        from_node: gatewayNodeId,
-        to_node: toNode,
-        gateway_node_id: recipientGatewayId,
-        mqtt_topic: `${prefix}/rx/${recipientGatewayId}/direct/${gatewayNodeId}`,
-        status: 'received',
-        raw_payload: JSON.stringify({ ...payload, text: `VIA PORTAL: ${text}`, mirror_of_client_ref: client_ref || null }),
-        meshtastic_timestamp: Math.floor(Date.now() / 1000),
-        client_ref: client_ref || undefined,
-      });
-      console.log('[PUB-V3] duplicate inbound created for recipient:', recipientGatewayId, 'client_ref:', client_ref);
+
+      if (mode === 'channel' && senderIsDummy && channelName) {
+        const users = await base44.asServiceRole.entities.User.list();
+        const recipients = users.filter(u => {
+          if (!u.node_id || u.node_id === gatewayNodeId) return false;
+          return (u.channels || []).some(c => c.number === channelNum && (c.name || '').trim() === channelName);
+        });
+        for (const recipient of recipients) {
+          await base44.asServiceRole.entities.MeshMessage.create({
+            direction: 'inbound',
+            text: `VIA PORTAL: ${text}`,
+            channel: String(channelNum),
+            channel_name: channelName,
+            from_node: gatewayNodeId,
+            to_node: '^all',
+            gateway_node_id: recipient.node_id,
+            mqtt_topic: `${prefix}/portal/${recipient.node_id}/group/${channelNum}`,
+            status: 'received',
+            raw_payload: JSON.stringify({ ...payload, text: `VIA PORTAL: ${text}`, portal_group: true, channel_name: channelName }),
+            meshtastic_timestamp: Math.floor(Date.now() / 1000),
+          });
+        }
+        console.log('[PUB-V3] portal group delivered:', recipients.length, 'channel:', channelNum, channelName);
+      }
     };
 
     if (!wantAckFlag) {

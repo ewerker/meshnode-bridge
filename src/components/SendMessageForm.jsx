@@ -124,6 +124,8 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const portalOnlyAccount = (userSettings?.node_id || '').startsWith('?');
   const recipientPortalOnly = mode === 'dm' && dmNodeId.trim().startsWith('?');
   const meshOptionsDisabled = portalOnlyAccount || recipientPortalOnly;
+  const currentChannelName = (userSettings?.channels || []).find(c => c.number === channel)?.name || '';
+  const longFastGroupBlocked = portalOnlyAccount && mode === 'channel' && channel === 0 && currentChannelName.trim().toLowerCase() === 'longfast';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -141,7 +143,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
         channel,
         toNode: mode === 'dm' ? dmNodeId : '^all',
         hop_limit: hopLimit,
-        want_ack: wantAck,
+        want_ack: meshOptionsDisabled ? false : wantAck,
       });
       const { client_ref: ref, final_status } = res.data;
       setText('');
@@ -225,7 +227,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           {portalOnlyAccount && (
             <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-              <span>Portal-only Accounts können keine Gruppennachrichten per MQTT senden.</span>
+              <span>{longFastGroupBlocked ? 'LongFast auf Gruppe 0 ist für Portal-Versand gesperrt.' : 'Portal-only Accounts senden Gruppen intern im Portal, ohne ACK.'}</span>
             </div>
           )}
         </div>
@@ -302,7 +304,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           </button>
           <button
             type="submit"
-            disabled={sending || !text.trim() || (mode === 'channel' && portalOnlyAccount) || (mode === 'dm' && (!dmNodeId.trim() || (userSettings?.node_id && dmNodeId.trim() === userSettings.node_id))) || (mode === 'dm' && userSettings?.send_via_mqtt === false && userSettings?.send_via_portal !== false && dmNodeId && !portalNodeIds.has(dmNodeId)) || (mode === 'dm' && portalOnlyAccount && dmNodeId && !portalNodeIds.has(dmNodeId))}
+            disabled={sending || !text.trim() || longFastGroupBlocked || (mode === 'dm' && (!dmNodeId.trim() || (userSettings?.node_id && dmNodeId.trim() === userSettings.node_id))) || (mode === 'dm' && userSettings?.send_via_mqtt === false && userSettings?.send_via_portal !== false && dmNodeId && !portalNodeIds.has(dmNodeId)) || (mode === 'dm' && portalOnlyAccount && dmNodeId && !portalNodeIds.has(dmNodeId))}
             className="flex-1 px-5 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-1"
           >
             {sending ? (
