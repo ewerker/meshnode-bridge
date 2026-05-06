@@ -59,12 +59,16 @@ Deno.serve(async (req) => {
           gateway_node_id: gatewayNodeId,
         });
         if (existingRcpt.length === 0) {
+          const knownMatches = await base44.asServiceRole.entities.MeshNode.filter({ node_id: toNode }, '-last_heard', 20);
+          const knownNamed = knownMatches.find(n => n.long_name || n.short_name) || {};
+          const isDummyGateway = (gatewayNodeId || '').startsWith('?');
           await base44.asServiceRole.entities.MeshNode.create({
             node_id: toNode,
             gateway_node_id: gatewayNodeId,
-            short_name: '',
-            long_name: '',
-            is_manual: false,
+            owner_email: isDummyGateway ? user.email : '',
+            short_name: knownNamed.short_name || '',
+            long_name: knownNamed.long_name || '',
+            is_manual: isDummyGateway,
           });
           console.log('[PUB-V3] auto-created recipient node:', toNode, 'gw:', gatewayNodeId);
         }

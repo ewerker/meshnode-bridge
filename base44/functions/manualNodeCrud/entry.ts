@@ -40,12 +40,18 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Node mit dieser ID existiert bereits' }, { status: 409 });
       }
 
+      // If the node is already known in another gateway scope, inherit its names.
+      const knownMatches = await base44.asServiceRole.entities.MeshNode.filter({ node_id: cleanId }, '-last_heard', 20);
+      const knownNamed = knownMatches.find(n => n.long_name || n.short_name) || {};
+      const finalShortName = (short_name || knownNamed.short_name || '').trim();
+      const finalLongName = (long_name || knownNamed.long_name || '').trim();
+
       const created = await base44.asServiceRole.entities.MeshNode.create({
         node_id: cleanId,
         gateway_node_id: user.node_id,
         owner_email: user.email,
-        short_name: (short_name || '').trim(),
-        long_name: (long_name || '').trim(),
+        short_name: finalShortName,
+        long_name: finalLongName,
         is_manual: true,
       });
       return Response.json({ success: true, node: created });
