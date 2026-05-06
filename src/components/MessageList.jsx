@@ -1,4 +1,4 @@
-import { ArrowUpRight, ArrowDownLeft, Radio, Trash2, Wifi, Star, Bell, RotateCw } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Radio, Trash2, Wifi, Star, Bell, RotateCw, Filter } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -230,6 +230,15 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
                     if (hasIdx) return `Channel ${msg.channel}`;
                     return 'Channel';
                   })()}
+                </span>
+              )}
+              {raw.dedup_radio_count > 0 && (
+                <span
+                  className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-amber-500/15 text-amber-400"
+                  title={`${raw.dedup_radio_count} Radio-Duplikat${raw.dedup_radio_count !== 1 ? 'e' : ''} via Dedup verworfen (Portal-Variante mit Original-Absender bevorzugt)`}
+                >
+                  <Filter className="w-3 h-3" />
+                  Dedup ×{raw.dedup_radio_count}
                 </span>
               )}
               {msg.direction === 'outbound' && msg.status && (
