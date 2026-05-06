@@ -52,7 +52,10 @@ Deno.serve(async (req) => {
 
     const regionStr = admin.region || 'EU_868';
     const prefix = admin.topic_prefix || `msh/${regionStr}/proxy`;
-    const wildcardTopic = `${prefix}/+/${nodeId}/#`;
+    // Subscribe with a fully wildcarded gateway segment so we collect messages
+    // from every gateway publishing under this prefix. The gateway id is
+    // extracted from the topic path on a per-message basis.
+    const wildcardTopic = `${prefix}/+/+/#`;
 
     const brokerUrl = Deno.env.get('MQTT_BROKER_URL');
     const username = Deno.env.get('MQTT_USERNAME');
@@ -158,14 +161,20 @@ Deno.serve(async (req) => {
 
       const isDM = p.scope === 'dm' || /\/direct\//.test(msg.topic || '');
 
+      // Extract gateway node id from the topic path (segment after the
+      // rx/send token within the prefix).
+      const topicSegments = (msg.topic || '').split('/');
+      const gwFromTopic = topicSegments[4] || '';
+      const messageGatewayId = gwFromTopic || nodeId || '';
+
       await base44.asServiceRole.entities.MeshMessage.create({
         direction: 'inbound',
         text: p.text || '',
         channel: channelStr,
         channel_name: channelName,
         from_node: p.from_id || '',
-        to_node: isDM ? (nodeId || '') : (p.to_id || '^all'),
-        gateway_node_id: nodeId,
+        to_node: isDM ? (messageGatewayId || '') : (p.to_id || '^all'),
+        gateway_node_id: messageGatewayId,
         mqtt_topic: msg.topic,
         status: 'received',
         raw_payload: JSON.stringify(p),

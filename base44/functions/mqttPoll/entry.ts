@@ -21,16 +21,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'MQTT_BROKER_URL not configured' }, { status: 500 });
     }
 
-    // Get user's node_id for the proxy rx topic
+    // User's own node_id is still used for gateway-status display and DM routing,
+    // but the message subscription now spans ALL gateways via wildcard.
     const nodeId = user.node_id;
-    if (!nodeId) {
-      return Response.json({ error: 'Node-ID nicht in Einstellungen gesetzt' }, { status: 400 });
-    }
 
     const regionStr = region || user.region || 'EU_868';
-    // Build topics from user's configured prefix
+    // Subscribe with a fully wildcarded gateway segment so we receive messages
+    // from every gateway publishing under this prefix. The actual gateway id is
+    // extracted from the topic path per message.
     const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
-    const wildcardTopic = `${prefix}/+/${nodeId}/#`;
+    const wildcardTopic = `${prefix}/+/+/#`;
     console.log('[MQTT] params:', { region, listenSeconds, nodeId });
     console.log('[MQTT] subscribing to wildcard topic:', wildcardTopic);
 
@@ -191,14 +191,21 @@ Deno.serve(async (req) => {
       // Determine DM also from topic path /direct/<id> as a fallback
       const isDM = p.scope === 'dm' || /\/direct\//.test(msg.topic || '');
 
+      // Extract the gateway node id from the topic path. Topic shape is
+      // `<prefix>/<rxOrSend>/<gatewayNodeId>/<...>` — the gateway id is
+      // the segment immediately after the prefix's rx/send token.
+      const topicSegments = (msg.topic || '').split('/');
+      const gwFromTopic = topicSegments[4] || '';
+      const messageGatewayId = gwFromTopic || nodeId || '';
+
       const record = await base44.entities.MeshMessage.create({
         direction: 'inbound',
         text: p.text || '',
         channel: channelStr,
         channel_name: channelName,
         from_node: p.from_id || '',
-        to_node: isDM ? (nodeId || '') : (p.to_id || '^all'),
-        gateway_node_id: nodeId,
+        to_node: isDM ? (messageGatewayId || '') : (p.to_id || '^all'),
+        gateway_node_id: messageGatewayId,
         mqtt_topic: msg.topic,
         status: 'received',
         raw_payload: JSON.stringify(p),
