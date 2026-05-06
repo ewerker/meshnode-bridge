@@ -20,6 +20,17 @@ Deno.serve(async (req) => {
       }
       if (!user.node_id) return Response.json({ error: 'Eigene Node-ID nicht in Settings gesetzt' }, { status: 400 });
 
+      // Dummy nodes (?…) only exist as actual portal users — refuse creation
+      // of non-existing ?-IDs to prevent the system from accumulating garbage.
+      if (cleanId.startsWith('?')) {
+        const portalMatches = await base44.asServiceRole.entities.User.filter({ node_id: cleanId });
+        if (portalMatches.length === 0) {
+          return Response.json({
+            error: 'Kein Portal-Nutzer mit dieser ?-ID gefunden. Dummy-Nodes müssen einem registrierten Portal-Nutzer entsprechen.'
+          }, { status: 404 });
+        }
+      }
+
       // Prevent duplicates within the same gateway scope
       const existing = await base44.asServiceRole.entities.MeshNode.filter({
         node_id: cleanId,

@@ -38,10 +38,24 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
     (async () => {
       const me = await base44.auth.me().catch(() => null);
       setIsAdmin(me?.role === 'admin');
-      if (!me?.node_id) { setNodeMap({}); return; }
-      const nodes = await base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 500);
       const map = {};
-      nodes.forEach(n => { map[n.node_id] = n; });
+      // Always pull portal users + cross-gateway nodes via service-role helper so
+      // that ?-accounts (no own gateway nodes) still see names of other portal
+      // users and admin-gateway nodes.
+      try {
+        const res = await base44.functions.invoke('getPortalUsers', {});
+        (res.data?.users || []).forEach(u => {
+          if (u.node_id) map[u.node_id] = { node_id: u.node_id, long_name: u.long_name };
+        });
+        (res.data?.nodes || []).forEach(n => {
+          if (n.node_id && !map[n.node_id]) map[n.node_id] = n;
+        });
+      } catch (_) { /* ignore */ }
+      // Own gateway-scope nodes win (own short/long names + favorites)
+      if (me?.node_id) {
+        const nodes = await base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 500);
+        nodes.forEach(n => { map[n.node_id] = n; });
+      }
       setNodeMap(map);
     })();
   }, [refreshKey]);

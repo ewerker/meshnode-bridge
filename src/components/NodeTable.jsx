@@ -35,7 +35,7 @@ const COLUMNS = [
   { key: 'latitude', label: 'Location' },
   { key: 'uptime_seconds', label: 'Uptime' },
   { key: 'last_heard', label: 'Last Heard' },
-  { key: '_actions', label: '', sortable: false },
+  { key: '_actions', label: 'Aktionen', sortable: false },
 ];
 
 function SortIcon({ column, sortKey, sortDir }) {
