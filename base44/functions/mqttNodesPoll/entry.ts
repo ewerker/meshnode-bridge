@@ -137,26 +137,22 @@ Deno.serve(async (req) => {
     if (!brokerUrl) return Response.json({ error: 'MQTT_BROKER_URL not configured' }, { status: 500 });
 
     // Build the list of gateways to poll.
-    //   - manual_nodes_poll: requires user + their own node_id (or explicit fromNode)
-    //   - daily_nodes_poll (no user): iterate over ALL configured gateway node_ids of all users,
-    //     skipping dummies (?...). Each gateway gets its own subscription + persistence pass.
+    //   - manual_nodes_poll / authenticated call: only the requesting user's own gateway
+    //     (or explicit fromNode). Each user must trigger their own poll manually.
+    //   - daily_nodes_poll (no user, scheduled automation): ONLY the admin's gateway is polled
+    //     to stay within automation time limits. Non-admin users refresh their own list manually.
     let gateways = [];
     if (user) {
       const targetNode = fromNode || user.node_id;
       if (!targetNode) return Response.json({ error: 'Node-ID nicht in Einstellungen gesetzt' }, { status: 400 });
       gateways = [{ user, node_id: targetNode }];
     } else {
-      const allUsers = await base44.asServiceRole.entities.User.list();
-      const seen = new Set();
-      for (const u of allUsers) {
-        const nid = (u.node_id || '').trim();
-        if (!nid || nid.startsWith('?') || seen.has(nid)) continue;
-        seen.add(nid);
-        gateways.push({ user: u, node_id: nid });
+      const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+      const admin = admins.find(a => (a.node_id || '').trim() && !a.node_id.startsWith('?'));
+      if (!admin) {
+        return Response.json({ error: 'Kein Admin mit gültiger Gateway-Node-ID konfiguriert' }, { status: 400 });
       }
-      if (gateways.length === 0) {
-        return Response.json({ error: 'Keine Gateway-Node-IDs konfiguriert' }, { status: 400 });
-      }
+      gateways = [{ user: admin, node_id: admin.node_id.trim() }];
     }
 
     const persist = pollType !== 'manual_nodes_poll';
