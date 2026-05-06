@@ -24,6 +24,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   });
   const [text, setText] = useState('');
   const [dmNodeId, setDmNodeId] = useState('');
+  const [recipientResetKey, setRecipientResetKey] = useState(0);
   const [hopLimit, setHopLimit] = useState(6);
   const [wantAck, setWantAck] = useState(true);
   const [withBell, setWithBell] = useState(false);
@@ -141,7 +142,10 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
       });
       const { client_ref: ref, final_status } = res.data;
       setText('');
-      if (mode === 'dm') setDmNodeId('');
+      if (mode === 'dm') {
+        setDmNodeId('');
+        setRecipientResetKey(k => k + 1);
+      }
       onReplyToClear?.();
       onMessageSent?.();
 
@@ -224,7 +228,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           <label className="block text-xs font-medium text-primary mb-1 uppercase tracking-wider">
             Recipient
           </label>
-          <NodePicker value={dmNodeId} onChange={setDmNodeId} portalOnly={(userSettings?.node_id || '').startsWith('?')} />
+          <NodePicker key={recipientResetKey} value={dmNodeId} onChange={setDmNodeId} portalOnly={(userSettings?.node_id || '').startsWith('?')} />
           {/* Portal-only warning */}
           {userSettings?.send_via_mqtt === false && userSettings?.send_via_portal !== false && dmNodeId && !portalNodeIds.has(dmNodeId) && (
             <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
