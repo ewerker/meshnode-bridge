@@ -52,7 +52,8 @@ export default function PollLog({ onCountChange }) {
     <div className="space-y-1.5">
       {visibleLogs.map((log) => {
         const labels = {
-          auto_poll: 'Auto',
+          auto_poll: 'Auto 5m',
+          offline_poll: 'Offline 1h',
           manual_poll: 'Manual',
           initial_poll: 'Initial',
           manual_nodes_poll: 'Nodes',
