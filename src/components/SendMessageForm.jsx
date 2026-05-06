@@ -33,8 +33,8 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const [portalNodeIds, setPortalNodeIds] = useState(new Set());
 
   useEffect(() => {
-    base44.entities.User.list().then(users => {
-      setPortalNodeIds(new Set(users.map(u => u.node_id).filter(Boolean)));
+    base44.functions.invoke('getPortalUsers', {}).then(res => {
+      setPortalNodeIds(new Set((res.data?.users || []).map(u => u.node_id).filter(Boolean)));
     }).catch(() => {});
   }, []);
 
