@@ -126,6 +126,10 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const meshOptionsDisabled = portalOnlyAccount || recipientPortalOnly;
   const currentChannelName = (userSettings?.channels || []).find(c => c.number === channel)?.name || '';
   const longFastGroupBlocked = portalOnlyAccount && mode === 'channel' && channel === 0 && currentChannelName.trim().toLowerCase() === 'longfast';
+  const sendDisabled = sending || !text.trim() || longFastGroupBlocked ||
+    (mode === 'dm' && (!dmNodeId.trim() || (userSettings?.node_id && dmNodeId.trim() === userSettings.node_id))) ||
+    (mode === 'dm' && userSettings?.send_via_mqtt === false && userSettings?.send_via_portal !== false && dmNodeId && !portalNodeIds.has(dmNodeId)) ||
+    (mode === 'dm' && portalOnlyAccount && dmNodeId && !portalNodeIds.has(dmNodeId));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -304,7 +308,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           </button>
           <button
             type="submit"
-            disabled={sending || !text.trim() || longFastGroupBlocked || (mode === 'dm' && (!dmNodeId.trim() || (userSettings?.node_id && dmNodeId.trim() === userSettings.node_id))) || (mode === 'dm' && userSettings?.send_via_mqtt === false && userSettings?.send_via_portal !== false && dmNodeId && !portalNodeIds.has(dmNodeId)) || (mode === 'dm' && portalOnlyAccount && dmNodeId && !portalNodeIds.has(dmNodeId))}
+            disabled={sendDisabled}
             className="flex-1 px-5 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-1"
           >
             {sending ? (
