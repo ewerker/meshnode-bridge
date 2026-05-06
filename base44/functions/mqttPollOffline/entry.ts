@@ -147,10 +147,9 @@ Deno.serve(async (req) => {
         if (existing.length > 0) continue;
       }
 
-      // Content-based dedup: keep the earlier portal-mirror, skip later radio
-      // forwards with the same effective payload (same original sender + same
-      // clean text). Window is generous (30 days) because !-nodes can be
-      // offline for days and forward late.
+      // Content-based dedup: compare ONLY the cleaned text within the same
+      // gateway+channel+target. Sender id is ignored because VIA RADIO carries
+      // the relaying !-gateway while VIA PORTAL carries the original ?-sender.
       const cleaned = extractOriginalContent(p.text || '', p.from_id || '');
       if (cleaned.cleanText) {
         const since = Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 30;
@@ -162,10 +161,10 @@ Deno.serve(async (req) => {
         const isDup = candidates.some(c => {
           if ((c.meshtastic_timestamp || 0) < since) return false;
           const cc = extractOriginalContent(c.text || '', c.from_node || '');
-          return cc.cleanText === cleaned.cleanText && cc.originalSender === cleaned.originalSender;
+          return cc.cleanText === cleaned.cleanText;
         });
         if (isDup) {
-          console.log('[MQTT-OFFLINE] content-dedup skip:', cleaned.originalSender, '·', cleaned.cleanText.substring(0, 40));
+          console.log('[MQTT-OFFLINE] content-dedup skip:', cleaned.cleanText.substring(0, 40));
           continue;
         }
       }
