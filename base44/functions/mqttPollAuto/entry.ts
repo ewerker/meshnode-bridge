@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
       const gwFromTopic = topicSegments[4] || '';
       const messageGatewayId = gwFromTopic || nodeId || '';
 
-      await base44.asServiceRole.entities.MeshMessage.create({
+      const created = await base44.asServiceRole.entities.MeshMessage.create({
         direction: 'inbound',
         text: p.text || '',
         channel: channelStr,
@@ -182,6 +182,30 @@ Deno.serve(async (req) => {
         meshtastic_timestamp: p.mirrored_at || undefined,
       });
       savedCount++;
+
+      // Dedup portal mirror: when a real MQTT-delivered DM arrives, remove any
+      // recent portal-mirrored copy with matching sender/recipient + prefixed text.
+      if (isDM && p.text && p.from_id) {
+        try {
+          const mirrorText = `via Portal gespiegelt: ${p.text}`;
+          const since = Math.floor(Date.now() / 1000) - 600;
+          const candidates = await base44.asServiceRole.entities.MeshMessage.filter({
+            direction: 'inbound',
+            from_node: p.from_id,
+            to_node: isDM ? (p.to_id || messageGatewayId) : (p.to_id || '^all'),
+            text: mirrorText,
+          }, '-created_date', 5);
+          for (const c of candidates) {
+            if (c.id === created.id) continue;
+            if ((c.meshtastic_timestamp || 0) >= since) {
+              await base44.asServiceRole.entities.MeshMessage.delete(c.id);
+              console.log('[MQTT-AUTO] deduped portal mirror:', c.id);
+            }
+          }
+        } catch (e) {
+          console.log('[MQTT-AUTO] mirror dedup failed:', e.message);
+        }
+      }
     }
 
     console.log('[MQTT-AUTO] saved:', savedCount, 'of', messages.length);
