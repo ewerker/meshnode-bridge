@@ -55,7 +55,7 @@ export default function About() {
         <section>
           <h2 className="text-xl font-bold text-foreground mb-4">Features</h2>
           <div className="grid gap-3">
-            <Feature icon={Send} color="text-primary" title="Channel & DM Messages" description="Send text messages to group channels (0–7) or directly to specific nodes via DM mode. Bei DMs wird die Nachricht zusätzlich sofort als 'DUPLIKAT:' in den Eingang des Empfängers geschrieben — falls dieser per Web liest, sieht er sie sofort ohne MQTT-Umweg." />
+            <Feature icon={Send} color="text-primary" title="Channel & DM Messages" description="Send text messages to group channels (0–7) or directly to specific nodes via DM mode. Bei DMs wird die Nachricht zusätzlich sofort als 'via Portal gespiegelt:' in den Eingang des Empfängers geschrieben — falls dieser per Web liest, sieht er sie sofort ohne MQTT-Umweg." />
             <Feature icon={Download} color="text-emerald-400" title="Receive & Auto-Poll" description="Manually poll the broker or let auto-poll fetch new messages on page load, tab focus, and every 2 minutes." />
             <Feature icon={Zap} color="text-yellow-400" title="Real-time Updates" description="New incoming messages appear instantly via live subscriptions — no manual refresh needed." />
             <Feature icon={MessageSquare} color="text-orange-400" title="ACK Tracking" description="Request delivery acknowledgements (ACK/NAK/Implicit ACK) with configurable hop limits." />
@@ -123,7 +123,7 @@ export default function About() {
         <section>
           <h2 className="text-xl font-bold text-foreground mb-3">Dashboard Overview</h2>
           <div className="space-y-2 text-muted-foreground text-sm">
-            <p><span className="text-primary font-medium">Send Message</span> — Choose between Channel mode (broadcast to a group) or DM mode (direct to a specific node). Set hop limit and ACK preference. Bei DMs: Die Nachricht wird über MQTT gesendet <em>und</em> gleichzeitig als empfangene Nachricht (mit Präfix <code className="text-xs bg-secondary px-1 rounded font-mono">DUPLIKAT:</code>) direkt in den Empfang des Empfängers geschrieben, sofern dieser eine konfigurierte Node-ID hat.</p>
+            <p><span className="text-primary font-medium">Send Message</span> — Choose between Channel mode (broadcast to a group) or DM mode (direct to a specific node). Set hop limit and ACK preference. Bei DMs: Die Nachricht wird über MQTT gesendet <em>und</em> gleichzeitig als empfangene Nachricht (mit Präfix <code className="text-xs bg-secondary px-1 rounded font-mono">via Portal gespiegelt:</code>) direkt in den Empfang des Empfängers geschrieben, sofern dieser eine konfigurierte Node-ID hat.</p>
             <p><span className="text-primary font-medium">Manual Receive</span> — Actively listen on the broker for a configurable duration. Useful for extended monitoring.</p>
             <p><span className="text-primary font-medium">Message History</span> — Shows all sent and received messages with direction indicators, channel info, SNR/RSSI data, gateway ID, and relative timestamps. Messages can be deleted individually.</p>
             <p><span className="text-primary font-medium">Nodes page</span> — Fetches the full node list from the broker and displays hardware, battery, signal quality, GPS coordinates, and uptime in a sortable table.</p>

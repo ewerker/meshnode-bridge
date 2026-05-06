@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
       if (mode !== 'dm' || !toNode || !recipientGatewayId) return;
       await base44.asServiceRole.entities.MeshMessage.create({
         direction: 'inbound',
-        text: `DUPLIKAT: ${text}`,
+        text: `via Portal gespiegelt: ${text}`,
         channel: String(channelNum),
         channel_name: '',
         from_node: gatewayNodeId,
@@ -74,7 +74,8 @@ Deno.serve(async (req) => {
         gateway_node_id: recipientGatewayId,
         mqtt_topic: `${prefix}/rx/${recipientGatewayId}/direct/${gatewayNodeId}`,
         status: 'received',
-        raw_payload: JSON.stringify({ ...payload, text: `DUPLIKAT: ${text}` }),
+        raw_payload: JSON.stringify({ ...payload, text: `via Portal gespiegelt: ${text}` }),
+        meshtastic_timestamp: Math.floor(Date.now() / 1000),
       });
       console.log('[PUB-V3] duplicate inbound created for recipient:', recipientGatewayId);
     };
