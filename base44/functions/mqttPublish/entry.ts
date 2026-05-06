@@ -13,9 +13,17 @@ Deno.serve(async (req) => {
     // neither when the recipient is a dummy nor when the sender's own node is a dummy.
     const senderIsDummy = (user.node_id || '').startsWith('?');
     const recipientIsDummy = mode === 'dm' && (toNode || '').startsWith('?');
+    const recipientUsers = mode === 'dm' && toNode
+      ? await base44.asServiceRole.entities.User.filter({ node_id: toNode })
+      : [];
+    const recipientHasPortal = recipientUsers.length > 0;
     const forcePortalOnly = senderIsDummy || recipientIsDummy;
     const sendViaMqtt = forcePortalOnly ? false : (user.send_via_mqtt !== false); // default true
     const sendViaPortal = user.send_via_portal !== false; // default true
+
+    if (senderIsDummy && mode === 'dm' && toNode && !recipientHasPortal) {
+      return Response.json({ error: 'Portal-only Accounts können nur an Portal-Nutzer senden.' }, { status: 400 });
+    }
 
     if (!text) {
       return Response.json({ error: 'text is required' }, { status: 400 });
@@ -45,7 +53,6 @@ Deno.serve(async (req) => {
     if (mode === 'dm' && toNode) {
       topic = `${prefix}/send/${gatewayNodeId}/direct/${toNode}`;
       // Find recipient user to get their gateway node_id for the duplicate
-      const recipientUsers = await base44.asServiceRole.entities.User.filter({ node_id: toNode });
       if (recipientUsers.length > 0 && recipientUsers[0].node_id) {
         recipientGatewayId = recipientUsers[0].node_id;
       }

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, X, Cpu, Star, User } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-export default function NodePicker({ value, onChange, onFavoriteToggle }) {
+export default function NodePicker({ value, onChange, onFavoriteToggle, portalOnly = false }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [nodes, setNodes] = useState([]);
   const [ownGatewayId, setOwnGatewayId] = useState(null);
@@ -24,7 +24,15 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
       const meshNodes = res.data?.nodes || [];
       setPortalNodeIds(new Set(portalUsers.map(u => u.node_id)));
 
-      if (admin) {
+      if (portalOnly) {
+        setNodes(portalUsers.map(u => ({
+          id: u.id,
+          node_id: u.node_id,
+          long_name: u.long_name || u.node_id,
+          short_name: '',
+          _isPortalUser: true,
+        })));
+      } else if (admin) {
         // Admins see all mesh nodes (own filter to keep favorites editable)
         if (!me?.node_id) { setNodes([]); return; }
         const data = await base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 500);
@@ -109,9 +117,9 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
           type="button"
           onClick={() => setOpen(true)}
           className="w-full flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-muted-foreground hover:border-primary transition-colors text-left"
-        >
+          >
           <Search className="w-4 h-4" />
-          {isAdmin ? 'Search node…' : 'Portal-Nutzer auswählen…'}
+          {portalOnly ? 'Portal-Nutzer auswählen…' : isAdmin ? 'Search node…' : 'Portal-Nutzer auswählen…'}
         </button>
       )}
 
