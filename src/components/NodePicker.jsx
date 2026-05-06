@@ -24,22 +24,25 @@ export default function NodePicker({ value, onChange, onFavoriteToggle, portalOn
       const meshNodes = res.data?.nodes || [];
       setPortalNodeIds(new Set(portalUsers.map(u => u.node_id)));
 
+      const ownNodeId = me?.node_id || '';
+      const withoutOwnNode = (items) => items.filter(item => item.node_id && item.node_id !== ownNodeId);
+
       if (portalOnly) {
-        setNodes(portalUsers.map(u => ({
+        setNodes(withoutOwnNode(portalUsers.map(u => ({
           id: u.id,
           node_id: u.node_id,
           long_name: u.long_name || u.node_id,
           short_name: '',
           _isPortalUser: true,
-        })));
+        }))));
       } else if (admin) {
         // Admins see all mesh nodes (own filter to keep favorites editable)
         if (!me?.node_id) { setNodes([]); return; }
         const data = await base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 500);
-        setNodes(data);
+        setNodes(withoutOwnNode(data));
       } else {
         // Regular users get the same node list as the Nodes page (via service role)
-        setNodes(meshNodes);
+        setNodes(withoutOwnNode(meshNodes));
       }
     })();
   }, []);
