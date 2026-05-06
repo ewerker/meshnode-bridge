@@ -39,7 +39,7 @@ export default function Dashboard() {
   const [isPolling, setIsPolling] = useState(false);
 
   const autoPoll = useCallback(async () => {
-    if (!currentUser?.node_id || pollingRef.current) return;
+    if (!currentUser?.node_id || currentUser.node_id.startsWith('?') || pollingRef.current) return;
     pollingRef.current = true;
     setIsPolling(true);
     const releaseUi = setTimeout(() => {
@@ -250,7 +250,7 @@ export default function Dashboard() {
             >
               <RefreshCw className="w-4 h-4 text-muted-foreground" />
             </button>
-            <AutoPollStatus currentUser={currentUser} />
+            {!(currentUser?.node_id || '').startsWith('?') && <AutoPollStatus currentUser={currentUser} />}
             <ThemeToggle />
           </div>
         </div>
@@ -320,9 +320,11 @@ export default function Dashboard() {
         </CollapsibleSection>
 
         {/* Auto-Poll Log (bottom) */}
-        <CollapsibleSection id="poll_log" icon={Activity} title={`Poll Log (${pollLogCount})`} defaultOpen={false}>
-          <PollLog onCountChange={setPollLogCount} />
-        </CollapsibleSection>
+        {!(currentUser?.node_id || '').startsWith('?') && (
+          <CollapsibleSection id="poll_log" icon={Activity} title={`Poll Log (${pollLogCount})`} defaultOpen={false}>
+            <PollLog onCountChange={setPollLogCount} />
+          </CollapsibleSection>
+        )}
         </>
       </main>
     </div>
