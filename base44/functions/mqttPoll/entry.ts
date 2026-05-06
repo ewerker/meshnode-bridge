@@ -206,15 +206,17 @@ Deno.serve(async (req) => {
       // Content-based dedup: a portal-mirror is always created synchronously when
       // the message is sent, so it always exists before the radio-relayed copy
       // arrives later. We compare ONLY the cleaned text within the same
-      // gateway+channel+target and skip the new (radio) copy if a match exists.
+      // gateway+target (channel only for non-DM) and skip the new (radio) copy if
+      // a match exists. DMs are not channel-scoped, so the channel value is ignored.
       const cleaned = extractOriginalContent(p.text || '', p.from_id || '');
       if (cleaned.cleanText) {
         const since = Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 30;
-        const candidates = await base44.asServiceRole.entities.MeshMessage.filter({
+        const dedupFilter = {
           gateway_node_id: messageGatewayId,
-          channel: channelStr,
           to_node: isDM ? (messageGatewayId || '') : (p.to_id || '^all'),
-        }, '-created_date', 30);
+        };
+        if (!isDM) dedupFilter.channel = channelStr;
+        const candidates = await base44.asServiceRole.entities.MeshMessage.filter(dedupFilter, '-created_date', 30);
         const dupMatch = candidates.find(c => {
           if ((c.meshtastic_timestamp || 0) < since) return false;
           const cc = extractOriginalContent(c.text || '', c.from_node || '');

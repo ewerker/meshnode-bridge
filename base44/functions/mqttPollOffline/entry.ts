@@ -149,16 +149,17 @@ Deno.serve(async (req) => {
 
       // Content-based dedup: keep the variant that contains the original sender
       // (VIA PORTAL with "FROM <name> (?xxxx)"), drop the radio-relayed variant
-      // that lost it.
+      // that lost it. DMs are not channel-scoped, so channel is ignored for them.
       const cleaned = extractOriginalContent(p.text || '', p.from_id || '');
       const newHasOriginalSender = /VIA\s+PORTAL:/i.test(p.text || '') && cleaned.originalSender.startsWith('?');
       if (cleaned.cleanText) {
         const since = Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 30;
-        const candidates = await base44.asServiceRole.entities.MeshMessage.filter({
+        const dedupFilter = {
           gateway_node_id: messageGatewayId,
-          channel: channelStr,
           to_node: isDM ? (messageGatewayId || '') : (p.to_id || '^all'),
-        }, '-created_date', 30);
+        };
+        if (!isDM) dedupFilter.channel = channelStr;
+        const candidates = await base44.asServiceRole.entities.MeshMessage.filter(dedupFilter, '-created_date', 30);
         const dupMatch = candidates.find(c => {
           if ((c.meshtastic_timestamp || 0) < since) return false;
           const cc = extractOriginalContent(c.text || '', c.from_node || '');

@@ -141,39 +141,69 @@ Deno.serve(async (req) => {
     const createDuplicate = async () => {
       if (mode === 'dm') {
         if (!toNode || !recipientGatewayId) return;
-        // Skip mirror if the real MQTT-delivered DM has already been saved for this
-        // recipient within the last 10 minutes (avoids creating a duplicate that would
-        // need to be deduped later).
+        const since = Math.floor(Date.now() / 1000) - 600;
+
+        // If an exact mirror (same VIA PORTAL text) already exists, skip (avoid double mirror).
+        const mirrorText = `VIA PORTAL: ${text}`;
         try {
-          const since = Math.floor(Date.now() / 1000) - 600;
-          const existing = await base44.asServiceRole.entities.MeshMessage.filter({
+          const existingMirror = await base44.asServiceRole.entities.MeshMessage.filter({
+            direction: 'inbound',
+            from_node: gatewayNodeId,
+            to_node: toNode,
+            text: mirrorText,
+          }, '-created_date', 5);
+          if (existingMirror.some(e => (e.meshtastic_timestamp || 0) >= since)) {
+            console.log('[PUB-V3] DM mirror skipped: mirror already exists');
+            return;
+          }
+        } catch (e) {
+          console.log('[PUB-V3] DM pre-mirror check failed:', e.message);
+        }
+
+        // If a radio-relayed copy (without "VIA PORTAL:" prefix) was already saved
+        // by an earlier poll run, replace it with the portal mirror so the recipient
+        // sees a single, properly attributed message — same dedup model as channel mode.
+        let dedupRadioCount = 0;
+        try {
+          const existingRadio = await base44.asServiceRole.entities.MeshMessage.filter({
             direction: 'inbound',
             from_node: gatewayNodeId,
             to_node: toNode,
             text,
           }, '-created_date', 5);
-          if (existing.some(e => (e.meshtastic_timestamp || 0) >= since)) {
-            console.log('[PUB-V3] mirror skipped: real MQTT inbound already exists');
-            return;
+          for (const r of existingRadio) {
+            if ((r.meshtastic_timestamp || 0) >= since) {
+              try { await base44.asServiceRole.entities.MeshMessage.delete(r.id); dedupRadioCount++; } catch (_) { /* ignore */ }
+            }
           }
         } catch (e) {
-          console.log('[PUB-V3] pre-mirror check failed:', e.message);
+          console.log('[PUB-V3] DM radio dedup check failed:', e.message);
         }
+
+        const mirrorRaw = { ...payload, text: mirrorText, mirror_of_client_ref: client_ref || null };
+        if (dedupRadioCount > 0) {
+          mirrorRaw.dedup_radio_count = dedupRadioCount;
+          mirrorRaw.dedup_last_at = Math.floor(Date.now() / 1000);
+        }
+
         await base44.asServiceRole.entities.MeshMessage.create({
           direction: 'inbound',
-          text: `VIA PORTAL: ${text}`,
-          channel: String(channelNum),
+          text: mirrorText,
+          // DMs have no named channel — store empty string so the content-dedup
+          // search in mqttPoll{,Auto,Offline} (which reads channel from the radio
+          // payload, typically "" or "0") matches consistently.
+          channel: '',
           channel_name: '',
           from_node: gatewayNodeId,
           to_node: toNode,
           gateway_node_id: recipientGatewayId,
           mqtt_topic: `${prefix}/rx/${recipientGatewayId}/direct/${gatewayNodeId}`,
           status: 'received',
-          raw_payload: JSON.stringify({ ...payload, text: `VIA PORTAL: ${text}`, mirror_of_client_ref: client_ref || null }),
+          raw_payload: JSON.stringify(mirrorRaw),
           meshtastic_timestamp: Math.floor(Date.now() / 1000),
           client_ref: client_ref || undefined,
         });
-        console.log('[PUB-V3] duplicate inbound created for recipient:', recipientGatewayId, 'client_ref:', client_ref);
+        console.log('[PUB-V3] DM mirror created for recipient:', recipientGatewayId, '· dedup_radio_count:', dedupRadioCount);
         return;
       }
 
