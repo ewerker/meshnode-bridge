@@ -20,8 +20,17 @@ export default function PollLog({ onCountChange }) {
 
   useEffect(() => {
     load();
-    const unsub = base44.entities.PollStatus.subscribe(() => load());
-    return unsub;
+    let timer = null;
+    const unsub = base44.entities.PollStatus.subscribe(() => {
+      // Debounce subscription updates so bursts of poll-status changes
+      // collapse into a single list reload (avoids rate-limit errors).
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { timer = null; load(); }, 1500);
+    });
+    return () => {
+      if (timer) clearTimeout(timer);
+      unsub?.();
+    };
   }, []);
 
   useEffect(() => { setPage(1); }, [pageSize]);
