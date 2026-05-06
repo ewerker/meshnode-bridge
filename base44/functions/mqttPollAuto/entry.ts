@@ -173,11 +173,12 @@ Deno.serve(async (req) => {
       }
 
       // Content-based dedup: keep the earlier portal-mirror, skip later radio
-      // forwards that carry the same effective payload (same original sender +
-      // same clean text) within a 10-minute window.
+      // forwards with the same effective payload (same original sender + same
+      // clean text). Window is generous (30 days) because !-nodes can be
+      // offline for days and forward late.
       const cleaned = extractOriginalContent(p.text || '', p.from_id || '');
       if (cleaned.cleanText) {
-        const since = Math.floor(Date.now() / 1000) - 600;
+        const since = Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 30;
         const candidates = await base44.asServiceRole.entities.MeshMessage.filter({
           gateway_node_id: messageGatewayId,
           channel: channelStr,
