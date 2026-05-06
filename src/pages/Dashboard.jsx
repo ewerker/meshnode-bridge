@@ -137,8 +137,12 @@ export default function Dashboard() {
       setPollLogCount(data.length);
     };
     loadCount();
-    const unsub = base44.entities.PollStatus.subscribe(() => loadCount());
-    return unsub;
+    let debounceTimer = null;
+    const unsub = base44.entities.PollStatus.subscribe(() => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(loadCount, 2000);
+    });
+    return () => { unsub(); clearTimeout(debounceTimer); };
   }, []);
 
   const loadUser = async () => {
