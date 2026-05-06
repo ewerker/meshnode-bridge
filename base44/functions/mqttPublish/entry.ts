@@ -106,6 +106,29 @@ Deno.serve(async (req) => {
     console.log('[PUB-V3] text bytes (last 4):', lastChars);
     console.log('[PUB-V3] payloadStr:', payloadStr);
 
+    const publishPortalGroupViaGateways = async () => {
+      if (!senderIsDummy || mode !== 'channel' || !channelName || channelName.toLowerCase() === 'longfast') return;
+      const users = await base44.asServiceRole.entities.User.list();
+      const gateways = users.filter(u => {
+        if (!u.node_id || !u.node_id.startsWith('!')) return false;
+        return (u.channels || []).some(c => c.number === channelNum && (c.name || '').trim() === channelName);
+      });
+      const forwardedText = `FROM ${user.full_name || user.email || 'Portal User'} (${gatewayNodeId}) VIA PORTAL: ${text}`;
+      for (const gateway of gateways) {
+        const gatewayRegion = gateway.region || regionStr;
+        const gatewayPrefix = gateway.topic_prefix || `msh/${gatewayRegion}/proxy`;
+        const gatewayTopic = `${gatewayPrefix}/send/${gateway.node_id}/group/${channelNum}`;
+        const gatewayPayload = JSON.stringify({
+          text: forwardedText,
+          channel: channelNum,
+          hop_limit: hop_limit !== undefined ? hop_limit : 3,
+          want_ack: false,
+        });
+        await publishOnly(brokerUrl, username, password, gatewayTopic, gatewayPayload);
+      }
+      console.log('[PUB-V3] portal group forwarded via MQTT gateways:', gateways.length, 'channel:', channelNum, channelName);
+    };
+
     // Helper: create the duplicate inbound message for the recipient.
     // We tag the mirror with the same client_ref as the outbound so we can later
     // dedupe it once the real MQTT-delivered copy arrives via mqttPoll.
@@ -185,6 +208,7 @@ Deno.serve(async (req) => {
 
     if (!wantAckFlag) {
       if (sendViaMqtt) await publishOnly(brokerUrl, username, password, topic, payloadStr);
+      await publishPortalGroupViaGateways();
       await base44.entities.MeshMessage.create({
         direction: 'outbound',
         text,
@@ -214,6 +238,7 @@ Deno.serve(async (req) => {
         raw_payload: payloadStr,
         client_ref,
       });
+      await publishPortalGroupViaGateways();
       if (sendViaPortal) await createDuplicate();
       return Response.json({ success: true, topic, client_ref, final_status: 'sent' });
     }
