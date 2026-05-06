@@ -27,9 +27,9 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
         const data = await base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 500);
         setNodes(data);
       } else {
-        // Regular users only see portal users as recipients
+        // Regular users see all other portal users (with a node_id) as recipients
         const portalNodes = portalUsers
-          .filter(u => u.node_id && u.email !== me?.email)
+          .filter(u => u.node_id && u.id !== me?.id)
           .map(u => ({
             id: u.id,
             node_id: u.node_id,
