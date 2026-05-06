@@ -189,11 +189,10 @@ export default function Nodes() {
             <button
               onClick={() => { setEditingNode(null); setManualDialogOpen(true); }}
               disabled={!user?.node_id}
-              className="flex items-center gap-2 px-3 py-2 bg-secondary hover:bg-secondary/80 disabled:opacity-50 text-foreground rounded-lg text-sm font-medium transition-colors"
+              className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 disabled:opacity-50 text-foreground transition-colors"
               title="Manuelle Node anlegen"
             >
               <UserPlus className="w-4 h-4" />
-              <span className="hidden sm:inline">Add manually</span>
             </button>
             <button
               onClick={handlePollNodes}
