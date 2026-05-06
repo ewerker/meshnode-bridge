@@ -159,30 +159,19 @@ Deno.serve(async (req) => {
           channel: channelStr,
           to_node: isDM ? (messageGatewayId || '') : (p.to_id || '^all'),
         }, '-created_date', 30);
-        const matches = candidates.filter(c => {
+        const dupMatch = candidates.find(c => {
           if ((c.meshtastic_timestamp || 0) < since) return false;
           const cc = extractOriginalContent(c.text || '', c.from_node || '');
           return cc.cleanText === cleaned.cleanText;
         });
-        if (matches.length > 0) {
-          if (newHasOriginalSender) {
-            const losers = matches.filter(c => {
-              const cc = extractOriginalContent(c.text || '', c.from_node || '');
-              return !(/VIA\s+PORTAL:/i.test(c.text || '') && cc.originalSender.startsWith('?'));
-            });
-            if (losers.length === matches.length) {
-              for (const l of losers) {
-                try { await base44.asServiceRole.entities.MeshMessage.delete(l.id); } catch (_) { /* ignore */ }
-              }
-              console.log('[MQTT-OFFLINE] content-dedup replace: kept new (with original sender), dropped', losers.length, 'older copies');
-            } else {
-              console.log('[MQTT-OFFLINE] content-dedup skip: another copy with original sender already exists');
-              continue;
-            }
-          } else {
-            console.log('[MQTT-OFFLINE] content-dedup skip:', cleaned.cleanText.substring(0, 40));
-            continue;
-          }
+        if (dupMatch) {
+          try {
+            const prevRaw = dupMatch.raw_payload ? JSON.parse(dupMatch.raw_payload) : {};
+            const newRaw = { ...prevRaw, dedup_radio_count: (prevRaw.dedup_radio_count || 0) + 1, dedup_last_at: Math.floor(Date.now() / 1000) };
+            await base44.asServiceRole.entities.MeshMessage.update(dupMatch.id, { raw_payload: JSON.stringify(newRaw) });
+          } catch (_) { /* ignore */ }
+          console.log('[MQTT-OFFLINE] content-dedup skip:', cleaned.cleanText.substring(0, 40));
+          continue;
         }
       }
 
