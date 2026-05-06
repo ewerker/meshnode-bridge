@@ -183,6 +183,7 @@ Deno.serve(async (req) => {
           if (!u.node_id || u.node_id === gatewayNodeId) return false;
           return (u.channels || []).some(c => c.number === channelNum && (c.name || '').trim() === channelName);
         });
+        console.log('[PUB-V3] mirror lookup channel:', channelNum, 'name:', channelName, '· users total:', users.length, '· matching recipients:', recipients.length, '· recipient ids:', recipients.map(r => r.node_id).join(','));
         // For ?-portal senders the effectiveText already starts with
         // "FROM <name> (?xxxx) VIA PORTAL:" so we mirror it as-is. For !-gateway
         // senders we prepend "VIA PORTAL:" as before.
