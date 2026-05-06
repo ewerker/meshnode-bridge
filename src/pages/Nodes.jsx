@@ -64,79 +64,15 @@ export default function Nodes() {
     setLogLines([]);
     try {
       setLogLines(['Warte auf MQTT Daten...']);
-      const res = await base44.functions.invoke('mqttNodesPoll', { fromNode, pollType: 'manual_nodes_poll' });
+      // Use 'daily_nodes_poll' so the backend persists nodes server-side via service role
+      // (avoids RLS "Permission denied" for non-admin users updating MeshNode records).
+      const res = await base44.functions.invoke('mqttNodesPoll', { fromNode, pollType: 'daily_nodes_poll' });
       const d = res.data;
-      
-      if (d.success && d.nodes) {
-        setLogLines([`${d.nodes.length} Nodes empfangen. Starte Datenbank-Update...`]);
-        setPollProgress({ phase: 'updating', current: 0, total: d.nodes.length });
-        
-        const existingNodes = await base44.entities.MeshNode.filter({ gateway_node_id: fromNode }, '-last_heard', 1000);
-        const existingMap = {};
-        for (const n of existingNodes) { existingMap[n.node_id] = n; }
-        
-        const toCreate = [];
-        const toUpdate = [];
-        for (const node of d.nodes) {
-          const record = {
-            node_id: node.node_id, node_num: node.node_num, gateway_node_id: fromNode, long_name: node.long_name || '',
-            short_name: node.short_name || '', hw_model: node.hw_model || '', is_gateway: node.is_gateway || false,
-            last_heard: node.last_heard || null, snr: node.snr || null, battery_level: node.battery_level || null,
-            voltage: node.raw?.deviceMetrics?.voltage || null, latitude: node.latitude || null,
-            longitude: node.longitude || null, altitude: node.altitude || null,
-            channel_utilization: node.raw?.deviceMetrics?.channelUtilization || null,
-            air_util_tx: node.raw?.deviceMetrics?.airUtilTx || null,
-            uptime_seconds: node.raw?.deviceMetrics?.uptimeSeconds || null,
-          };
-          const existing = existingMap[node.node_id];
-          if (existing) { record.is_favorite = existing.is_favorite; toUpdate.push({ id: existing.id, record }); }
-          else { toCreate.push(record); }
-        }
-
-        let created = 0;
-        for (let i = 0; i < toCreate.length; i += 25) {
-          const batch = toCreate.slice(i, i + 25);
-          await base44.entities.MeshNode.bulkCreate(batch);
-          created += batch.length;
-        }
-
-        let updated = 0;
-        let errors = 0;
-        const BATCH_SIZE = 3;
-        const delay = ms => new Promise(r => setTimeout(r, ms));
-        
-        for (let i = 0; i < toUpdate.length; i += BATCH_SIZE) {
-          setPollProgress({ phase: 'updating', current: i, total: toUpdate.length });
-          const batch = toUpdate.slice(i, i + BATCH_SIZE);
-          const results = await Promise.allSettled(batch.map(item => base44.entities.MeshNode.update(item.id, item.record)));
-          results.forEach((r, idx) => { 
-            if (r.status === 'fulfilled') {
-              updated++; 
-            } else {
-              errors++; 
-              const errMsg = r.reason?.message || String(r.reason);
-              setLogLines(prev => [`Fehler ${batch[idx].record.node_id}: ${errMsg}`, ...prev].slice(0, 50));
-            }
-          });
-          await delay(2000); // 2.0 seconds delay
-        }
-        
-        setPollProgress({ phase: 'done', current: toUpdate.length, total: toUpdate.length });
-        await base44.entities.PollStatus.create({
-          key: 'manual_nodes_poll', last_run_at: Math.floor(Date.now() / 1000), last_polled_at: Math.floor(Date.now() / 1000),
-          last_received: d.nodes.length, last_saved: created + updated, skipped: false, skip_reason: errors > 0 ? `${errors} Fehler` : ''
-        });
-
-        const errText = errors > 0 ? `, ${errors} errors` : '';
-        setLogLines([`Fertig: ${d.nodes.length} Nodes verarbeitet.`]);
-        setResult({ type: 'success', msg: `${d.nodes.length} nodes read (${created} new, ${updated} updated${errText})` });
-        fetchNodes();
-      } else {
-        setLogLines(d.log || []);
-        const errText = d.errors ? `, ${d.errors} errors` : '';
-        setResult({ type: 'success', msg: `${d.total} nodes read (${d.created} new, ${d.updated} updated${errText})` });
-        fetchNodes();
-      }
+      setPollProgress({ phase: 'done', current: d.total || 0, total: d.total || 0 });
+      setLogLines(d.log || [`${d.total ?? 0} Nodes verarbeitet.`]);
+      const errText = d.errors ? `, ${d.errors} errors` : '';
+      setResult({ type: 'success', msg: `${d.total ?? 0} nodes read (${d.created ?? 0} new, ${d.updated ?? 0} updated${errText})` });
+      fetchNodes();
     } catch (err) {
       setResult({ type: 'error', msg: err.message || 'Error fetching nodes' });
     } finally {
