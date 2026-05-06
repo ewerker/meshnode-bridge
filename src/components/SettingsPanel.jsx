@@ -15,6 +15,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
   const [topicPrefix, setTopicPrefix] = useState('');
   const [sendViaMqtt, setSendViaMqtt] = useState(true);
   const [sendViaPortal, setSendViaPortal] = useState(true);
+  const [emailDmNotifications, setEmailDmNotifications] = useState('never');
+  const [emailGroupNotifications, setEmailGroupNotifications] = useState('never');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [knownNodes, setKnownNodes] = useState([]);
@@ -67,6 +69,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
     setTopicPrefix(me.topic_prefix || '');
     setSendViaMqtt(me.send_via_mqtt !== false); // default true
     setSendViaPortal(me.send_via_portal !== false); // default true
+    setEmailDmNotifications(me.email_dm_notifications || 'never');
+    setEmailGroupNotifications(me.email_group_notifications || 'never');
     // Merge saved channels with defaults
     const saved = me.channels || [];
     const merged = DEFAULT_CHANNELS.map(def => {
@@ -94,6 +98,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
       topic_prefix: topicPrefix.trim(),
       send_via_mqtt: ownIsDummyAtSave ? false : sendViaMqtt,
       send_via_portal: ownIsDummyAtSave ? true : sendViaPortal,
+      email_dm_notifications: emailDmNotifications,
+      email_group_notifications: emailGroupNotifications,
     };
     if (isAdmin) updatePayload.node_id = newNodeId;
     await base44.auth.updateMe(updatePayload);
@@ -316,6 +322,42 @@ export default function SettingsPanel({ onSettingsChanged }) {
             <p className="text-xs text-destructive">Mindestens eine Option muss aktiviert sein.</p>
           )}
         </div>
+      </div>
+
+      {/* E-Mail Benachrichtigungen */}
+      <div>
+        <label className="block text-xs font-medium text-primary mb-2 uppercase tracking-wider">
+          Nachrichten per E-Mail empfangen
+        </label>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-muted-foreground mb-1 uppercase tracking-wider">Direktnachrichten</label>
+            <select
+              value={emailDmNotifications}
+              onChange={(e) => setEmailDmNotifications(e.target.value)}
+              className={inputClass()}
+            >
+              <option value="never">Nie</option>
+              <option value="always">Immer</option>
+              <option value="when_offline">Wenn abgemeldet</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-muted-foreground mb-1 uppercase tracking-wider">Gruppennachrichten</label>
+            <select
+              value={emailGroupNotifications}
+              onChange={(e) => setEmailGroupNotifications(e.target.value)}
+              className={inputClass()}
+            >
+              <option value="never">Nie</option>
+              <option value="always">Immer</option>
+              <option value="when_offline">Wenn abgemeldet</option>
+            </select>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Vorbereitung: Der eigentliche E-Mail-Versand wird später ergänzt.
+        </p>
       </div>
 
       {/* Speichern */}

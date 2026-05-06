@@ -56,6 +56,26 @@
       "type": "boolean",
       "description": "Nachricht direkt im Portal spiegeln, wenn Empf\u00e4nger bekannt",
       "default": true
+    },
+    "email_dm_notifications": {
+      "type": "string",
+      "enum": [
+        "never",
+        "always",
+        "when_offline"
+      ],
+      "default": "never",
+      "description": "E-Mail-Benachrichtigung f\u00fcr Direktnachrichten"
+    },
+    "email_group_notifications": {
+      "type": "string",
+      "enum": [
+        "never",
+        "always",
+        "when_offline"
+      ],
+      "default": "never",
+      "description": "E-Mail-Benachrichtigung f\u00fcr Gruppennachrichten"
     }
   },
   "required": [
