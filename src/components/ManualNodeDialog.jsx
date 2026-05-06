@@ -14,6 +14,7 @@ export default function ManualNodeDialog({ open, onClose, onSaved, node }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
+  const [existingIds, setExistingIds] = useState(new Set());
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef(null);
 
@@ -29,12 +30,19 @@ export default function ManualNodeDialog({ open, onClose, onSaved, node }) {
     }
   }, [open, node]);
 
-  // Load suggestions (portal users + known mesh nodes) once when dialog opens in create mode
+  // Load suggestions and existing node IDs once when dialog opens in create mode
   useEffect(() => {
     if (!open || isEdit) return;
     (async () => {
       try {
-        const res = await base44.functions.invoke('getPortalUsers', {});
+        const me = await base44.auth.me();
+        const [res, ownNodes] = await Promise.all([
+          base44.functions.invoke('getPortalUsers', {}),
+          me?.node_id ? base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 1000) : [],
+        ]);
+        const usedIds = new Set((ownNodes || []).map(n => n.node_id).filter(Boolean));
+        setExistingIds(usedIds);
+
         const users = (res.data?.users || []).map(u => ({
           node_id: u.node_id,
           long_name: u.long_name || '',
@@ -47,10 +55,10 @@ export default function ManualNodeDialog({ open, onClose, onSaved, node }) {
           short_name: n.short_name || '',
           source: 'mesh',
         }));
-        // Dedup by node_id, portal users win
+        // Dedup by node_id, portal users win; exclude IDs already in this user's list.
         const map = new Map();
-        nodes.forEach(n => map.set(n.node_id, n));
-        users.forEach(u => map.set(u.node_id, u));
+        nodes.forEach(n => { if (!usedIds.has(n.node_id)) map.set(n.node_id, n); });
+        users.forEach(u => { if (!usedIds.has(u.node_id)) map.set(u.node_id, u); });
         setSuggestions(Array.from(map.values()));
       } catch (_) { /* ignore */ }
     })();
@@ -74,13 +82,14 @@ export default function ManualNodeDialog({ open, onClose, onSaved, node }) {
         onClose?.();
       }
     } catch (err) {
-      setError(err.message || 'Fehler beim Speichern');
+      setError(err.response?.data?.error || err.message || 'Fehler beim Speichern');
     } finally {
       setSaving(false);
     }
   };
 
   const validId = isEdit || /^[!?][0-9a-fA-F]+$/.test(nodeId.trim());
+  const isDuplicate = !isEdit && existingIds.has(nodeId.trim());
   const trimmed = nodeId.trim().toLowerCase();
   const filteredSuggestions = trimmed && !isEdit
     ? suggestions.filter(s =>
@@ -162,7 +171,10 @@ export default function ManualNodeDialog({ open, onClose, onSaved, node }) {
           {!isEdit && nodeId && !validId && (
             <p className="text-xs text-destructive mt-1">Format: ! oder ? gefolgt von Hex-Ziffern</p>
           )}
-          {!isEdit && validId && nodeId.trim().startsWith('?') && (
+          {!isEdit && isDuplicate && (
+            <p className="text-xs text-destructive mt-1">Diese Node ist bereits in deiner Liste vorhanden.</p>
+          )}
+          {!isEdit && validId && !isDuplicate && nodeId.trim().startsWith('?') && (
             <p className="text-xs text-emerald-400 mt-1">Dummy-Node — wird gegen registrierte Portal-Nutzer geprüft.</p>
           )}
           {isEdit && (
@@ -213,7 +225,7 @@ export default function ManualNodeDialog({ open, onClose, onSaved, node }) {
           </button>
           <button
             type="submit"
-            disabled={saving || (!isEdit && !validId)}
+            disabled={saving || (!isEdit && (!validId || isDuplicate))}
             className="px-4 py-2 rounded-lg text-sm bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-medium transition-colors"
           >
             {saving ? 'Speichern…' : isEdit ? 'Speichern' : 'Anlegen'}
