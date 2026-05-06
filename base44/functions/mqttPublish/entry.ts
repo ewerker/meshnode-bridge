@@ -28,13 +28,20 @@ Deno.serve(async (req) => {
     const channelNum = typeof channel === 'string' ? parseInt(channel) : (channel !== undefined ? channel : 0);
     const regionStr = user.region || 'EU_868';
     const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
-
     const gatewayNodeId = user.node_id || '!gateway';
+
     console.log('[PUB-V3] gatewayNodeId:', gatewayNodeId, '| mode:', mode, '| toNode:', toNode);
 
     let topic;
+    let recipientGatewayId = null;
+
     if (mode === 'dm' && toNode) {
       topic = `${prefix}/send/${gatewayNodeId}/direct/${toNode}`;
+      // Find recipient user to get their gateway node_id for the duplicate
+      const recipientUsers = await base44.asServiceRole.entities.User.filter({ node_id: toNode });
+      if (recipientUsers.length > 0 && recipientUsers[0].node_id) {
+        recipientGatewayId = recipientUsers[0].node_id;
+      }
     } else {
       topic = `${prefix}/send/${gatewayNodeId}/group/${channelNum}`;
     }
@@ -54,6 +61,24 @@ Deno.serve(async (req) => {
     console.log('[PUB-V3] text bytes (last 4):', lastChars);
     console.log('[PUB-V3] payloadStr:', payloadStr);
 
+    // Helper: create the duplicate inbound message for the recipient
+    const createDuplicate = async () => {
+      if (mode !== 'dm' || !toNode || !recipientGatewayId) return;
+      await base44.asServiceRole.entities.MeshMessage.create({
+        direction: 'inbound',
+        text: `DUPLIKAT: ${text}`,
+        channel: String(channelNum),
+        channel_name: '',
+        from_node: gatewayNodeId,
+        to_node: toNode,
+        gateway_node_id: recipientGatewayId,
+        mqtt_topic: `${prefix}/rx/${recipientGatewayId}/direct/${gatewayNodeId}`,
+        status: 'received',
+        raw_payload: JSON.stringify({ ...payload, text: `DUPLIKAT: ${text}` }),
+      });
+      console.log('[PUB-V3] duplicate inbound created for recipient:', recipientGatewayId);
+    };
+
     if (!wantAckFlag) {
       await publishOnly(brokerUrl, username, password, topic, payloadStr);
       await base44.entities.MeshMessage.create({
@@ -67,6 +92,7 @@ Deno.serve(async (req) => {
         status: 'sent',
         raw_payload: payloadStr,
       });
+      await createDuplicate();
       return Response.json({ success: true, topic, client_ref: null });
     }
 
@@ -172,6 +198,8 @@ Deno.serve(async (req) => {
       raw_payload: payloadStr,
       client_ref,
     });
+
+    await createDuplicate();
 
     return Response.json({
       success: true,
