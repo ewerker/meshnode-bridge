@@ -81,7 +81,11 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGa
   const [sortKey, setSortKey] = useState('last_heard');
   const [sortDir, setSortDir] = useState('desc');
   const [search, setSearch] = useState('');
-  const columns = showGatewayOwner ? COLUMNS : COLUMNS.filter(col => col.key !== 'gateway_node_id');
+  const columns = COLUMNS.filter(col => {
+    if (!showGatewayOwner && col.key === 'gateway_node_id') return false;
+    if (showGatewayOwner && col.key === '_fav') return false;
+    return true;
+  });
 
   const isAdmin = currentUser?.role === 'admin';
   const canEditDelete = (node) => node.is_manual && (
@@ -135,12 +139,15 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGa
       )
     : nodes;
 
-  const sorted = [...filtered].sort((a, b) => compareNodes(a, b, sortKey, sortDir)).sort((a, b) => {
-    // Sort favorites to top
-    if (a.is_favorite && !b.is_favorite) return -1;
-    if (!a.is_favorite && b.is_favorite) return 1;
-    return 0;
-  });
+  const sorted = [...filtered].sort((a, b) => compareNodes(a, b, sortKey, sortDir));
+
+  if (!showGatewayOwner) {
+    sorted.sort((a, b) => {
+      if (a.is_favorite && !b.is_favorite) return -1;
+      if (!a.is_favorite && b.is_favorite) return 1;
+      return 0;
+    });
+  }
 
   return (
     <div>
@@ -197,15 +204,17 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGa
         <tbody>
           {sorted.map((node) => (
             <tr key={node.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
-              <td className="py-2.5 px-3 w-8">
-                <button
-                  onClick={(e) => handleToggleFav(e, node)}
-                  className={`transition-colors ${node.is_favorite ? 'text-yellow-400' : 'text-muted-foreground/30 hover:text-yellow-400'}`}
-                  title={node.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
-                >
-                  <Star className={`w-3.5 h-3.5 ${node.is_favorite ? 'fill-yellow-400' : ''}`} />
-                </button>
-              </td>
+              {!showGatewayOwner && (
+                <td className="py-2.5 px-3 w-8">
+                  <button
+                    onClick={(e) => handleToggleFav(e, node)}
+                    className={`transition-colors ${node.is_favorite ? 'text-yellow-400' : 'text-muted-foreground/30 hover:text-yellow-400'}`}
+                    title={node.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    <Star className={`w-3.5 h-3.5 ${node.is_favorite ? 'fill-yellow-400' : ''}`} />
+                  </button>
+                </td>
+              )}
               <td className="py-2.5 px-3">
                 <div className="flex items-center gap-2">
                   {node.is_gateway && <Radio className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
