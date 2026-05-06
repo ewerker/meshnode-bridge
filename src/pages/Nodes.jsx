@@ -281,6 +281,7 @@ export default function Nodes() {
             nodes={nodes}
             onFavoriteToggle={fetchNodes}
             currentUser={user}
+            showGatewayOwner={nodeScope === 'all'}
             onEditManual={(n) => { setEditingNode(n); setManualDialogOpen(true); }}
             onDeletedManual={fetchNodes}
           />

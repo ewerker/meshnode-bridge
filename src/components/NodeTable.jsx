@@ -28,6 +28,7 @@ function BatteryIcon({ level }) {
 const COLUMNS = [
   { key: '_fav', label: '★', sortable: false },
   { key: 'long_name', label: 'Node' },
+  { key: 'gateway_node_id', label: 'Owner / Gateway' },
   { key: 'short_name', label: 'Short Name' },
   { key: 'hw_model', label: 'Hardware' },
   { key: 'battery_level', label: 'Battery' },
@@ -76,10 +77,11 @@ function compareNodes(a, b, key, dir) {
   return 0;
 }
 
-export default function NodeTable({ nodes, onFavoriteToggle, currentUser, onEditManual, onDeletedManual }) {
+export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGatewayOwner = false, onEditManual, onDeletedManual }) {
   const [sortKey, setSortKey] = useState('last_heard');
   const [sortDir, setSortDir] = useState('desc');
   const [search, setSearch] = useState('');
+  const columns = showGatewayOwner ? COLUMNS : COLUMNS.filter(col => col.key !== 'gateway_node_id');
 
   const isAdmin = currentUser?.role === 'admin';
   const canEditDelete = (node) => node.is_manual && (
@@ -178,7 +180,7 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, onEdit
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wider">
-            {COLUMNS.map(col => (
+            {columns.map(col => (
               <th
                 key={col.key}
                 onClick={() => col.sortable !== false && handleSort(col.key)}
@@ -218,6 +220,11 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, onEdit
                   </div>
                 </div>
               </td>
+              {showGatewayOwner && (
+                <td className="py-2.5 px-3 text-muted-foreground text-xs font-mono">
+                  {node.gateway_node_id || '—'}
+                </td>
+              )}
               <td className="py-2.5 px-3 text-muted-foreground text-xs">{node.short_name || '—'}</td>
               <td className="py-2.5 px-3">
                 <span className="text-xs px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground">
