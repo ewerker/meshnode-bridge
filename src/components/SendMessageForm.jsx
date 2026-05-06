@@ -229,7 +229,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
             <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
               <span>
-                <strong>Hinweis:</strong> Nur „Portal spiegeln" ist aktiv (nicht empfohlen). Der Empfänger ist im Portal nicht bekannt — die Nachricht geht verloren, wenn dieser kein Konto hat.
+                <strong>Hinweis:</strong> Nur „Portal spiegeln" ist aktiv, aber der Empfänger hat kein Portal-Konto — die Nachricht würde verloren gehen.
               </span>
             </div>
           )}
@@ -286,7 +286,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           </button>
           <button
             type="submit"
-            disabled={sending || !text.trim() || (mode === 'dm' && (!dmNodeId.trim() || (userSettings?.node_id && dmNodeId.trim() === userSettings.node_id)))}
+            disabled={sending || !text.trim() || (mode === 'dm' && (!dmNodeId.trim() || (userSettings?.node_id && dmNodeId.trim() === userSettings.node_id))) || (mode === 'dm' && userSettings?.send_via_mqtt === false && userSettings?.send_via_portal !== false && dmNodeId && !portalNodeIds.has(dmNodeId))}
             className="flex-1 px-5 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-1"
           >
             {sending ? (
