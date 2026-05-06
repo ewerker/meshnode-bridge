@@ -18,16 +18,20 @@ export default function Nodes() {
   const [logLines, setLogLines] = useState([]);
   const [user, setUser] = useState(null);
   const [view, setView] = useState('table');
+  const [nodeScope, setNodeScope] = useState('own');
   const [ownNode, setOwnNode] = useState(null);
   const [manualDialogOpen, setManualDialogOpen] = useState(false);
   const [editingNode, setEditingNode] = useState(null);
   const fetchNodes = useCallback(async (gw) => {
+    setLoading(true);
     const me = gw || (await base44.auth.me()).node_id;
     if (!me) { setNodes([]); setLoading(false); return; }
-    const data = await base44.entities.MeshNode.filter({ gateway_node_id: me }, '-last_heard', 500);
+    const data = nodeScope === 'all'
+      ? await base44.entities.MeshNode.list('-last_heard', 3000)
+      : await base44.entities.MeshNode.filter({ gateway_node_id: me }, '-last_heard', 500);
     setNodes(data);
     setLoading(false);
-  }, []);
+  }, [nodeScope]);
 
   useEffect(() => {
     fetchNodes();
@@ -148,7 +152,7 @@ export default function Nodes() {
             </div>
             <div>
               <h1 className="font-bold text-foreground tracking-tight">Mesh Nodes</h1>
-              <p className="text-xs text-muted-foreground">{nodes.length} nodes known</p>
+              <p className="text-xs text-muted-foreground">{nodes.length} nodes {nodeScope === 'all' ? 'gesamt' : 'eigene'}</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center justify-center xl:justify-end gap-2 sm:gap-3 w-full xl:w-auto">
@@ -157,6 +161,24 @@ export default function Nodes() {
                 {user.node_id}
               </span>
             )}
+            <div className="flex bg-secondary rounded-lg p-0.5">
+              <button
+                onClick={() => setNodeScope('own')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  nodeScope === 'own' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Eigene
+              </button>
+              <button
+                onClick={() => setNodeScope('all')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  nodeScope === 'all' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Alle
+              </button>
+            </div>
             <div className="flex bg-secondary rounded-lg p-0.5">
               <button
                 onClick={() => setView('table')}
