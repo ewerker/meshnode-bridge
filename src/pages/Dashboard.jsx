@@ -276,10 +276,12 @@ export default function Dashboard() {
           </section>
         )}
         <>
-        {/* Manual Poll */}
-        <CollapsibleSection id="manual_receive" icon={Layers} title="Manual Receive">
-          <PollPanel onReceived={fetchMessages} userSettings={currentUser} />
-        </CollapsibleSection>
+        {/* Manual Poll — hidden for dummy (?) accounts that are portal-only */}
+        {!(currentUser?.node_id || '').startsWith('?') && (
+          <CollapsibleSection id="manual_receive" icon={Layers} title="Manual Receive">
+            <PollPanel onReceived={fetchMessages} userSettings={currentUser} />
+          </CollapsibleSection>
+        )}
 
         {/* Send Form */}
         <CollapsibleSection id="send_message" icon={Radio} title="Send Message" headerColorClass="text-primary">
