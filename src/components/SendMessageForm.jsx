@@ -121,6 +121,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const prefix = userSettings?.topic_prefix || `msh/${region}/proxy`;
   const gatewayNodeId = userSettings?.node_id || '!gateway';
   const topic = `${prefix}/send/${gatewayNodeId}/group/${channel}`;
+  const portalOnlyAccount = (userSettings?.node_id || '').startsWith('?');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -219,6 +220,12 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
               })}
             </select>
           )}
+          {portalOnlyAccount && (
+            <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>Portal-only Accounts können keine Gruppennachrichten per MQTT senden.</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -228,7 +235,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           <label className="block text-xs font-medium text-primary mb-1 uppercase tracking-wider">
             Recipient
           </label>
-          <NodePicker key={recipientResetKey} value={dmNodeId} onChange={setDmNodeId} portalOnly={(userSettings?.node_id || '').startsWith('?')} />
+          <NodePicker key={recipientResetKey} value={dmNodeId} onChange={setDmNodeId} portalOnly={portalOnlyAccount} />
           {/* Portal-only warning */}
           {userSettings?.send_via_mqtt === false && userSettings?.send_via_portal !== false && dmNodeId && !portalNodeIds.has(dmNodeId) && (
             <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
@@ -291,7 +298,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           </button>
           <button
             type="submit"
-            disabled={sending || !text.trim() || (mode === 'dm' && (!dmNodeId.trim() || (userSettings?.node_id && dmNodeId.trim() === userSettings.node_id))) || (mode === 'dm' && userSettings?.send_via_mqtt === false && userSettings?.send_via_portal !== false && dmNodeId && !portalNodeIds.has(dmNodeId)) || (mode === 'dm' && (userSettings?.node_id || '').startsWith('?') && dmNodeId && !portalNodeIds.has(dmNodeId))}
+            disabled={sending || !text.trim() || (mode === 'channel' && portalOnlyAccount) || (mode === 'dm' && (!dmNodeId.trim() || (userSettings?.node_id && dmNodeId.trim() === userSettings.node_id))) || (mode === 'dm' && userSettings?.send_via_mqtt === false && userSettings?.send_via_portal !== false && dmNodeId && !portalNodeIds.has(dmNodeId)) || (mode === 'dm' && portalOnlyAccount && dmNodeId && !portalNodeIds.has(dmNodeId))}
             className="flex-1 px-5 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground rounded-lg font-medium transition-colors flex flex-col items-center justify-center gap-1"
           >
             {sending ? (
