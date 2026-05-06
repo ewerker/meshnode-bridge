@@ -31,10 +31,13 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [portalNodeIds, setPortalNodeIds] = useState(new Set());
+  const [portalUsers, setPortalUsers] = useState([]);
 
   useEffect(() => {
     base44.functions.invoke('getPortalUsers', {}).then(res => {
-      setPortalNodeIds(new Set((res.data?.users || []).map(u => u.node_id).filter(Boolean)));
+      const users = res.data?.users || [];
+      setPortalUsers(users);
+      setPortalNodeIds(new Set(users.map(u => u.node_id).filter(Boolean)));
     }).catch(() => {});
   }, []);
 
@@ -126,7 +129,12 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const meshOptionsDisabled = portalOnlyAccount || recipientPortalOnly;
   const currentChannelName = (userSettings?.channels || []).find(c => c.number === channel)?.name || '';
   const longFastGroupBlocked = portalOnlyAccount && mode === 'channel' && currentChannelName.trim().toLowerCase() === 'longfast';
-  const sendDisabled = sending || !text.trim() || longFastGroupBlocked ||
+  const hasPortalGroupParticipant = !portalOnlyAccount || mode !== 'channel' || !currentChannelName.trim() || portalUsers.some(u =>
+    u.node_id && u.node_id !== gatewayNodeId &&
+    (u.channels || []).some(c => c.number === channel && (c.name || '').trim() === currentChannelName.trim())
+  );
+  const noPortalGroupParticipant = portalOnlyAccount && mode === 'channel' && currentChannelName.trim() && !hasPortalGroupParticipant;
+  const sendDisabled = sending || !text.trim() || longFastGroupBlocked || noPortalGroupParticipant ||
     (mode === 'dm' && (!dmNodeId.trim() || (userSettings?.node_id && dmNodeId.trim() === userSettings.node_id))) ||
     (mode === 'dm' && userSettings?.send_via_mqtt === false && userSettings?.send_via_portal !== false && dmNodeId && !portalNodeIds.has(dmNodeId)) ||
     (mode === 'dm' && portalOnlyAccount && dmNodeId && !portalNodeIds.has(dmNodeId));
@@ -228,10 +236,10 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
               })}
             </select>
           )}
-          {(longFastGroupBlocked || portalOnlyAccount) && (
+          {(longFastGroupBlocked || noPortalGroupParticipant || portalOnlyAccount) && (
             <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-              <span>{longFastGroupBlocked ? 'LongFast ist für Portal-only Accounts gesperrt.' : 'Portal-only Accounts senden Gruppen intern im Portal, ohne ACK.'}</span>
+              <span>{longFastGroupBlocked ? 'LongFast ist für Portal-only Accounts gesperrt.' : noPortalGroupParticipant ? 'Keine Portal-Teilnehmer für diese Gruppe gefunden — Senden ist deaktiviert.' : 'Portal-only Accounts senden Gruppen intern im Portal, ohne ACK.'}</span>
             </div>
           )}
         </div>

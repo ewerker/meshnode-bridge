@@ -14,6 +14,7 @@ Deno.serve(async (req) => {
         id: u.id,
         node_id: u.node_id,
         long_name: u.full_name || u.email,
+        channels: u.channels || [],
       }));
 
     // Return known mesh nodes from all gateway scopes so users can add nodes
