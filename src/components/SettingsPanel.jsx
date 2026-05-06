@@ -308,8 +308,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
               className="mt-0.5 w-4 h-4 accent-primary cursor-pointer disabled:cursor-not-allowed"
             />
             <div>
-              <span className="text-sm text-foreground">Direkt im Portal spiegeln</span>
-              <p className="text-xs text-muted-foreground">Nachricht sofort im Portal des Empfängers speichern, wenn dessen Node-ID bekannt ist</p>
+              <span className="text-sm text-foreground">Direkt im Portal senden</span>
+              <p className="text-xs text-muted-foreground">Nachricht sofort im Portal an den Empfänger senden, wenn dessen Node-ID bekannt ist</p>
             </div>
           </label>
           {bothDisabled && (
