@@ -55,6 +55,11 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
       if (replyRequest.channel !== null && replyRequest.channel !== undefined && !isNaN(replyRequest.channel)) {
         updateChannel(parseInt(replyRequest.channel));
       }
+      // Group reply: prefill text with @mention so the recipient can be addressed
+      // explicitly. Only add when text is empty so we never overwrite user input.
+      if (replyRequest.mentionName && !text.trim()) {
+        setText(`@${replyRequest.mentionName} `);
+      }
     }
     if (replyRequest.hopStart !== null && replyRequest.hopStart !== undefined && replyRequest.hopStart > 3) {
       setHopLimit(replyRequest.hopStart);

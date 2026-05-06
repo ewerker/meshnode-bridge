@@ -312,6 +312,7 @@ export default function Dashboard() {
                 channel: req?.channel ?? null,
                 hopStart: adjustedHop,
                 forceDM: !!req?.forceDM,
+                mentionName: req?.mentionName || null,
                 ts: Date.now(),
               });
               window.scrollTo({ top: 0, behavior: 'smooth' });

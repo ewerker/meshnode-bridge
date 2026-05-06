@@ -130,11 +130,16 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
               const chNum = (msg.channel !== undefined && msg.channel !== null && msg.channel !== '')
                 ? parseInt(msg.channel) : null;
               const isDM = msg.to_node && msg.to_node !== '^all';
+              const mentionName = fromLabel
+                || nodeMap[msg.from_node]?.short_name
+                || nodeMap[msg.from_node]?.long_name
+                || msg.from_node;
               onReply?.({
                 fromNode: msg.from_node,
                 channel: chNum !== null && !isNaN(chNum) ? chNum : null,
                 hopStart,
                 forceDM: !!isDM,
+                mentionName: !isDM ? mentionName : null,
               });
               return;
             }
