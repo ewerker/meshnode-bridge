@@ -63,7 +63,9 @@ Deno.serve(async (req) => {
     console.log('[PUB-V3] text bytes (last 4):', lastChars);
     console.log('[PUB-V3] payloadStr:', payloadStr);
 
-    // Helper: create the duplicate inbound message for the recipient
+    // Helper: create the duplicate inbound message for the recipient.
+    // We tag the mirror with the same client_ref as the outbound so we can later
+    // dedupe it once the real MQTT-delivered copy arrives via mqttPoll.
     const createDuplicate = async () => {
       if (mode !== 'dm' || !toNode || !recipientGatewayId) return;
       await base44.asServiceRole.entities.MeshMessage.create({
@@ -76,10 +78,11 @@ Deno.serve(async (req) => {
         gateway_node_id: recipientGatewayId,
         mqtt_topic: `${prefix}/rx/${recipientGatewayId}/direct/${gatewayNodeId}`,
         status: 'received',
-        raw_payload: JSON.stringify({ ...payload, text: `via Portal gespiegelt: ${text}` }),
+        raw_payload: JSON.stringify({ ...payload, text: `via Portal gespiegelt: ${text}`, mirror_of_client_ref: client_ref || null }),
         meshtastic_timestamp: Math.floor(Date.now() / 1000),
+        client_ref: client_ref || undefined,
       });
-      console.log('[PUB-V3] duplicate inbound created for recipient:', recipientGatewayId);
+      console.log('[PUB-V3] duplicate inbound created for recipient:', recipientGatewayId, 'client_ref:', client_ref);
     };
 
     if (!wantAckFlag) {

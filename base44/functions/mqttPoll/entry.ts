@@ -213,6 +213,33 @@ Deno.serve(async (req) => {
         meshtastic_timestamp: p.mirrored_at || undefined,
       });
       saved.push(record);
+
+      // Dedup portal mirror: if this is an inbound DM and a portal-mirrored copy
+      // exists with the same text content (prefixed) from the same sender to the
+      // same recipient within the last 10 minutes, delete the mirror — the real
+      // MQTT-delivered copy now wins.
+      if (isDM && p.text && p.from_id) {
+        try {
+          const mirrorPrefix = 'via Portal gespiegelt: ';
+          const mirrorText = `${mirrorPrefix}${p.text}`;
+          const since = Math.floor(Date.now() / 1000) - 600; // 10 minutes
+          const candidates = await base44.asServiceRole.entities.MeshMessage.filter({
+            direction: 'inbound',
+            from_node: p.from_id,
+            to_node: isDM ? (p.to_id || messageGatewayId) : (p.to_id || '^all'),
+            text: mirrorText,
+          }, '-created_date', 5);
+          for (const c of candidates) {
+            if (c.id === record.id) continue;
+            if ((c.meshtastic_timestamp || 0) >= since) {
+              await base44.asServiceRole.entities.MeshMessage.delete(c.id);
+              console.log('[MQTT] deduped portal mirror:', c.id);
+            }
+          }
+        } catch (e) {
+          console.log('[MQTT] mirror dedup failed:', e.message);
+        }
+      }
     }
 
     await base44.entities.PollStatus.create({
