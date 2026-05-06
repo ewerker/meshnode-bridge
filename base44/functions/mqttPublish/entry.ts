@@ -9,6 +9,8 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const { text, channel, toNode, mode, hop_limit, want_ack } = body;
+    const sendViaMqtt = user.send_via_mqtt !== false; // default true
+    const sendViaPortal = user.send_via_portal !== false; // default true
 
     if (!text) {
       return Response.json({ error: 'text is required' }, { status: 400 });
@@ -81,7 +83,7 @@ Deno.serve(async (req) => {
     };
 
     if (!wantAckFlag) {
-      await publishOnly(brokerUrl, username, password, topic, payloadStr);
+      if (sendViaMqtt) await publishOnly(brokerUrl, username, password, topic, payloadStr);
       await base44.entities.MeshMessage.create({
         direction: 'outbound',
         text,
@@ -93,8 +95,26 @@ Deno.serve(async (req) => {
         status: 'sent',
         raw_payload: payloadStr,
       });
-      await createDuplicate();
+      if (sendViaPortal) await createDuplicate();
       return Response.json({ success: true, topic, client_ref: null });
+    }
+
+    if (!sendViaMqtt) {
+      // Portal-only: skip MQTT, just save + mirror
+      await base44.entities.MeshMessage.create({
+        direction: 'outbound',
+        text,
+        channel: String(channelNum),
+        from_node: gatewayNodeId,
+        to_node: toNode || '^all',
+        gateway_node_id: gatewayNodeId,
+        mqtt_topic: topic,
+        status: 'sent',
+        raw_payload: payloadStr,
+        client_ref,
+      });
+      if (sendViaPortal) await createDuplicate();
+      return Response.json({ success: true, topic, client_ref, final_status: 'sent' });
     }
 
     const ackTopic = `${prefix}/ack/${gatewayNodeId}/${client_ref}`;
@@ -200,7 +220,7 @@ Deno.serve(async (req) => {
       client_ref,
     });
 
-    await createDuplicate();
+    if (sendViaPortal) await createDuplicate();
 
     return Response.json({
       success: true,

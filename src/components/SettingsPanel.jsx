@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Save, Radio, Hash, Globe, Link2 } from 'lucide-react';
 import DangerZone from '@/components/DangerZone';
+import ToggleSwitch from '@/components/ToggleSwitch';
 
 const DEFAULT_CHANNELS = Array.from({ length: 8 }, (_, i) => ({ number: i, name: '' }));
 
@@ -12,6 +13,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
   const [defaultChannel, setDefaultChannel] = useState(0);
   const [channels, setChannels] = useState(DEFAULT_CHANNELS);
   const [topicPrefix, setTopicPrefix] = useState('');
+  const [sendViaMqtt, setSendViaMqtt] = useState(true);
+  const [sendViaPortal, setSendViaPortal] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [knownNodes, setKnownNodes] = useState([]);
@@ -62,6 +65,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
     setRegion(me.region || 'EU_868');
     setDefaultChannel(me.default_channel ?? 0);
     setTopicPrefix(me.topic_prefix || '');
+    setSendViaMqtt(me.send_via_mqtt !== false); // default true
+    setSendViaPortal(me.send_via_portal !== false); // default true
     // Merge saved channels with defaults
     const saved = me.channels || [];
     const merged = DEFAULT_CHANNELS.map(def => {
@@ -86,6 +91,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
       default_channel: defaultChannel,
       channels: channelsToSave,
       topic_prefix: topicPrefix.trim(),
+      send_via_mqtt: sendViaMqtt,
+      send_via_portal: sendViaPortal,
     };
     if (isAdmin) updatePayload.node_id = newNodeId;
     await base44.auth.updateMe(updatePayload);
@@ -101,6 +108,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
     onSettingsChanged?.();
   };
 
+  const bothDisabled = !sendViaMqtt && !sendViaPortal;
+
   if (!user) return (
     <div className="flex justify-center py-6">
       <div className="w-5 h-5 border-2 border-border border-t-primary rounded-full animate-spin" />
@@ -108,10 +117,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
   );
 
   const isAdmin = user?.role === 'admin';
-  const ro = !isAdmin;
-  const inputClass = (extra = '') => `w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary ${
-    ro ? 'text-muted-foreground cursor-not-allowed opacity-70' : 'text-foreground'
-  } ${extra}`;
+  const inputClass = (extra = '') => `w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-foreground ${extra}`;
 
   return (
     <div className="space-y-5">
@@ -127,10 +133,10 @@ export default function SettingsPanel({ onSettingsChanged }) {
           value={nodeId}
           onChange={(e) => setNodeId(e.target.value)}
           placeholder="e.g. !49b65bc8"
-          readOnly={user?.role !== 'admin'}
-          disabled={user?.role !== 'admin'}
+          readOnly={!isAdmin}
+          disabled={!isAdmin}
           className={`w-full max-w-xs bg-secondary border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-primary ${
-            user?.role !== 'admin' ? 'text-muted-foreground cursor-not-allowed opacity-70' : 'text-foreground'
+            !isAdmin ? 'text-muted-foreground cursor-not-allowed opacity-70' : 'text-foreground'
           }`}
         />
         {user?.role === 'admin' && (
@@ -188,9 +194,9 @@ export default function SettingsPanel({ onSettingsChanged }) {
           value={topicPrefix}
           onChange={(e) => setTopicPrefix(e.target.value)}
           placeholder={`msh/${region}/proxy`}
-          readOnly={ro}
-          disabled={ro}
-          className={inputClass('max-w-md font-mono')}
+          readOnly={!isAdmin}
+          disabled={!isAdmin}
+          className={`w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary max-w-md font-mono ${!isAdmin ? 'text-muted-foreground cursor-not-allowed opacity-70' : 'text-foreground'}`}
         />
         <p className="text-xs text-muted-foreground mt-1">
           Default: <span className="font-mono text-muted-foreground">msh/{region}/proxy</span> — Topics: <span className="font-mono text-muted-foreground">{topicPrefix || `msh/${region}/proxy`}/send/{nodeId || '!gateway'}/group/0</span>, <span className="font-mono text-muted-foreground">{topicPrefix || `msh/${region}/proxy`}/rx/{nodeId || '…'}/scope/group</span>
@@ -207,8 +213,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
           <select
             value={region}
             onChange={(e) => setRegion(e.target.value)}
-            disabled={ro}
-            className={inputClass()}
+            disabled={!isAdmin}
+            className={`w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary ${!isAdmin ? 'text-muted-foreground cursor-not-allowed opacity-70' : 'text-foreground'}`}
           >
             {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
@@ -218,8 +224,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
           <select
             value={defaultChannel}
             onChange={(e) => setDefaultChannel(parseInt(e.target.value))}
-            disabled={ro}
-            className={inputClass()}
+            disabled={!isAdmin}
+            className={`w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary ${!isAdmin ? 'text-muted-foreground cursor-not-allowed opacity-70' : 'text-foreground'}`}
           >
             {channels.map(c => (
               <option key={c.number} value={c.number}>
@@ -245,10 +251,10 @@ export default function SettingsPanel({ onSettingsChanged }) {
                 value={c.name}
                 onChange={(e) => updateChannelName(c.number, e.target.value)}
                 placeholder={`Channel ${c.number}`}
-                readOnly={ro}
-                disabled={ro}
+                readOnly={!isAdmin}
+                disabled={!isAdmin}
                 className={`flex-1 bg-secondary border border-border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-primary placeholder:text-muted-foreground ${
-                  ro ? 'text-muted-foreground cursor-not-allowed opacity-70' : 'text-foreground'
+                  !isAdmin ? 'text-muted-foreground cursor-not-allowed opacity-70' : 'text-foreground'
                 }`}
               />
             </div>
@@ -256,22 +262,47 @@ export default function SettingsPanel({ onSettingsChanged }) {
         </div>
       </div>
 
+      {/* Weiterleitungsoptionen */}
+      <div>
+        <label className="block text-xs font-medium text-primary mb-2 uppercase tracking-wider">
+          Nachrichtenweiterleitung
+        </label>
+        <div className="flex flex-col gap-2">
+          <ToggleSwitch
+            enabled={sendViaMqtt}
+            onChange={(val) => {
+              if (!val && !sendViaPortal) return; // mindestens einer muss aktiv bleiben
+              setSendViaMqtt(val);
+            }}
+            label="Über MQTT senden"
+            tooltip="Nachricht an das Radio weiterleiten (wenn Gateway online)"
+          />
+          <ToggleSwitch
+            enabled={sendViaPortal}
+            onChange={(val) => {
+              if (!val && !sendViaMqtt) return; // mindestens einer muss aktiv bleiben
+              setSendViaPortal(val);
+            }}
+            label="Direkt im Portal spiegeln"
+            tooltip="Nachricht sofort im Portal des Empfängers speichern, wenn dessen Node-ID bekannt ist"
+          />
+          {bothDisabled && (
+            <p className="text-xs text-destructive">Mindestens eine Option muss aktiviert sein.</p>
+          )}
+        </div>
+      </div>
+
       {/* Speichern */}
       <div className="flex items-center justify-end gap-3">
         {!isAdmin && (
           <span className="text-xs text-muted-foreground">
-            Einstellungen können nur von einem Administrator geändert werden.
+            Node-ID und Broker-Einstellungen können nur von einem Administrator geändert werden.
           </span>
         )}
         <button
           onClick={handleSave}
-          disabled={saving || !isAdmin}
-          title={!isAdmin ? 'Nur Administratoren dürfen Einstellungen speichern' : undefined}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            !isAdmin
-              ? 'bg-secondary text-muted-foreground cursor-not-allowed opacity-60'
-              : 'bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground'
-          }`}
+          disabled={saving || bothDisabled}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground"
         >
           <Save className="w-4 h-4" />
           {saved ? 'Saved ✓' : saving ? 'Saving…' : 'Save Settings'}

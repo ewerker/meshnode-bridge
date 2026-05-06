@@ -46,6 +46,16 @@
     "last_active": {
       "type": "integer",
       "description": "Unix timestamp of last heartbeat from active browser session"
+    },
+    "send_via_mqtt": {
+      "type": "boolean",
+      "description": "Nachricht \u00fcber MQTT an Radio weiterleiten",
+      "default": true
+    },
+    "send_via_portal": {
+      "type": "boolean",
+      "description": "Nachricht direkt im Portal spiegeln, wenn Empf\u00e4nger bekannt",
+      "default": true
     }
   },
   "required": [
