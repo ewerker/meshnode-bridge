@@ -267,25 +267,37 @@ export default function SettingsPanel({ onSettingsChanged }) {
         <label className="block text-xs font-medium text-primary mb-2 uppercase tracking-wider">
           Nachrichtenweiterleitung
         </label>
-        <div className="flex flex-col gap-2">
-          <ToggleSwitch
-            enabled={sendViaMqtt}
-            onChange={(val) => {
-              if (!val && !sendViaPortal) return; // mindestens einer muss aktiv bleiben
-              setSendViaMqtt(val);
-            }}
-            label="Über MQTT senden"
-            tooltip="Nachricht an das Radio weiterleiten (wenn Gateway online)"
-          />
-          <ToggleSwitch
-            enabled={sendViaPortal}
-            onChange={(val) => {
-              if (!val && !sendViaMqtt) return; // mindestens einer muss aktiv bleiben
-              setSendViaPortal(val);
-            }}
-            label="Direkt im Portal spiegeln"
-            tooltip="Nachricht sofort im Portal des Empfängers speichern, wenn dessen Node-ID bekannt ist"
-          />
+        <div className="flex flex-col gap-3">
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={sendViaMqtt}
+              onChange={(e) => {
+                if (!e.target.checked && !sendViaPortal) return;
+                setSendViaMqtt(e.target.checked);
+              }}
+              className="mt-0.5 w-4 h-4 accent-primary cursor-pointer"
+            />
+            <div>
+              <span className="text-sm text-foreground">Über MQTT senden</span>
+              <p className="text-xs text-muted-foreground">Nachricht an das Radio weiterleiten (wenn Gateway online)</p>
+            </div>
+          </label>
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={sendViaPortal}
+              onChange={(e) => {
+                if (!e.target.checked && !sendViaMqtt) return;
+                setSendViaPortal(e.target.checked);
+              }}
+              className="mt-0.5 w-4 h-4 accent-primary cursor-pointer"
+            />
+            <div>
+              <span className="text-sm text-foreground">Direkt im Portal spiegeln</span>
+              <p className="text-xs text-muted-foreground">Nachricht sofort im Portal des Empfängers speichern, wenn dessen Node-ID bekannt ist</p>
+            </div>
+          </label>
           {bothDisabled && (
             <p className="text-xs text-destructive">Mindestens eine Option muss aktiviert sein.</p>
           )}
