@@ -40,7 +40,14 @@ export default function ManualNodeDialog({ open, onClose, onSaved, node }) {
           base44.functions.invoke('getPortalUsers', {}),
           me?.node_id ? base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 1000) : [],
         ]);
-        const usedIds = new Set((ownNodes || []).map(n => n.node_id).filter(Boolean));
+        // Only nodes within the user's own gateway scope count as "already in list".
+        const myGw = me?.node_id;
+        const usedIds = new Set(
+          (ownNodes || [])
+            .filter(n => n.gateway_node_id === myGw)
+            .map(n => n.node_id)
+            .filter(Boolean)
+        );
         setExistingIds(usedIds);
 
         const users = (res.data?.users || []).map(u => ({
