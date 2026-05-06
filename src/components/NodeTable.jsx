@@ -96,7 +96,13 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGa
 
   const handleToggleFav = async (e, node) => {
     e.stopPropagation();
-    await base44.entities.MeshNode.update(node.id, { is_favorite: !node.is_favorite });
+    // Use service-role backend to bypass MeshNode RLS (update is admin-only).
+    await base44.functions.invoke('meshNodeBatchUpsert', {
+      action: 'toggle_favorite',
+      id: node.id,
+      is_favorite: !node.is_favorite,
+      fromNode: node.gateway_node_id,
+    });
     onFavoriteToggle?.();
   };
 

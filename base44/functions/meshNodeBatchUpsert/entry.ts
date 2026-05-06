@@ -9,15 +9,30 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { fromNode, nodes } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const { fromNode, nodes, action, id, is_favorite } = body;
     const gateway = (fromNode || user.node_id || '').trim();
     if (!gateway) return Response.json({ error: 'Node-ID fehlt' }, { status: 400 });
-    if (!Array.isArray(nodes) || nodes.length === 0) {
-      return Response.json({ created: 0, updated: 0, errors: 0 });
-    }
     // Allow only own gateway scope (admins may target any).
     if (user.role !== 'admin' && gateway !== user.node_id) {
       return Response.json({ error: 'Forbidden: foreign gateway scope' }, { status: 403 });
+    }
+
+    // Lightweight favorite-toggle path — RLS-safe via service role for any authenticated user.
+    if (action === 'toggle_favorite') {
+      if (!id) return Response.json({ error: 'id fehlt' }, { status: 400 });
+      const existing = await base44.asServiceRole.entities.MeshNode.filter({ id });
+      const target = existing[0];
+      if (!target) return Response.json({ error: 'Node nicht gefunden' }, { status: 404 });
+      if (user.role !== 'admin' && target.gateway_node_id !== user.node_id) {
+        return Response.json({ error: 'Forbidden: foreign node' }, { status: 403 });
+      }
+      await base44.asServiceRole.entities.MeshNode.update(id, { is_favorite: !!is_favorite });
+      return Response.json({ ok: true, is_favorite: !!is_favorite });
+    }
+
+    if (!Array.isArray(nodes) || nodes.length === 0) {
+      return Response.json({ created: 0, updated: 0, errors: 0 });
     }
 
     const ids = nodes.map(n => n.node_id).filter(Boolean);
