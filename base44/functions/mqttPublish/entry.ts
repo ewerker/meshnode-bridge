@@ -68,6 +68,24 @@ Deno.serve(async (req) => {
     // dedupe it once the real MQTT-delivered copy arrives via mqttPoll.
     const createDuplicate = async () => {
       if (mode !== 'dm' || !toNode || !recipientGatewayId) return;
+      // Skip mirror if the real MQTT-delivered DM has already been saved for this
+      // recipient within the last 10 minutes (avoids creating a duplicate that would
+      // need to be deduped later).
+      try {
+        const since = Math.floor(Date.now() / 1000) - 600;
+        const existing = await base44.asServiceRole.entities.MeshMessage.filter({
+          direction: 'inbound',
+          from_node: gatewayNodeId,
+          to_node: toNode,
+          text,
+        }, '-created_date', 5);
+        if (existing.some(e => (e.meshtastic_timestamp || 0) >= since)) {
+          console.log('[PUB-V3] mirror skipped: real MQTT inbound already exists');
+          return;
+        }
+      } catch (e) {
+        console.log('[PUB-V3] pre-mirror check failed:', e.message);
+      }
       await base44.asServiceRole.entities.MeshMessage.create({
         direction: 'inbound',
         text: `via Portal gespiegelt: ${text}`,
