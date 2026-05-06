@@ -141,6 +141,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
       });
       const { client_ref: ref, final_status } = res.data;
       setText('');
+      if (mode === 'dm') setDmNodeId('');
       onReplyToClear?.();
       onMessageSent?.();
 
