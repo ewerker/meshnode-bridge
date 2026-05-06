@@ -122,6 +122,8 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const gatewayNodeId = userSettings?.node_id || '!gateway';
   const topic = `${prefix}/send/${gatewayNodeId}/group/${channel}`;
   const portalOnlyAccount = (userSettings?.node_id || '').startsWith('?');
+  const recipientPortalOnly = mode === 'dm' && dmNodeId.trim().startsWith('?');
+  const meshOptionsDisabled = portalOnlyAccount || recipientPortalOnly;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -254,8 +256,9 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           <label className="text-xs text-muted-foreground whitespace-nowrap">Hop-Limit:</label>
           <select
             value={hopLimit}
+            disabled={meshOptionsDisabled}
             onChange={(e) => setHopLimit(parseInt(e.target.value))}
-            className="bg-secondary border border-border rounded px-2 py-1 text-sm text-foreground focus:outline-none focus:border-primary"
+            className={`bg-secondary border border-border rounded px-2 py-1 text-sm text-foreground focus:outline-none focus:border-primary ${meshOptionsDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {[2, 3, 4, 5, 6, 7].map(h => (
               <option key={h} value={h}>{h}</option>
@@ -264,8 +267,9 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
         </div>
         <button
           type="button"
-          onClick={() => setWantAck(v => !v)}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+          disabled={meshOptionsDisabled}
+          onClick={() => { if (!meshOptionsDisabled) setWantAck(v => !v); }}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${meshOptionsDisabled ? 'opacity-50 cursor-not-allowed' : ''} ${
             wantAck ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-secondary text-muted-foreground border border-border'
           }`}
         >
