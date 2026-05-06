@@ -125,7 +125,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const recipientPortalOnly = mode === 'dm' && dmNodeId.trim().startsWith('?');
   const meshOptionsDisabled = portalOnlyAccount || recipientPortalOnly;
   const currentChannelName = (userSettings?.channels || []).find(c => c.number === channel)?.name || '';
-  const longFastGroupBlocked = portalOnlyAccount && mode === 'channel' && channel === 0 && currentChannelName.trim().toLowerCase() === 'longfast';
+  const longFastGroupBlocked = mode === 'channel' && currentChannelName.trim().toLowerCase() === 'longfast';
   const sendDisabled = sending || !text.trim() || longFastGroupBlocked ||
     (mode === 'dm' && (!dmNodeId.trim() || (userSettings?.node_id && dmNodeId.trim() === userSettings.node_id))) ||
     (mode === 'dm' && userSettings?.send_via_mqtt === false && userSettings?.send_via_portal !== false && dmNodeId && !portalNodeIds.has(dmNodeId)) ||
@@ -228,10 +228,10 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
               })}
             </select>
           )}
-          {portalOnlyAccount && (
+          {(longFastGroupBlocked || portalOnlyAccount) && (
             <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-              <span>{longFastGroupBlocked ? 'LongFast auf Gruppe 0 ist für Portal-Versand gesperrt.' : 'Portal-only Accounts senden Gruppen intern im Portal, ohne ACK.'}</span>
+              <span>{longFastGroupBlocked ? 'LongFast ist für den Gruppenversand gesperrt.' : 'Portal-only Accounts senden Gruppen intern im Portal, ohne ACK.'}</span>
             </div>
           )}
         </div>

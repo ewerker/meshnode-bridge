@@ -43,8 +43,8 @@ Deno.serve(async (req) => {
     const channelNum = typeof channel === 'string' ? parseInt(channel) : (channel !== undefined ? channel : 0);
     const channelConfig = (user.channels || []).find(c => c.number === channelNum);
     const channelName = (channelConfig?.name || '').trim();
-    if (senderIsDummy && mode === 'channel' && channelNum === 0 && channelName.toLowerCase() === 'longfast') {
-      return Response.json({ error: 'LongFast auf Gruppe 0 ist für Portal-Versand gesperrt.' }, { status: 400 });
+    if (mode === 'channel' && channelName.toLowerCase() === 'longfast') {
+      return Response.json({ error: 'LongFast ist für den Gruppenversand gesperrt.' }, { status: 400 });
     }
     const regionStr = user.region || 'EU_868';
     const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
