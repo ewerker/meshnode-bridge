@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
             <li><strong>Typ:</strong> ${isDm ? 'Direktnachricht' : 'Gruppennachricht'}</li>
             <li><strong>Von Node:</strong> ${message.from_node || 'Unbekannt'}</li>
             <li><strong>An Node / Gateway:</strong> ${message.gateway_node_id || 'Unbekannt'}</li>
-            <li><strong>Channel:</strong> ${channelLabel}</li>
+            ${!isDm ? `<li><strong>Channel:</strong> ${channelLabel}</li>` : ''}
             <li><strong>Status:</strong> ${message.status || 'received'}</li>
             <li><strong>Zeitpunkt:</strong> ${new Date().toLocaleString('de-DE', { timeZone: 'Europe/Berlin' })}</li>
           </ul>
