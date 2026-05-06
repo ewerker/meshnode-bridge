@@ -171,11 +171,6 @@ Deno.serve(async (req) => {
          msgId = `fallback_${p.from_id || 'unknown'}_${p.mirrored_at || 'no_ts'}_${textHash}`;
       }
 
-      if (msgId) {
-        const existing = await base44.entities.MeshMessage.filter({ message_id: msgId });
-        if (existing.length > 0) continue; // already saved
-      }
-
       // Resolve channel index: prefer payload channel_index, then legacy `channel`,
       // then derive from topic path .../group/<idx> as a last resort.
       let channelIdx = (p.channel_index !== null && p.channel_index !== undefined) ? p.channel_index
@@ -197,6 +192,16 @@ Deno.serve(async (req) => {
       const topicSegments = (msg.topic || '').split('/');
       const gwFromTopic = topicSegments[4] || '';
       const messageGatewayId = gwFromTopic || nodeId || '';
+
+      // Dedup is per (message_id, gateway_node_id): the same packet can legitimately
+      // be received via multiple gateways and we want one record per gateway.
+      if (msgId) {
+        const existing = await base44.asServiceRole.entities.MeshMessage.filter({
+          message_id: msgId,
+          gateway_node_id: messageGatewayId,
+        });
+        if (existing.length > 0) continue;
+      }
 
       const record = await base44.entities.MeshMessage.create({
         direction: 'inbound',
