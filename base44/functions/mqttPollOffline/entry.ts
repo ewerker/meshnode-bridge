@@ -147,6 +147,27 @@ Deno.serve(async (req) => {
         if (existing.length > 0) continue;
       }
 
+      // Content-based dedup: keep the earlier portal-mirror, skip later radio
+      // forwards with the same effective payload within a 10-minute window.
+      const cleaned = extractOriginalContent(p.text || '', p.from_id || '');
+      if (cleaned.cleanText) {
+        const since = Math.floor(Date.now() / 1000) - 600;
+        const candidates = await base44.asServiceRole.entities.MeshMessage.filter({
+          gateway_node_id: messageGatewayId,
+          channel: channelStr,
+          to_node: isDM ? (messageGatewayId || '') : (p.to_id || '^all'),
+        }, '-created_date', 30);
+        const isDup = candidates.some(c => {
+          if ((c.meshtastic_timestamp || 0) < since) return false;
+          const cc = extractOriginalContent(c.text || '', c.from_node || '');
+          return cc.cleanText === cleaned.cleanText && cc.originalSender === cleaned.originalSender;
+        });
+        if (isDup) {
+          console.log('[MQTT-OFFLINE] content-dedup skip:', cleaned.originalSender, '·', cleaned.cleanText.substring(0, 40));
+          continue;
+        }
+      }
+
       const created = await base44.asServiceRole.entities.MeshMessage.create({
         direction: 'inbound',
         text: p.text || '',
@@ -314,3 +335,21 @@ Deno.serve(async (req) => {
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
+
+function extractOriginalContent(text, fromNode) {
+  let t = (text || '').trim();
+  if (t.endsWith('\u0007')) t = t.slice(0, -1).trim();
+  let originalSender = fromNode || '';
+  const m1 = t.match(/^FROM\s+.*?\(([^)]+)\)\s+VIA\s+PORTAL:\s*/i);
+  const m2 = t.match(/^FROM\s+(\S+)\s+VIA\s+PORTAL:\s*/i);
+  if (m1) {
+    originalSender = m1[1].trim();
+    t = t.replace(m1[0], '');
+  } else if (m2) {
+    originalSender = m2[1].trim();
+    t = t.replace(m2[0], '');
+  } else {
+    t = t.replace(/^VIA\s+PORTAL:\s*/i, '').replace(/^VIA\s+RADIO:\s*/i, '');
+  }
+  return { cleanText: t.trim(), originalSender };
+}

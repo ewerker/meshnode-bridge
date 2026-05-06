@@ -203,6 +203,29 @@ Deno.serve(async (req) => {
         if (existing.length > 0) continue;
       }
 
+      // Content-based dedup: a portal-mirror created earlier wins over later
+      // radio-forwarded duplicates. Extract the original sender + clean text and
+      // skip if a portal-mirror with the same effective payload already exists
+      // for this gateway within the last 10 minutes.
+      const cleaned = extractOriginalContent(p.text || '', p.from_id || '');
+      if (cleaned.cleanText) {
+        const since = Math.floor(Date.now() / 1000) - 600;
+        const candidates = await base44.asServiceRole.entities.MeshMessage.filter({
+          gateway_node_id: messageGatewayId,
+          channel: channelStr,
+          to_node: isDM ? (messageGatewayId || '') : (p.to_id || '^all'),
+        }, '-created_date', 30);
+        const isDup = candidates.some(c => {
+          if ((c.meshtastic_timestamp || 0) < since) return false;
+          const cc = extractOriginalContent(c.text || '', c.from_node || '');
+          return cc.cleanText === cleaned.cleanText && cc.originalSender === cleaned.originalSender;
+        });
+        if (isDup) {
+          console.log('[MQTT] content-dedup skip:', cleaned.originalSender, '·', cleaned.cleanText.substring(0, 40));
+          continue;
+        }
+      }
+
       const record = await base44.entities.MeshMessage.create({
         direction: 'inbound',
         text: p.text || '',
@@ -329,3 +352,25 @@ Deno.serve(async (req) => {
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
+
+// Strip portal/radio prefixes and recover the original sender if it is encoded
+// inside the text (e.g. "FROM Alice (?9999) VIA PORTAL: hi" or "FROM ?9999 VIA PORTAL: hi").
+// Returns { cleanText, originalSender }.
+function extractOriginalContent(text, fromNode) {
+  let t = (text || '').trim();
+  if (t.endsWith('\u0007')) t = t.slice(0, -1).trim();
+  let originalSender = fromNode || '';
+  // "FROM <name> (<id>) VIA PORTAL: ..." or "FROM <id> VIA PORTAL: ..."
+  const m1 = t.match(/^FROM\s+.*?\(([^)]+)\)\s+VIA\s+PORTAL:\s*/i);
+  const m2 = t.match(/^FROM\s+(\S+)\s+VIA\s+PORTAL:\s*/i);
+  if (m1) {
+    originalSender = m1[1].trim();
+    t = t.replace(m1[0], '');
+  } else if (m2) {
+    originalSender = m2[1].trim();
+    t = t.replace(m2[0], '');
+  } else {
+    t = t.replace(/^VIA\s+PORTAL:\s*/i, '').replace(/^VIA\s+RADIO:\s*/i, '');
+  }
+  return { cleanText: t.trim(), originalSender };
+}
