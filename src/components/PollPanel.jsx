@@ -8,18 +8,21 @@ const LISTEN_OPTIONS = [
   { label: '1 min', seconds: 60 },
   { label: '2 min', seconds: 120 },
   { label: '3 min', seconds: 180 },
-  { label: '4 min', seconds: 240 },
   { label: '5 min', seconds: 300 },
+  { label: '10 min', seconds: 600 },
+  { label: '15 min', seconds: 900 },
+  { label: '30 min', seconds: 1800 },
+  { label: '1 h', seconds: 3600 },
 ];
 
 const LS_LISTEN = 'mesh_poll_listen_seconds';
 
 export default function PollPanel({ onReceived, userSettings }) {
   const [listenSeconds, setListenSeconds] = useState(() => {
-    const saved = parseInt(localStorage.getItem(LS_LISTEN) ?? '60');
-    // Clamp to new bounds (10s – 300s)
-    if (isNaN(saved) || saved < 10) return 60;
-    if (saved > 300) return 300;
+    const saved = parseInt(localStorage.getItem(LS_LISTEN) ?? '10');
+    // Clamp to bounds (10s – 3600s)
+    if (isNaN(saved) || saved < 10) return 10;
+    if (saved > 3600) return 3600;
     return saved;
   });
   const [polling, setPolling] = useState(false);

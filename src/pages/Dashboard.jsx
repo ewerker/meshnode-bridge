@@ -45,9 +45,9 @@ export default function Dashboard() {
     const releaseUi = setTimeout(() => {
       pollingRef.current = false;
       setIsPolling(false);
-    }, 32000);
+    }, 12000);
     try {
-      await base44.functions.invoke('mqttPoll', { region: currentUser.region || 'EU_868', listenSeconds: 30, pollType: 'initial_poll' });
+      await base44.functions.invoke('mqttPoll', { region: currentUser.region || 'EU_868', listenSeconds: 10, pollType: 'initial_poll' });
       fetchMessages();
     } catch (_) { /* silent */ }
     finally {
@@ -252,7 +252,7 @@ export default function Dashboard() {
               <p className="text-sm font-semibold text-primary">Empfang beim Seitenladen läuft</p>
               <p className="text-xs text-muted-foreground">Manual Receive ist danach wieder nutzbar.</p>
             </div>
-            <PollCountdown active={isPolling} seconds={30} />
+            <PollCountdown active={isPolling} seconds={10} />
           </div>
         )}
         {showSettings && (
