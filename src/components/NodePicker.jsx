@@ -16,9 +16,9 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
       const admin = me?.role === 'admin';
       setIsAdmin(admin);
 
-      // Portal users (always loaded — for both roles)
-      const users = await base44.entities.User.list();
-      const portalUsers = users.filter(u => u.node_id);
+      // Fetch portal users via backend function (bypasses RLS for all roles)
+      const res = await base44.functions.invoke('getPortalUsers', {});
+      const portalUsers = res.data?.users || [];
       setPortalNodeIds(new Set(portalUsers.map(u => u.node_id)));
 
       if (admin) {
@@ -27,17 +27,15 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
         const data = await base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 500);
         setNodes(data);
       } else {
-        // Regular users see all other portal users (with a node_id) as recipients
-        const portalNodes = portalUsers
-          .filter(u => u.node_id && u.id !== me?.id)
-          .map(u => ({
-            id: u.id,
-            node_id: u.node_id,
-            long_name: u.full_name || u.email,
-            short_name: null,
-            is_favorite: false,
-            _isPortalUser: true,
-          }));
+        // Regular users see portal users as recipients
+        const portalNodes = portalUsers.map(u => ({
+          id: u.id,
+          node_id: u.node_id,
+          long_name: u.long_name,
+          short_name: null,
+          is_favorite: false,
+          _isPortalUser: true,
+        }));
         setNodes(portalNodes);
       }
     })();
