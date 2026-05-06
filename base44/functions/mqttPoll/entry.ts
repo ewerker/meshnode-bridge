@@ -219,6 +219,31 @@ Deno.serve(async (req) => {
       });
       saved.push(record);
 
+      // Auto-create rudimentary MeshNode for the sender if not yet present
+      // in this gateway's scope. Allows users to favorite/manage senders that
+      // appear via received messages.
+      if (p.from_id && messageGatewayId) {
+        try {
+          const existingNode = await base44.asServiceRole.entities.MeshNode.filter({
+            node_id: p.from_id,
+            gateway_node_id: messageGatewayId,
+          });
+          if (existingNode.length === 0) {
+            await base44.asServiceRole.entities.MeshNode.create({
+              node_id: p.from_id,
+              gateway_node_id: messageGatewayId,
+              short_name: p.from_label || '',
+              long_name: '',
+              is_manual: false,
+              last_heard: p.mirrored_at || Math.floor(Date.now() / 1000),
+            });
+            console.log('[MQTT] auto-created node for sender:', p.from_id, 'gw:', messageGatewayId);
+          }
+        } catch (e) {
+          console.log('[MQTT] auto-create sender node failed:', e.message);
+        }
+      }
+
       // Dedup portal mirror: if this is an inbound DM and a portal-mirrored copy
       // exists with the same text content (prefixed) from the same sender to the
       // same recipient within the last 10 minutes, delete the mirror — the real

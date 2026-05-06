@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 export default function NodePicker({ value, onChange, onFavoriteToggle }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [nodes, setNodes] = useState([]);
+  const [ownGatewayId, setOwnGatewayId] = useState(null);
   const [portalNodeIds, setPortalNodeIds] = useState(new Set());
   const [filter, setFilter] = useState('');
   const [open, setOpen] = useState(false);
@@ -15,6 +16,7 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
       const me = await base44.auth.me();
       const admin = me?.role === 'admin';
       setIsAdmin(admin);
+      setOwnGatewayId(me?.node_id || null);
 
       // Fetch portal users + mesh nodes via backend function (bypasses RLS for all roles)
       const res = await base44.functions.invoke('getPortalUsers', {});
@@ -78,6 +80,9 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
   };
 
   const isPortal = (nodeId) => portalNodeIds.has(nodeId);
+  // "Eigen" = node was discovered/created within the user's own gateway scope.
+  // "Fremd" = node belongs to another gateway scope (delivery may not yet be possible).
+  const isOwn = (node) => ownGatewayId && node.gateway_node_id === ownGatewayId;
 
   return (
     <div ref={ref} className="relative">
@@ -160,13 +165,19 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
                           ? <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400 flex-shrink-0" />
                           : node._isPortalUser
                             ? <User className="w-3.5 h-3.5 flex-shrink-0 text-emerald-400" />
-                            : <Cpu className={`w-3.5 h-3.5 flex-shrink-0 ${isPortal(node.node_id) ? 'text-emerald-400' : 'text-muted-foreground'}`} />
+                            : <Cpu className={`w-3.5 h-3.5 flex-shrink-0 ${isOwn(node) ? 'text-primary' : isPortal(node.node_id) ? 'text-emerald-400' : 'text-muted-foreground/60'}`} />
                         }
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-foreground truncate">
+                            <span className={`text-sm truncate ${isOwn(node) ? 'text-foreground' : 'text-muted-foreground'}`}>
                               {node.long_name || node.short_name || node.node_id}
                             </span>
+                            {isOwn(node) && (
+                              <span className="text-[10px] px-1 py-0.5 rounded bg-primary/15 text-primary font-semibold flex-shrink-0" title="In deinem Gateway-Scope bekannt">Eigen</span>
+                            )}
+                            {!isOwn(node) && !isPortal(node.node_id) && (
+                              <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground font-semibold flex-shrink-0" title="Fremder Node — Zustellung evtl. nicht möglich">Fremd</span>
+                            )}
                             {isPortal(node.node_id) && (
                               <span className="text-[10px] px-1 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-semibold flex-shrink-0">Portal</span>
                             )}

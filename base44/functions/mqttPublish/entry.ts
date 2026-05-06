@@ -49,6 +49,28 @@ Deno.serve(async (req) => {
       if (recipientUsers.length > 0 && recipientUsers[0].node_id) {
         recipientGatewayId = recipientUsers[0].node_id;
       }
+
+      // Auto-create rudimentary MeshNode for the recipient if not yet present
+      // in this user's gateway scope. Allows the sender to manage/favorite the
+      // recipient even if no MQTT data has been received yet.
+      try {
+        const existingRcpt = await base44.asServiceRole.entities.MeshNode.filter({
+          node_id: toNode,
+          gateway_node_id: gatewayNodeId,
+        });
+        if (existingRcpt.length === 0) {
+          await base44.asServiceRole.entities.MeshNode.create({
+            node_id: toNode,
+            gateway_node_id: gatewayNodeId,
+            short_name: '',
+            long_name: '',
+            is_manual: false,
+          });
+          console.log('[PUB-V3] auto-created recipient node:', toNode, 'gw:', gatewayNodeId);
+        }
+      } catch (e) {
+        console.log('[PUB-V3] auto-create recipient node failed:', e.message);
+      }
     } else {
       topic = `${prefix}/send/${gatewayNodeId}/group/${channelNum}`;
     }
