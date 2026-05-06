@@ -244,6 +244,46 @@ Deno.serve(async (req) => {
         }
       }
 
+      if (!isDM && messageGatewayId.startsWith('!') && channelName && channelName.toLowerCase() !== 'longfast' && p.text) {
+        try {
+          const users = await base44.asServiceRole.entities.User.list();
+          const recipients = users.filter(u => {
+            if (!u.node_id || u.node_id === messageGatewayId) return false;
+            return (u.channels || []).some(c => c.number === parseInt(channelStr) && (c.name || '').trim() === channelName);
+          });
+          for (const recipient of recipients) {
+            const radioText = `VIA RADIO: ${p.text}`;
+            const since = Math.floor(Date.now() / 1000) - 600;
+            const existingRadio = await base44.asServiceRole.entities.MeshMessage.filter({
+              direction: 'inbound',
+              from_node: p.from_id || '',
+              gateway_node_id: recipient.node_id,
+              channel: channelStr,
+              text: radioText,
+            }, '-created_date', 5);
+            if (existingRadio.some(e => (e.meshtastic_timestamp || 0) >= since)) continue;
+
+            await base44.asServiceRole.entities.MeshMessage.create({
+              direction: 'inbound',
+              text: radioText,
+              channel: channelStr,
+              channel_name: channelName,
+              from_node: p.from_id || '',
+              to_node: '^all',
+              gateway_node_id: recipient.node_id,
+              mqtt_topic: `${prefix}/radio/${recipient.node_id}/group/${channelStr}`,
+              status: 'received',
+              raw_payload: JSON.stringify({ ...p, text: radioText, radio_group: true, original_gateway: messageGatewayId }),
+              message_id: msgId ? `radio_${msgId}_${recipient.node_id}` : undefined,
+              meshtastic_timestamp: p.mirrored_at || Math.floor(Date.now() / 1000),
+            });
+          }
+          console.log('[MQTT] radio group delivered internally:', recipients.length, 'channel:', channelStr, channelName);
+        } catch (e) {
+          console.log('[MQTT] radio group internal delivery failed:', e.message);
+        }
+      }
+
       // Dedup portal mirror: if this message was also delivered internally via
       // the portal within the last 10 minutes, delete the portal copy — the real
       // MQTT-delivered copy now wins.
