@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Cpu, Radio, Battery, MapPin, Clock, Wifi, ChevronUp, ChevronDown, Star, Search, X } from 'lucide-react';
+import { Cpu, Radio, Battery, MapPin, Clock, Wifi, ChevronUp, ChevronDown, Star, Search, X, Pencil, Trash2, UserPlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { base44 } from '@/api/base44Client';
 
@@ -35,6 +35,7 @@ const COLUMNS = [
   { key: 'latitude', label: 'Location' },
   { key: 'uptime_seconds', label: 'Uptime' },
   { key: 'last_heard', label: 'Last Heard' },
+  { key: '_actions', label: '', sortable: false },
 ];
 
 function SortIcon({ column, sortKey, sortDir }) {
@@ -75,15 +76,29 @@ function compareNodes(a, b, key, dir) {
   return 0;
 }
 
-export default function NodeTable({ nodes, onFavoriteToggle }) {
+export default function NodeTable({ nodes, onFavoriteToggle, currentUser, onEditManual, onDeletedManual }) {
   const [sortKey, setSortKey] = useState('last_heard');
   const [sortDir, setSortDir] = useState('desc');
   const [search, setSearch] = useState('');
+
+  const isAdmin = currentUser?.role === 'admin';
+  const canEditDelete = (node) => node.is_manual && (isAdmin || node.created_by === currentUser?.email);
 
   const handleToggleFav = async (e, node) => {
     e.stopPropagation();
     await base44.entities.MeshNode.update(node.id, { is_favorite: !node.is_favorite });
     onFavoriteToggle?.();
+  };
+
+  const handleDelete = async (e, node) => {
+    e.stopPropagation();
+    if (!confirm(`Manuelle Node "${node.long_name || node.node_id}" löschen?`)) return;
+    const res = await base44.functions.invoke('manualNodeCrud', { action: 'delete', id: node.id });
+    if (res.data?.error) {
+      alert(res.data.error);
+      return;
+    }
+    onDeletedManual?.();
   };
 
   const handleSort = (key) => {
@@ -188,6 +203,11 @@ export default function NodeTable({ nodes, onFavoriteToggle }) {
               <td className="py-2.5 px-3">
                 <div className="flex items-center gap-2">
                   {node.is_gateway && <Radio className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
+                  {node.is_manual && (
+                    <span title="Manuell angelegt" className="flex-shrink-0">
+                      <UserPlus className="w-3.5 h-3.5 text-emerald-400" />
+                    </span>
+                  )}
                   <div>
                     <div className="text-foreground font-medium text-xs">{node.long_name || node.node_id}</div>
                     <div className="text-muted-foreground text-xs font-mono">{node.node_id}</div>
@@ -229,6 +249,26 @@ export default function NodeTable({ nodes, onFavoriteToggle }) {
                     {formatDistanceToNow(new Date(node.last_heard * 1000), { addSuffix: true })}
                   </span>
                 ) : '—'}
+              </td>
+              <td className="py-2.5 px-3 w-16">
+                {canEditDelete(node) && (
+                  <div className="flex items-center gap-1 justify-end">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onEditManual?.(node); }}
+                      className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                      title="Bearbeiten"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={(e) => handleDelete(e, node)}
+                      className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      title="Löschen"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </td>
             </tr>
           ))}

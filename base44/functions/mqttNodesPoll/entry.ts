@@ -140,8 +140,9 @@ Deno.serve(async (req) => {
 
       const existing = existingMap[node.node_id];
       if (existing) {
-        // Preserve is_favorite when updating
+        // Preserve is_favorite when updating; clear is_manual since real MQTT data arrived
         record.is_favorite = existing.is_favorite;
+        record.is_manual = false;
         toUpdate.push({ id: existing.id, record });
       } else {
         toCreate.push(record);

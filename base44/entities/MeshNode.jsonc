@@ -36,6 +36,11 @@
       "description": "Als Favorit markiert",
       "default": false
     },
+    "is_manual": {
+      "type": "boolean",
+      "description": "Manuell vom Nutzer angelegt (noch keine MQTT-Daten)",
+      "default": false
+    },
     "last_heard": {
       "type": "integer",
       "description": "Unix-Timestamp letzte Aktivit\u00e4t"

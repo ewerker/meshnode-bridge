@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, RefreshCw, Download, Cpu, BarChart3, List, Map } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Download, Cpu, BarChart3, List, Map, UserPlus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NodeTable from '@/components/NodeTable';
 import NodeStats from '@/components/nodes/NodeStats';
 import NodeMap from '@/components/nodes/NodeMap';
 import ThemeToggle from '@/components/ThemeToggle';
 import NodePollProgress from '@/components/NodePollProgress';
+import ManualNodeDialog from '@/components/ManualNodeDialog';
 
 export default function Nodes() {
   const [nodes, setNodes] = useState([]);
@@ -18,6 +19,8 @@ export default function Nodes() {
   const [user, setUser] = useState(null);
   const [view, setView] = useState('table');
   const [ownNode, setOwnNode] = useState(null);
+  const [manualDialogOpen, setManualDialogOpen] = useState(false);
+  const [editingNode, setEditingNode] = useState(null);
   const fetchNodes = useCallback(async (gw) => {
     const me = gw || (await base44.auth.me()).node_id;
     if (!me) { setNodes([]); setLoading(false); return; }
@@ -184,6 +187,15 @@ export default function Nodes() {
               </button>
             </div>
             <button
+              onClick={() => { setEditingNode(null); setManualDialogOpen(true); }}
+              disabled={!user?.node_id}
+              className="flex items-center gap-2 px-3 py-2 bg-secondary hover:bg-secondary/80 disabled:opacity-50 text-foreground rounded-lg text-sm font-medium transition-colors"
+              title="Manuelle Node anlegen"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add manually</span>
+            </button>
+            <button
               onClick={handlePollNodes}
               disabled={polling || !user?.node_id}
               className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
@@ -239,9 +251,21 @@ export default function Nodes() {
         ) : view === 'stats' ? (
           <NodeStats nodes={nodes} ownNode={ownNode} />
         ) : (
-          <NodeTable nodes={nodes} onFavoriteToggle={fetchNodes} />
+          <NodeTable
+            nodes={nodes}
+            onFavoriteToggle={fetchNodes}
+            currentUser={user}
+            onEditManual={(n) => { setEditingNode(n); setManualDialogOpen(true); }}
+            onDeletedManual={fetchNodes}
+          />
         )}
       </main>
+      <ManualNodeDialog
+        open={manualDialogOpen}
+        onClose={() => { setManualDialogOpen(false); setEditingNode(null); }}
+        onSaved={fetchNodes}
+        node={editingNode}
+      />
     </div>
   );
 }
