@@ -1,6 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, X, Cpu, Star, User } from 'lucide-react';
+import { Search, X, Cpu, Star, User, Clock } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import { base44 } from '@/api/base44Client';
+
+function formatLastHeard(ts) {
+  if (!ts) return null;
+  return formatDistanceToNow(new Date(ts * 1000), { addSuffix: true });
+}
 
 export default function NodePicker({ value, onChange, onFavoriteToggle, portalOnly = false }) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -193,7 +199,22 @@ export default function NodePicker({ value, onChange, onFavoriteToggle, portalOn
                               <span className="text-[10px] px-1 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-semibold flex-shrink-0">Portal</span>
                             )}
                           </div>
-                          <div className="text-xs text-muted-foreground font-mono">{node.node_id}</div>
+                          <div className="text-xs text-muted-foreground font-mono flex items-center gap-2 flex-wrap">
+                            <span className="truncate">{node.node_id}</span>
+                            {!isOwn(node) && !node._isPortalUser && node.gateway_node_id && (
+                              <span className="hidden sm:inline-flex items-center gap-1 text-muted-foreground/70" title="Gateway-Owner">
+                                <span className="text-muted-foreground/50">·</span>
+                                <span className="truncate max-w-[110px]">GW {node.gateway_node_id}</span>
+                              </span>
+                            )}
+                            {node.last_heard && (
+                              <span className="hidden sm:inline-flex items-center gap-1 text-muted-foreground/70">
+                                <span className="text-muted-foreground/50">·</span>
+                                <Clock className="w-3 h-3" />
+                                {formatLastHeard(node.last_heard)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         {isAdmin && (
                           <button
