@@ -15,6 +15,9 @@ Deno.serve(async (req) => {
     if (action === 'create') {
       const cleanId = (node_id || '').trim();
       if (!cleanId) return Response.json({ error: 'node_id required' }, { status: 400 });
+      if (!/^[!?][0-9a-fA-F]+$/.test(cleanId)) {
+        return Response.json({ error: 'Format: ! oder ? gefolgt von Hex-Ziffern' }, { status: 400 });
+      }
       if (!user.node_id) return Response.json({ error: 'Eigene Node-ID nicht in Settings gesetzt' }, { status: 400 });
 
       // Prevent duplicates within the same gateway scope

@@ -9,7 +9,12 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const { text, channel, toNode, mode, hop_limit, want_ack } = body;
-    const sendViaMqtt = user.send_via_mqtt !== false; // default true
+    // Dummy nodes (?...) exist only in the portal — never publish to MQTT for them,
+    // neither when the recipient is a dummy nor when the sender's own node is a dummy.
+    const senderIsDummy = (user.node_id || '').startsWith('?');
+    const recipientIsDummy = mode === 'dm' && (toNode || '').startsWith('?');
+    const forcePortalOnly = senderIsDummy || recipientIsDummy;
+    const sendViaMqtt = forcePortalOnly ? false : (user.send_via_mqtt !== false); // default true
     const sendViaPortal = user.send_via_portal !== false; // default true
 
     if (!text) {

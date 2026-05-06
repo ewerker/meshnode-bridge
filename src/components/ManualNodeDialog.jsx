@@ -46,7 +46,7 @@ export default function ManualNodeDialog({ open, onClose, onSaved, node }) {
     }
   };
 
-  const validId = isEdit || /^![0-9a-fA-F]+$/.test(nodeId.trim());
+  const validId = isEdit || /^[!?][0-9a-fA-F]+$/.test(nodeId.trim());
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
@@ -73,13 +73,16 @@ export default function ManualNodeDialog({ open, onClose, onSaved, node }) {
             type="text"
             value={nodeId}
             onChange={(e) => setNodeId(e.target.value)}
-            placeholder="!49b65bc8"
+            placeholder="!49b65bc8 oder ?abc123 (Portal-only Dummy)"
             disabled={isEdit}
             className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm font-mono text-foreground focus:outline-none focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed"
             required
           />
           {!isEdit && nodeId && !validId && (
-            <p className="text-xs text-destructive mt-1">Format: !gefolgt von Hex-Ziffern</p>
+            <p className="text-xs text-destructive mt-1">Format: ! oder ? gefolgt von Hex-Ziffern</p>
+          )}
+          {!isEdit && validId && nodeId.trim().startsWith('?') && (
+            <p className="text-xs text-emerald-400 mt-1">Dummy-Node — Nachrichten werden nur im Portal zugestellt.</p>
           )}
           {isEdit && (
             <p className="text-xs text-muted-foreground mt-1">Die Node-ID kann nicht geändert werden.</p>

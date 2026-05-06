@@ -86,13 +86,14 @@ export default function SettingsPanel({ onSettingsChanged }) {
     const isAdmin = user?.role === 'admin';
     const prevNodeId = user?.node_id || '';
     const newNodeId = isAdmin ? nodeId.trim() : prevNodeId;
+    const ownIsDummyAtSave = (isAdmin ? nodeId.trim() : prevNodeId).startsWith('?');
     const updatePayload = {
       region,
       default_channel: defaultChannel,
       channels: channelsToSave,
       topic_prefix: topicPrefix.trim(),
-      send_via_mqtt: sendViaMqtt,
-      send_via_portal: sendViaPortal,
+      send_via_mqtt: ownIsDummyAtSave ? false : sendViaMqtt,
+      send_via_portal: ownIsDummyAtSave ? true : sendViaPortal,
     };
     if (isAdmin) updatePayload.node_id = newNodeId;
     await base44.auth.updateMe(updatePayload);
@@ -108,7 +109,11 @@ export default function SettingsPanel({ onSettingsChanged }) {
     onSettingsChanged?.();
   };
 
-  const bothDisabled = !sendViaMqtt && !sendViaPortal;
+  const ownIsDummy = (nodeId || '').trim().startsWith('?');
+  // When own node is a dummy (?…), MQTT sending is forced off and locked.
+  const effectiveSendViaMqtt = ownIsDummy ? false : sendViaMqtt;
+  const effectiveSendViaPortal = ownIsDummy ? true : sendViaPortal;
+  const bothDisabled = !effectiveSendViaMqtt && !effectiveSendViaPortal;
 
   if (!user) return (
     <div className="flex justify-center py-6">
@@ -267,31 +272,40 @@ export default function SettingsPanel({ onSettingsChanged }) {
         <label className="block text-xs font-medium text-primary mb-2 uppercase tracking-wider">
           Nachrichtenweiterleitung
         </label>
+        {ownIsDummy && (
+          <p className="text-xs text-emerald-400 mb-2">
+            Deine Node-ID beginnt mit „?" — Dummy-Node. MQTT-Versand ist deaktiviert; Nachrichten laufen ausschließlich übers Portal.
+          </p>
+        )}
         <div className="flex flex-col gap-3">
-          <label className="flex items-start gap-3 cursor-pointer group">
+          <label className={`flex items-start gap-3 group ${ownIsDummy ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
             <input
               type="checkbox"
-              checked={sendViaMqtt}
+              checked={effectiveSendViaMqtt}
+              disabled={ownIsDummy}
               onChange={(e) => {
+                if (ownIsDummy) return;
                 if (!e.target.checked && !sendViaPortal) return;
                 setSendViaMqtt(e.target.checked);
               }}
-              className="mt-0.5 w-4 h-4 accent-primary cursor-pointer"
+              className="mt-0.5 w-4 h-4 accent-primary cursor-pointer disabled:cursor-not-allowed"
             />
             <div>
               <span className="text-sm text-foreground">Über MQTT senden</span>
               <p className="text-xs text-muted-foreground">Nachricht an das Radio weiterleiten (wenn Gateway online)</p>
             </div>
           </label>
-          <label className="flex items-start gap-3 cursor-pointer group">
+          <label className={`flex items-start gap-3 group ${ownIsDummy ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
             <input
               type="checkbox"
-              checked={sendViaPortal}
+              checked={effectiveSendViaPortal}
+              disabled={ownIsDummy}
               onChange={(e) => {
+                if (ownIsDummy) return;
                 if (!e.target.checked && !sendViaMqtt) return;
                 setSendViaPortal(e.target.checked);
               }}
-              className="mt-0.5 w-4 h-4 accent-primary cursor-pointer"
+              className="mt-0.5 w-4 h-4 accent-primary cursor-pointer disabled:cursor-not-allowed"
             />
             <div>
               <span className="text-sm text-foreground">Direkt im Portal spiegeln</span>
