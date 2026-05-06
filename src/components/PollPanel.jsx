@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Download, Wifi } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import PollCountdown from '@/components/PollCountdown';
 
 const LISTEN_OPTIONS = [
   { label: '10 sec', seconds: 10 },
@@ -75,7 +76,7 @@ export default function PollPanel({ onReceived, userSettings }) {
           {polling ? (
             <>
               <Wifi className="w-4 h-4 text-primary animate-pulse" />
-              <span>Listening… ({listenLabel})</span>
+              <span>Listening…</span>
             </>
           ) : (
             <>
@@ -84,6 +85,7 @@ export default function PollPanel({ onReceived, userSettings }) {
             </>
           )}
         </button>
+        {polling && <PollCountdown active={polling} seconds={listenSeconds} />}
         {result && (
           <span className={`text-xs ${result.type === 'success' ? 'text-primary' : 'text-destructive'}`}>
             {result.msg}
