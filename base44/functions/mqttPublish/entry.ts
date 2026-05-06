@@ -155,6 +155,16 @@ Deno.serve(async (req) => {
           return (u.channels || []).some(c => c.number === channelNum && (c.name || '').trim() === channelName);
         });
         for (const recipient of recipients) {
+          const since = Math.floor(Date.now() / 1000) - 600;
+          const existing = await base44.asServiceRole.entities.MeshMessage.filter({
+            direction: 'inbound',
+            from_node: gatewayNodeId,
+            gateway_node_id: recipient.node_id,
+            channel: String(channelNum),
+            text,
+          }, '-created_date', 5);
+          if (existing.some(e => (e.meshtastic_timestamp || 0) >= since)) continue;
+
           await base44.asServiceRole.entities.MeshMessage.create({
             direction: 'inbound',
             text: `VIA PORTAL: ${text}`,

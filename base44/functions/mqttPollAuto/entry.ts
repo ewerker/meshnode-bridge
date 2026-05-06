@@ -212,18 +212,20 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Dedup portal mirror: when a real MQTT-delivered DM arrives, remove any
-      // recent portal-mirrored copy with matching sender/recipient + prefixed text.
-      if (isDM && p.text && p.from_id) {
+      // Dedup portal mirror: if this message was also delivered internally via
+      // the portal within the last 10 minutes, delete the portal copy — the real
+      // MQTT-delivered copy now wins.
+      if (p.text && p.from_id) {
         try {
           const mirrorText = `VIA PORTAL: ${p.text}`;
           const since = Math.floor(Date.now() / 1000) - 600;
           const candidates = await base44.asServiceRole.entities.MeshMessage.filter({
             direction: 'inbound',
             from_node: p.from_id,
-            to_node: isDM ? (p.to_id || messageGatewayId) : (p.to_id || '^all'),
+            to_node: isDM ? (p.to_id || messageGatewayId) : '^all',
             text: mirrorText,
-          }, '-created_date', 5);
+            gateway_node_id: messageGatewayId,
+          }, '-created_date', 10);
           for (const c of candidates) {
             if (c.id === created.id) continue;
             if ((c.meshtastic_timestamp || 0) >= since) {
