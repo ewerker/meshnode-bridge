@@ -1,6 +1,7 @@
 import { Radio, ArrowLeft, Wifi, Send, Download, Cpu, Settings, MessageSquare, Moon, RefreshCw, User, Users, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ThemeToggle from '@/components/ThemeToggle';
+import AppFooter from '@/components/AppFooter';
 
 export default function About() {
   return (
@@ -129,13 +130,8 @@ export default function About() {
             <p><span className="text-primary font-medium">Nodes page</span> — Fetches the full node list from the broker and displays hardware, battery, signal quality, GPS coordinates, and uptime in a sortable table.</p>
           </div>
         </section>
-        {/* Footer link */}
-        <div className="pt-4 border-t border-border text-center">
-          <Link to="/imprint" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-            Imprint & Disclaimer
-          </Link>
-        </div>
       </main>
+      <AppFooter />
     </div>
   );
 }

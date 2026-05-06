@@ -12,6 +12,7 @@ import PollCountdown from '@/components/PollCountdown';
 import PollLog from '@/components/PollLog';
 import CollapsibleSection from '@/components/CollapsibleSection';
 import GatewayStatusIndicator from '@/components/GatewayStatusIndicator';
+import AppFooter from '@/components/AppFooter';
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
@@ -328,6 +329,7 @@ export default function Dashboard() {
         )}
         </>
       </main>
+      <AppFooter />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import NodeMap from '@/components/nodes/NodeMap';
 import ThemeToggle from '@/components/ThemeToggle';
 import NodePollProgress from '@/components/NodePollProgress';
 import ManualNodeDialog from '@/components/ManualNodeDialog';
+import AppFooter from '@/components/AppFooter';
 
 export default function Nodes() {
   const [nodes, setNodes] = useState([]);
@@ -293,6 +294,7 @@ export default function Nodes() {
         onSaved={fetchNodes}
         node={editingNode}
       />
+      <AppFooter />
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import { ArrowLeft, Scale } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ThemeToggle from '@/components/ThemeToggle';
+import AppFooter from '@/components/AppFooter';
 
 export default function Imprint() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link to="/" className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
@@ -13,26 +14,26 @@ export default function Imprint() {
           <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center">
             <Scale className="w-5 h-5 text-primary" />
           </div>
-          <h1 className="font-bold text-foreground tracking-tight">Imprint & Disclaimer</h1>
+          <h1 className="font-bold text-foreground tracking-tight">Impressum & Haftungsausschluss</h1>
           <div className="ml-auto"><ThemeToggle /></div>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-3xl mx-auto px-4 py-8 space-y-8 flex-1 w-full">
         {/* Impressum */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-4">Imprint</h2>
+          <h2 className="text-xl font-bold text-foreground mb-4">Impressum</h2>
           <div className="bg-card border border-border rounded-xl p-5 space-y-3 text-muted-foreground">
             <p className="text-primary font-semibold text-lg">DoubleU2 (we-zwei)</p>
-            <p><span className="text-muted-foreground">Owner:</span> Frank Richter</p>
+            <p><span className="text-muted-foreground">Inhaber:</span> Frank Richter</p>
             <div>
-              <p className="text-muted-foreground text-sm mb-1">Address</p>
+              <p className="text-muted-foreground text-sm mb-1">Anschrift</p>
               <p>Kräuterweg 9</p>
               <p>04683 Naunhof</p>
-              <p>Germany</p>
+              <p>Deutschland</p>
             </div>
             <div>
-              <p className="text-muted-foreground text-sm mb-1">Contact</p>
+              <p className="text-muted-foreground text-sm mb-1">Kontakt</p>
               <p>
                 <a href="tel:+4934293470571" className="text-primary hover:underline">+49 (0) 34293 470571</a>
               </p>
@@ -41,39 +42,41 @@ export default function Imprint() {
                 <a href="mailto:richter@w-2.de" className="text-primary hover:underline">richter@w-2.de</a>
               </p>
               <p>
-                <a href="https://w-2.de" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://w-2.de</a>
+                🌐 <a href="https://w-2.de" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://w-2.de</a>
               </p>
             </div>
           </div>
         </section>
 
-        {/* Disclaimer */}
+        {/* Haftungsausschluss */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-4">Disclaimer</h2>
+          <h2 className="text-xl font-bold text-foreground mb-4">Haftungsausschluss</h2>
           <div className="space-y-6">
             <DisclaimerSection
-              title="Liability for Content"
-              text="The contents of our pages were created with the greatest care. However, we cannot guarantee the accuracy, completeness, or timeliness of the content. As a service provider, we are responsible for our own content on these pages in accordance with § 7 para. 1 TMG (German Telemedia Act). According to §§ 8 to 10 TMG, however, we are not obligated to monitor transmitted or stored third-party information or to investigate circumstances that indicate illegal activity."
+              title="Haftung für Inhalte"
+              text="Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen. Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen."
             />
             <DisclaimerSection
-              title="Liability for Links"
-              text="Our website contains links to external third-party websites over whose content we have no influence. Therefore, we cannot assume any liability for this third-party content. The respective provider or operator of the pages is always responsible for the content of the linked pages. The linked pages were checked for possible legal violations at the time of linking. Illegal content was not recognizable at the time of linking."
+              title="Haftung für Links"
+              text="Unser Angebot enthält Links zu externen Webseiten Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich. Die verlinkten Seiten wurden zum Zeitpunkt der Verlinkung auf mögliche Rechtsverstöße überprüft. Rechtswidrige Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennbar."
             />
             <DisclaimerSection
-              title="Copyright"
-              text="The content and works created by the site operators on these pages are subject to German copyright law. Reproduction, editing, distribution, and any kind of exploitation beyond the limits of copyright law require the written consent of the respective author or creator."
+              title="Urheberrecht"
+              text="Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers."
             />
             <DisclaimerSection
-              title="Data Privacy"
-              text="We take the protection of your personal data very seriously. All collected data is processed exclusively for the provision of our services and is not shared with third parties. Processing is carried out only for our own purposes within the scope of our IT services. Different privacy terms may apply within individual apps, which are viewable within the respective application."
+              title="Datenschutz"
+              text="Wir nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Alle erhobenen Daten werden ausschließlich für die Erbringung unserer Dienstleistungen verarbeitet und nicht an Dritte weitergegeben. Die Verarbeitung erfolgt nur für eigene Verwendungszwecke im Rahmen unserer IT-Dienstleistungen. In den einzelnen Apps können abweichende Datenschutzbedingungen gelten, die jeweils in der entsprechenden Anwendung einsehbar sind."
             />
             <DisclaimerSection
-              title="Warranty and Liability"
-              text="We provide warranty within the scope of statutory provisions. Liability for slight negligence is excluded, unless damages resulting from injury to life, body, or health, or guarantees are affected, or claims under the Product Liability Act are involved."
+              title="Gewährleistung und Haftung"
+              text="Wir übernehmen die Gewährleistung im Rahmen der gesetzlichen Bestimmungen. Die Haftung für leichte Fahrlässigkeit ist ausgeschlossen, soweit nicht Schäden aus der Verletzung des Lebens, des Körpers oder der Gesundheit oder Garantien betroffen sind oder Ansprüche nach dem Produkthaftungsgesetz berührt sind."
             />
           </div>
         </section>
       </main>
+
+      <AppFooter />
     </div>
   );
 }
