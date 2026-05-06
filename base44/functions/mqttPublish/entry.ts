@@ -244,7 +244,10 @@ Deno.serve(async (req) => {
     if (!wantAckFlag) {
       // Mirror FIRST (before MQTT publish) so other portal users see the message
       // immediately and the later radio-relayed copy is properly deduped.
-      if (sendViaPortal) await createDuplicate();
+      // Errors in the mirror path must NEVER block the MQTT publish.
+      if (sendViaPortal) {
+        try { await createDuplicate(); } catch (e) { console.log('[PUB-V3] createDuplicate failed (non-fatal):', e.message); }
+      }
       if (sendViaMqtt) await publishOnly(brokerUrl, username, password, topic, payloadStr);
       await publishPortalGroupViaGateways();
       await base44.entities.MeshMessage.create({
@@ -282,7 +285,10 @@ Deno.serve(async (req) => {
 
     // Mirror FIRST (before MQTT publish + ACK wait) so other portal users see the
     // message immediately and the later radio-relayed copy is properly deduped.
-    if (sendViaPortal) await createDuplicate();
+    // Errors in the mirror path must NEVER block the MQTT publish/ACK flow.
+    if (sendViaPortal) {
+      try { await createDuplicate(); } catch (e) { console.log('[PUB+ACK] createDuplicate failed (non-fatal):', e.message); }
+    }
 
     const ackTopic = `${prefix}/ack/${gatewayNodeId}/${client_ref}`;
     const ACK_TIMEOUT_MS = 70000;
