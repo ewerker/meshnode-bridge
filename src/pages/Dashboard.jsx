@@ -110,14 +110,21 @@ export default function Dashboard() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Keep a live ref of the user's gateway so the subscribe handler doesn't
+  // capture a stale (null) value at mount time.
+  const myGwRef = useRef(null);
+  useEffect(() => { myGwRef.current = currentUser?.node_id || null; }, [currentUser?.node_id]);
+
   useEffect(() => {
     fetchMessages();
     loadUser();
     const unsub = base44.entities.MeshMessage.subscribe((event) => {
       if (event.type === 'create') {
-        // Only show messages for the currently configured gateway
-        const myGw = currentUser?.node_id;
-        if (myGw && event.data?.gateway_node_id !== myGw) return;
+        const myGw = myGwRef.current;
+        // If we don't yet know our gateway, drop the event (avoids leaking
+        // mirror messages of other users into this user's view).
+        if (!myGw) return;
+        if (event.data?.gateway_node_id !== myGw) return;
         setMessages((prev) => sortMessages([event.data, ...prev]));
       }
     });
