@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Send, Radio, Users, User, Bell } from 'lucide-react';
+import { Send, Radio, Users, User, Bell, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import NodePicker from '@/components/NodePicker';
 
@@ -29,6 +29,13 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const [withBell, setWithBell] = useState(false);
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [portalNodeIds, setPortalNodeIds] = useState(new Set());
+
+  useEffect(() => {
+    base44.entities.User.list().then(users => {
+      setPortalNodeIds(new Set(users.map(u => u.node_id).filter(Boolean)));
+    }).catch(() => {});
+  }, []);
 
   // React to a reply request:
   //  - If the source was a received DM (forceDM), always switch to DM mode and set sender.
@@ -217,6 +224,15 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
             Recipient
           </label>
           <NodePicker value={dmNodeId} onChange={setDmNodeId} />
+          {/* Portal-only warning */}
+          {userSettings?.send_via_mqtt === false && userSettings?.send_via_portal !== false && dmNodeId && !portalNodeIds.has(dmNodeId) && (
+            <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>
+                <strong>Hinweis:</strong> Nur „Portal spiegeln" ist aktiv (nicht empfohlen). Der Empfänger ist im Portal nicht bekannt — die Nachricht geht verloren, wenn dieser kein Konto hat.
+              </span>
+            </div>
+          )}
         </div>
       )}
 

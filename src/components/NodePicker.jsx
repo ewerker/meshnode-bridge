@@ -6,6 +6,7 @@ import { base44 } from '@/api/base44Client';
 
 export default function NodePicker({ value, onChange, onFavoriteToggle }) {
   const [nodes, setNodes] = useState([]);
+  const [portalNodeIds, setPortalNodeIds] = useState(new Set());
   const [filter, setFilter] = useState('');
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -14,8 +15,12 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
     (async () => {
       const me = await base44.auth.me();
       if (!me?.node_id) { setNodes([]); return; }
-      const data = await base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 500);
+      const [data, users] = await Promise.all([
+        base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 500),
+        base44.entities.User.list(),
+      ]);
       setNodes(data);
+      setPortalNodeIds(new Set(users.map(u => u.node_id).filter(Boolean)));
     })();
   }, []);
 
@@ -68,11 +73,14 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
       {value && selectedNode ? (
         <div className="flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">
           {selectedNode.is_favorite && <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400 flex-shrink-0" />}
-          {!selectedNode.is_favorite && <Cpu className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
+          {!selectedNode.is_favorite && <Cpu className={`w-3.5 h-3.5 flex-shrink-0 ${portalNodeIds.has(selectedNode.node_id) ? 'text-emerald-400' : 'text-primary'}`} />}
           <span className="text-sm text-foreground truncate">
             {selectedNode.long_name || selectedNode.short_name || selectedNode.node_id}
           </span>
           <span className="text-xs text-muted-foreground font-mono">{selectedNode.node_id}</span>
+          {portalNodeIds.has(selectedNode.node_id) && (
+            <span className="text-[10px] px-1 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-semibold">Portal</span>
+          )}
           <button type="button" onClick={clear} className="ml-auto text-muted-foreground hover:text-destructive">
             <X className="w-3.5 h-3.5" />
           </button>
@@ -134,11 +142,16 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
                        >
                          {node.is_favorite
                            ? <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400 flex-shrink-0" />
-                           : <Cpu className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                           : <Cpu className={`w-3.5 h-3.5 flex-shrink-0 ${portalNodeIds.has(node.node_id) ? 'text-emerald-400' : 'text-muted-foreground'}`} />
                          }
                          <div className="min-w-0 flex-1">
-                           <div className="text-sm text-foreground truncate">
-                             {node.long_name || node.short_name || node.node_id}
+                           <div className="flex items-center gap-2">
+                             <span className="text-sm text-foreground truncate">
+                               {node.long_name || node.short_name || node.node_id}
+                             </span>
+                             {portalNodeIds.has(node.node_id) && (
+                               <span className="text-[10px] px-1 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-semibold flex-shrink-0">Portal</span>
+                             )}
                            </div>
                            <div className="text-xs text-muted-foreground font-mono">{node.node_id}</div>
                          </div>
