@@ -50,7 +50,14 @@ Deno.serve(async (req) => {
     const prefix = user.topic_prefix || `msh/${regionStr}/proxy`;
     const gatewayNodeId = user.node_id || '!gateway';
 
-    console.log('[PUB-V3] gatewayNodeId:', gatewayNodeId, '| mode:', mode, '| toNode:', toNode);
+    // Group messages from a ?-portal sender always carry a "FROM Name (?xxxx) VIA PORTAL:"
+    // prefix so all recipients (MQTT-forwarded, internal mirrors, sender's own log)
+    // see who sent the message — and so the cross-channel content dedup matches.
+    const dummyGroupForward = senderIsDummy && mode === 'channel';
+    const portalSenderLabel = `${user.full_name || user.email || 'Portal User'} (${gatewayNodeId})`;
+    const effectiveText = dummyGroupForward ? `FROM ${portalSenderLabel} VIA PORTAL: ${text}` : text;
+
+    console.log('[PUB-V3] gatewayNodeId:', gatewayNodeId, '| mode:', mode, '| toNode:', toNode, '| dummyGroupForward:', dummyGroupForward);
 
     let topic;
     let recipientGatewayId = null;
@@ -93,7 +100,7 @@ Deno.serve(async (req) => {
     console.log('[PUB-V3] FINAL topic:', topic);
 
     const payload = {
-      text,
+      text: effectiveText,
       channel: channelNum,
       hop_limit: hop_limit !== undefined ? hop_limit : 3,
       want_ack: wantAckFlag,
@@ -102,7 +109,7 @@ Deno.serve(async (req) => {
     const payloadStr = JSON.stringify(payload);
 
     // Diagnostic: log byte codes of last 4 chars of text to verify BEL (0x07) is present
-    const lastChars = text.slice(-4).split('').map(c => `${c}=0x${c.charCodeAt(0).toString(16).padStart(2,'0')}`).join(' ');
+    const lastChars = effectiveText.slice(-4).split('').map(c => `${c}=0x${c.charCodeAt(0).toString(16).padStart(2,'0')}`).join(' ');
     console.log('[PUB-V3] text bytes (last 4):', lastChars);
     console.log('[PUB-V3] payloadStr:', payloadStr);
 
@@ -113,13 +120,12 @@ Deno.serve(async (req) => {
         if (!u.node_id || !u.node_id.startsWith('!')) return false;
         return (u.channels || []).some(c => c.number === channelNum && (c.name || '').trim() === channelName);
       });
-      const forwardedText = `FROM ${user.full_name || user.email || 'Portal User'} (${gatewayNodeId}) VIA PORTAL: ${text}`;
       for (const gateway of gateways) {
         const gatewayRegion = gateway.region || regionStr;
         const gatewayPrefix = gateway.topic_prefix || `msh/${gatewayRegion}/proxy`;
         const gatewayTopic = `${gatewayPrefix}/send/${gateway.node_id}/group/${channelNum}`;
         const gatewayPayload = JSON.stringify({
-          text: forwardedText,
+          text: effectiveText,
           channel: channelNum,
           hop_limit: hop_limit !== undefined ? hop_limit : 3,
           want_ack: false,
@@ -177,6 +183,10 @@ Deno.serve(async (req) => {
           if (!u.node_id || u.node_id === gatewayNodeId) return false;
           return (u.channels || []).some(c => c.number === channelNum && (c.name || '').trim() === channelName);
         });
+        // For ?-portal senders the effectiveText already starts with
+        // "FROM <name> (?xxxx) VIA PORTAL:" so we mirror it as-is. For !-gateway
+        // senders we prepend "VIA PORTAL:" as before.
+        const mirrorText = dummyGroupForward ? effectiveText : `VIA PORTAL: ${text}`;
         for (const recipient of recipients) {
           const since = Math.floor(Date.now() / 1000) - 600;
           const existing = await base44.asServiceRole.entities.MeshMessage.filter({
@@ -184,13 +194,13 @@ Deno.serve(async (req) => {
             from_node: gatewayNodeId,
             gateway_node_id: recipient.node_id,
             channel: String(channelNum),
-            text,
+            text: mirrorText,
           }, '-created_date', 5);
           if (existing.some(e => (e.meshtastic_timestamp || 0) >= since)) continue;
 
           await base44.asServiceRole.entities.MeshMessage.create({
             direction: 'inbound',
-            text: `VIA PORTAL: ${text}`,
+            text: mirrorText,
             channel: String(channelNum),
             channel_name: channelName,
             from_node: gatewayNodeId,
@@ -198,7 +208,7 @@ Deno.serve(async (req) => {
             gateway_node_id: recipient.node_id,
             mqtt_topic: `${prefix}/portal/${recipient.node_id}/group/${channelNum}`,
             status: 'received',
-            raw_payload: JSON.stringify({ ...payload, text: `VIA PORTAL: ${text}`, portal_group: true, channel_name: channelName }),
+            raw_payload: JSON.stringify({ ...payload, text: mirrorText, portal_group: true, channel_name: channelName }),
             meshtastic_timestamp: Math.floor(Date.now() / 1000),
           });
         }
