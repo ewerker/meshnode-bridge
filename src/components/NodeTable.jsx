@@ -82,7 +82,11 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, onEdit
   const [search, setSearch] = useState('');
 
   const isAdmin = currentUser?.role === 'admin';
-  const canEditDelete = (node) => node.is_manual && (isAdmin || node.created_by === currentUser?.email);
+  const canEditDelete = (node) => node.is_manual && (
+    isAdmin ||
+    node.owner_email === currentUser?.email ||
+    (!node.owner_email && node.gateway_node_id === currentUser?.node_id)
+  );
 
   const handleToggleFav = async (e, node) => {
     e.stopPropagation();

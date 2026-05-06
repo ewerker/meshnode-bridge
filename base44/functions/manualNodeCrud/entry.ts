@@ -43,13 +43,12 @@ Deno.serve(async (req) => {
       const created = await base44.asServiceRole.entities.MeshNode.create({
         node_id: cleanId,
         gateway_node_id: user.node_id,
+        owner_email: user.email,
         short_name: (short_name || '').trim(),
         long_name: (long_name || '').trim(),
         is_manual: true,
       });
-      // Tag created_by manually since service-role create uses system identity
-      await base44.asServiceRole.entities.MeshNode.update(created.id, { created_by: user.email });
-      return Response.json({ success: true, node: { ...created, created_by: user.email } });
+      return Response.json({ success: true, node: created });
     }
 
     if (action === 'update' || action === 'delete') {
@@ -59,7 +58,7 @@ Deno.serve(async (req) => {
       if (!node) return Response.json({ error: 'Node not found' }, { status: 404 });
       if (!node.is_manual) return Response.json({ error: 'Nur manuell angelegte Nodes können bearbeitet werden' }, { status: 403 });
 
-      const isOwner = node.created_by === user.email;
+      const isOwner = node.owner_email === user.email || (!node.owner_email && node.gateway_node_id === user.node_id);
       const isAdmin = user.role === 'admin';
       if (!isOwner && !isAdmin) {
         return Response.json({ error: 'Forbidden: nicht der Eigentümer' }, { status: 403 });
