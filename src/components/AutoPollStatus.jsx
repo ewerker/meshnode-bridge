@@ -53,9 +53,7 @@ export default function AutoPollStatus({ currentUser }) {
       ) : (
         <Wifi className="w-3.5 h-3.5 flex-shrink-0 animate-pulse" />
       )}
-      {status.gateway_node_id && (
-        <span className="font-mono">{status.gateway_node_id}</span>
-      )}
+      <span>{skipped ? 'paused' : 'live'}</span>
     </div>
   );
 }
