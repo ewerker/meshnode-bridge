@@ -34,10 +34,53 @@ Deno.serve(async (req) => {
           ? `Channel ${message.channel}`
           : 'Unbekannter Channel';
 
+      const emailBody = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937; max-width: 640px; margin: 0 auto;">
+          <h2 style="margin: 0 0 16px; color: #0f766e;">Neue ${isDm ? 'Direktnachricht' : 'Gruppennachricht'} im Mesh Portal</h2>
+
+          <p>Hallo ${user.full_name || user.email},</p>
+
+          <p>
+            du erhältst diese automatische E-Mail, weil in deinen Portal-Einstellungen
+            E-Mail-Benachrichtigungen für <strong>${isDm ? 'Direktnachrichten' : 'Gruppennachrichten'}</strong> aktiviert sind.
+          </p>
+
+          <div style="background: #f9fafb; border-left: 4px solid #0f766e; padding: 14px 16px; margin: 20px 0; white-space: pre-wrap;">
+            ${message.text || ''}
+          </div>
+
+          <h3 style="margin: 24px 0 8px; color: #374151;">Details</h3>
+          <ul style="padding-left: 20px; margin-top: 0;">
+            <li><strong>Typ:</strong> ${isDm ? 'Direktnachricht' : 'Gruppennachricht'}</li>
+            <li><strong>Von Node:</strong> ${message.from_node || 'Unbekannt'}</li>
+            <li><strong>An Node / Gateway:</strong> ${message.gateway_node_id || 'Unbekannt'}</li>
+            <li><strong>Channel:</strong> ${channelLabel}</li>
+            <li><strong>Status:</strong> ${message.status || 'received'}</li>
+            <li><strong>Zeitpunkt:</strong> ${new Date().toLocaleString('de-DE', { timeZone: 'Europe/Berlin' })}</li>
+          </ul>
+
+          <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 14px 16px; margin: 22px 0; color: #9a3412;">
+            <strong>Wichtiger Hinweis:</strong><br>
+            Bitte nutze nicht den automatisch angehängten Abmelde-Link am Ende dieser E-Mail, wenn du nur Mesh-Benachrichtigungen ändern möchtest.
+            Stelle E-Mails stattdessen direkt im Portal unter <strong>Einstellungen → Nachrichten per E-Mail empfangen</strong> ein.
+          </div>
+
+          <p style="margin-top: 24px;">
+            Warum bekommst du diese E-Mail?<br>
+            Diese Nachricht wurde im Mesh Portal empfangen und automatisch an dein Postfach weitergeleitet, weil deine Benachrichtigungseinstellung dies erlaubt.
+          </p>
+
+          <p style="margin-top: 24px;">
+            Viele Grüße<br>
+            <strong>Mesh Portal</strong>
+          </p>
+        </div>
+      `;
+
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: user.email,
         subject: isDm ? 'Neue Direktnachricht im Mesh Portal' : 'Neue Gruppennachricht im Mesh Portal',
-        body: `Hallo ${user.full_name || user.email},\n\nDu erhältst diese automatische E-Mail, weil in deinen Portal-Einstellungen E-Mail-Benachrichtigungen für ${isDm ? 'Direktnachrichten' : 'Gruppennachrichten'} aktiviert sind.\n\nNachricht:\n${message.text || ''}\n\nDetails:\n- Typ: ${isDm ? 'Direktnachricht' : 'Gruppennachricht'}\n- Von Node: ${message.from_node || 'Unbekannt'}\n- An Node / Gateway: ${message.gateway_node_id || 'Unbekannt'}\n- Channel: ${channelLabel}\n- Status: ${message.status || 'received'}\n- Zeitpunkt: ${new Date().toLocaleString('de-DE', { timeZone: 'Europe/Berlin' })}\n\nWarum bekommst du diese E-Mail?\nDiese Nachricht wurde im Mesh Portal empfangen und automatisch an dein Postfach weitergeleitet, weil deine Benachrichtigungseinstellung dies erlaubt.\n\nDiese E-Mail wurde automatisiert vom Mesh Portal versendet. Die Steuerung erfolgt über deine Einstellungen im Portal.\n\nViele Grüße\nMesh Portal`
+        body: emailBody
       });
       sent++;
     }
