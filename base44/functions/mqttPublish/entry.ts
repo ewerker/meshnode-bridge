@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
         return;
       }
 
-      if (mode === 'channel' && senderIsDummy && channelName) {
+      if (mode === 'channel' && channelName && channelName.toLowerCase() !== 'longfast') {
         const users = await base44.asServiceRole.entities.User.list();
         const recipients = users.filter(u => {
           if (!u.node_id || u.node_id === gatewayNodeId) return false;
