@@ -53,6 +53,10 @@ export default function Nodes() {
       setResult({ type: 'error', msg: 'Please set a Node ID in Settings first.' });
       return;
     }
+    if (fromNode.startsWith('?')) {
+      setResult({ type: 'error', msg: 'Portal-only Accounts können keine Nodes per MQTT fetchen.' });
+      return;
+    }
     setPolling(true);
     setPollProgress({ phase: 'listening', current: 0, total: 0 });
     setResult(null);
@@ -218,7 +222,8 @@ export default function Nodes() {
             </button>
             <button
               onClick={handlePollNodes}
-              disabled={polling || !user?.node_id}
+              disabled={polling || !user?.node_id || user.node_id.startsWith('?')}
+              title={user?.node_id?.startsWith('?') ? 'Portal-only Accounts können keine Nodes per MQTT fetchen' : 'Fetch Nodes'}
               className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
             >
               {polling ? (
