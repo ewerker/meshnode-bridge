@@ -16,27 +16,20 @@ export default function NodePicker({ value, onChange, onFavoriteToggle }) {
       const admin = me?.role === 'admin';
       setIsAdmin(admin);
 
-      // Fetch portal users via backend function (bypasses RLS for all roles)
+      // Fetch portal users + mesh nodes via backend function (bypasses RLS for all roles)
       const res = await base44.functions.invoke('getPortalUsers', {});
       const portalUsers = res.data?.users || [];
+      const meshNodes = res.data?.nodes || [];
       setPortalNodeIds(new Set(portalUsers.map(u => u.node_id)));
 
       if (admin) {
-        // Admins see all mesh nodes
+        // Admins see all mesh nodes (own filter to keep favorites editable)
         if (!me?.node_id) { setNodes([]); return; }
         const data = await base44.entities.MeshNode.filter({ gateway_node_id: me.node_id }, '-last_heard', 500);
         setNodes(data);
       } else {
-        // Regular users see portal users as recipients
-        const portalNodes = portalUsers.map(u => ({
-          id: u.id,
-          node_id: u.node_id,
-          long_name: u.long_name,
-          short_name: null,
-          is_favorite: false,
-          _isPortalUser: true,
-        }));
-        setNodes(portalNodes);
+        // Regular users get the same node list as the Nodes page (via service role)
+        setNodes(meshNodes);
       }
     })();
   }, []);
