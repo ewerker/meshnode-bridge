@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Radio, MessageSquare, Cpu, ShieldCheck, LogIn, Wifi, Mail, Network, Zap } from 'lucide-react';
+import { Radio, MessageSquare, Cpu, ShieldCheck, LogIn, Wifi, Mail, Network, Zap, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { useTheme } from '@/lib/ThemeContext';
-import ThemeToggle from '@/components/ThemeToggle';
+
 
 const topics = [
   {
@@ -59,7 +59,7 @@ const screenshotCards = [
 
 export default function Landing() {
   const { navigateToLogin } = useAuth();
-  const { resolved } = useTheme();
+  const { resolved, setTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -90,10 +90,13 @@ export default function Landing() {
               <LogIn className="w-5 h-5" />
               Login
             </button>
-            <div className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-secondary border border-border text-sm text-muted-foreground">
-              Tag / Nacht
-              <ThemeToggle />
-            </div>
+            <button
+              onClick={() => setTheme(resolved === 'dark' ? 'light' : 'dark')}
+              className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 border border-border text-sm text-foreground transition-colors"
+            >
+              {resolved === 'dark' ? <Sun className="w-4 h-4 text-primary" /> : <Moon className="w-4 h-4 text-primary" />}
+              {resolved === 'dark' ? 'Tag einschalten' : 'Nacht einschalten'}
+            </button>
           </div>
         </section>
 
