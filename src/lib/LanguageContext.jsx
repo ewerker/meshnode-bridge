@@ -68,7 +68,7 @@ export const translations = {
         ['Nachrichten & Deduplizierung', 'Da z.B. Gruppennachrichten über viele physische Geräte an unterschiedlichen Orten gleichzeitig verschickt werden, erhöht sich die Empfangsquote dramatisch. Regelmäßig mehrfach eintreffende Nachrichten werden dedupliziert und nur 1x im Portal angezeigt.'],
         ['ACK & Zustellstatus', 'Mit want_ack und eindeutigen client_ref-IDs verfolgt das Portal ACK, NAK und Implicit ACK über dedizierte MQTT-Topics transparent nach.'],
         ['Node-Entdeckung', 'Node-Daten wie last_heard, SNR, battery_level, GPS, Hardware und Uptime werden per MQTT-Polling gesammelt und übersichtlich visualisiert.'],
-        ['Omni-Channel-Erweiterung', 'E-Mail-Weiterleitung ist bereits möglich; Versand per E-Mail sowie SMS, RCS, Push, Telegram, WhatsApp, iMessage, KI-Bots und Autoresponder sind vorbereitet oder machbar.'],
+        ['Omni-Channel-Erweiterung', 'E-Mail-Weiterleitung ist bereits möglich; die Einbindung von WhatsApp und Telegram ist realisiert. Versand per E-Mail sowie SMS, RCS, Push, iMessage, KI-Bots und Autoresponder sind vorbereitet oder machbar.'],
       ],
       screenshots: [
         ['Nachrichtenübersicht', 'Eingehende Nachrichten, Gruppen und DM via Radio oder Portal — dedupliziert, wenn sie über mehrere Wege geleitet werden.'],
@@ -188,7 +188,7 @@ export const translations = {
         ['Messages & deduplication', 'Because group messages, for example, can be sent through many physical devices in different locations at the same time, the reception rate increases dramatically. Messages that regularly arrive multiple times are deduplicated and shown only once in the portal.'],
         ['ACK & delivery status', 'With want_ack and unique client_ref IDs, the portal transparently tracks ACK, NAK, and implicit ACK via dedicated MQTT topics.'],
         ['Node discovery', 'Node data such as last_heard, SNR, battery_level, GPS, hardware, and uptime is collected via MQTT polling and displayed clearly.'],
-        ['Omni-channel extension', 'Email forwarding is already possible; sending via email as well as SMS, RCS, push, Telegram, WhatsApp, iMessage, AI bots, and autoresponders is prepared or feasible.'],
+        ['Omni-channel extension', 'Email forwarding is already possible; WhatsApp and Telegram integration is implemented. Sending via email as well as SMS, RCS, push, iMessage, AI bots, and autoresponders is prepared or feasible.'],
       ],
       screenshots: [
         ['Message overview', 'Incoming messages, groups, and DMs via radio or portal — deduplicated when routed through multiple paths.'],
