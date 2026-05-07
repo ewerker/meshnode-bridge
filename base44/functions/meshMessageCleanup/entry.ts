@@ -6,6 +6,15 @@ const MAX_ENTRIES = 250;
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const isAutomation = req.headers.get('x-base44-automation-id') !== null;
+
+    if (!isAutomation) {
+      const user = await base44.auth.me();
+      if (user?.role !== 'admin') {
+        return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      }
+    }
+
     const cutoff = Math.floor(Date.now() / 1000) - MAX_AGE_SECONDS;
 
     // Newest first; anything beyond MAX_ENTRIES or older than cutoff gets removed.

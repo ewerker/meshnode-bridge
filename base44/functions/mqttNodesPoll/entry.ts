@@ -124,7 +124,12 @@ async function persistNodes(base44, resolvedFromNode, nodes) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const isAutomation = req.headers.get('x-base44-automation-id') !== null;
     const user = await base44.auth.me().catch(() => null);
+
+    if (!isAutomation && !user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const body = await req.json().catch(() => ({}));
     const { fromNode, pollType } = body;
