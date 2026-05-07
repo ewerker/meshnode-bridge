@@ -1,5 +1,5 @@
 import { ArrowUpRight, ArrowDownLeft, Radio, Trash2, Wifi, Star, Bell, RotateCw, Filter } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -75,6 +75,25 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
   const getDisplayChannelName = (msg) => {
     if (msg.channel_name && String(msg.channel_name).trim()) return String(msg.channel_name).trim();
     return getChannelName(msg.channel);
+  };
+
+  const parseCreatedDate = (createdDate) => {
+    if (!createdDate) return null;
+    const date = new Date(createdDate.endsWith('Z') ? createdDate : `${createdDate}Z`);
+    return isNaN(date.getTime()) ? null : date;
+  };
+
+  const formatMessageTime = (msg) => {
+    const meshDate = msg.meshtastic_timestamp ? new Date(msg.meshtastic_timestamp * 1000) : null;
+    const importDate = parseCreatedDate(msg.created_date);
+
+    if (meshDate && importDate) {
+      return `${format(meshDate, 'dd.MM. HH:mm:ss')} (${isDe ? 'Import' : 'import'} ${format(importDate, 'dd.MM. HH:mm:ss')})`;
+    }
+
+    if (meshDate) return format(meshDate, 'dd.MM. HH:mm:ss');
+    if (importDate) return `${isDe ? 'Import' : 'import'} ${format(importDate, 'dd.MM. HH:mm:ss')}`;
+    return '';
   };
 
   if (!filteredMessages || filteredMessages.length === 0) {
@@ -293,14 +312,7 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
                 </span>
               )}
               <span className="text-xs text-muted-foreground">
-                {msg.meshtastic_timestamp
-                  ? formatDistanceToNow(new Date(msg.meshtastic_timestamp * 1000), { addSuffix: true })
-                  : msg.created_date && !isNaN(new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z').getTime())
-                  ? formatDistanceToNow(
-                      new Date(msg.created_date.endsWith('Z') ? msg.created_date : msg.created_date + 'Z'),
-                      { addSuffix: true }
-                    )
-                  : ''}
+                {formatMessageTime(msg)}
               </span>
             </div>
           </div>
