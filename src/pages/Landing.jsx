@@ -58,6 +58,12 @@ const screenshotCards = [
     darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/d3da7adf4_image.png',
   },
   {
+    title: 'Mehrsprachige Oberfläche',
+    subtitle: 'In Deutsch und Englisch umgesetzt: Inhalte, Hilfetexte und Funktionsbeschreibungen sind mehrsprachig verfügbar.',
+    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/b7c4de2e5_image.png',
+    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/4ac1df23b_image.png',
+  },
+  {
     title: 'Alle Einstellungen auf einer Seite',
     subtitle: 'In 5 Minuten eingerichtet: Topic-Prefix, Region, Kanäle, Weiterleitung und E-Mail-Benachrichtigungen zentral konfigurieren — für die eigene Instanz.',
     lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/8663c8022_image.png',
