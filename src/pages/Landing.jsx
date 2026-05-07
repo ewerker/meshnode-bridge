@@ -53,7 +53,12 @@ const screenshotCards = [
   },
   { title: 'Dashboard', subtitle: 'Nachrichten senden, empfangen und Polling überwachen' },
   { title: 'MQTT Broker', subtitle: 'Broker, ewerker/mqtt-proxy, Topics und Gateway-Fluss darstellen' },
-  { title: 'Node-Übersicht', subtitle: 'Mesh-Nodes mit Signal, Batterie, GPS und Hardwaredaten' },
+  {
+    title: 'Node Übersicht',
+    subtitle: 'Jeder kann grundsätzlich an alle Nodes des Netzwerks senden und nutzt dazu das Endgerät / Radio des Teilnehmers mit der besten Erreichbarkeit — in Gruppen auch mehrere.',
+    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/6ee25039a_image.png',
+    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/46fe7636a_image.png',
+  },
   { title: 'ACK & Deduplizierung', subtitle: 'Zustellstatus und intelligente Nachrichtenverarbeitung visualisieren' },
   { title: 'Benachrichtigungen', subtitle: 'E-Mail und zukünftige Kanäle wie SMS, RCS und Push zeigen' },
 ];
