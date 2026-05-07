@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Radio, MessageSquare, Cpu, ShieldCheck, LogIn, Wifi, Mail, Network, Zap, Sun, Moon } from 'lucide-react';
-import { useAuth } from '@/lib/AuthContext';
+import { Radio, MessageSquare, Cpu, ShieldCheck, Mail, Network, Zap, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/lib/ThemeContext';
 import { useLanguage } from '@/lib/LanguageContext';
 import LanguageToggle from '@/components/LanguageToggle';
+import ContactFormDialog from '@/components/ContactFormDialog';
 
 
 const topicIcons = [Network, Radio, MessageSquare, Zap, Cpu, Mail];
@@ -22,10 +22,10 @@ const screenshotImages = [
 ];
 
 export default function Landing() {
-  const { navigateToLogin } = useAuth();
   const { resolved, setTheme } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [previewShot, setPreviewShot] = useState(null);
+  const [showContactForm, setShowContactForm] = useState(false);
   const topics = t.landing.topics.map(([title, text], index) => ({ icon: topicIcons[index], title, text }));
   const screenshotCards = t.landing.screenshots.map(([title, subtitle], index) => ({
     title,
@@ -57,11 +57,11 @@ export default function Landing() {
 
           <div className="mt-10 flex items-center justify-center gap-3 flex-wrap">
             <button
-              onClick={() => navigateToLogin()}
+              onClick={() => setShowContactForm(true)}
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-colors shadow-lg shadow-primary/20"
             >
-              <LogIn className="w-5 h-5" />
-              {t.common.login}
+              <Mail className="w-5 h-5" />
+              {language === 'de' ? 'Kontakt aufnehmen' : 'Get in touch'}
             </button>
             <button
               onClick={() => setTheme(resolved === 'dark' ? 'light' : 'dark')}
@@ -144,6 +144,8 @@ export default function Landing() {
           </div>
         </section>
       </main>
+
+      <ContactFormDialog open={showContactForm} onClose={() => setShowContactForm(false)} />
 
       {previewShot && (
         <div
