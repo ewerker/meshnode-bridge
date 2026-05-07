@@ -63,7 +63,7 @@ export const translations = {
       robustTitle: 'Technisch robust, intuitiv bedienbar',
       robustText: 'Eine moderne, webbasierte Brücke zwischen Meshtastic — prinzipiell auch Meshcore — MQTT und alltäglicher Kommunikation: skalierbar, flexibel und ohne Gerätezwang. Nodes, Kanäle, Direktnachrichten, GPS/Karte, Akku, SNR und Zustellstatus werden zentral sichtbar.',
       topics: [
-        ['MQTT als Nervensystem', 'Das Portal kann ganze Regionen über Internetstrecken per MQTT überbrücken; entfernte Nodes — auch Nichtmitglieder — erreicht man über „Tunnel”.'],
+        ['MQTT als Nervensystem', 'Das Portal kann Meshtastic-Geräte entfernter und unerschlossener Gebiete außerhalb der direkten Funkreichweite erreichen. Ganze Regionen lassen sich über Internetstrecken per MQTT überbrücken; entfernte Nodes — auch Nichtmitglieder — werden über „Tunnel” angebunden.'],
         ['Webuser ohne Funkgerät', 'Jeder Browser kann als virtueller Meshtastic-Node genutzt werden. Nutzer ohne eigenes Gerät erhalten Pseudo-Node-IDs wie ?abc123.'],
         ['Nachrichten & Deduplizierung', 'Portal-Mirror, Radio-Relay und packet_id werden intelligent abgeglichen, damit Nachrichten trotz mehrerer Empfangswege nur einmal sichtbar bleiben.'],
         ['ACK & Zustellstatus', 'Mit want_ack und eindeutigen client_ref-IDs verfolgt das Portal ACK, NAK und Implicit ACK über dedizierte MQTT-Topics transparent nach.'],
@@ -183,7 +183,7 @@ export const translations = {
       robustTitle: 'Technically robust, intuitive to use',
       robustText: 'A modern web-based bridge between Meshtastic — and conceptually Meshcore as well — MQTT and everyday communication: scalable, flexible, and not tied to a physical device. Nodes, channels, direct messages, GPS/map, battery, SNR, and delivery status become centrally visible.',
       topics: [
-        ['MQTT as the nervous system', 'The portal can bridge whole regions over internet links via MQTT; remote nodes — including non-members — can be reached through “tunnels”.'],
+        ['MQTT as the nervous system', 'The portal can reach Meshtastic devices in remote and underserved areas outside direct radio range. Whole regions can be bridged over internet links via MQTT; remote nodes — including non-members — are connected through “tunnels”.'],
         ['Web users without a radio', 'Every browser can be used as a virtual Meshtastic node. Users without their own device receive pseudo node IDs such as ?abc123.'],
         ['Messages & deduplication', 'Portal mirrors, radio relays, and packet_id values are intelligently matched so messages remain visible only once even when received through multiple paths.'],
         ['ACK & delivery status', 'With want_ack and unique client_ref IDs, the portal transparently tracks ACK, NAK, and implicit ACK via dedicated MQTT topics.'],
