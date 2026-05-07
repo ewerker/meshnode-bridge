@@ -51,8 +51,6 @@ const screenshotCards = [
     lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/bf16da12b_image.png',
     darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/704eb2f97_image.png',
   },
-  { title: 'Dashboard', subtitle: 'Nachrichten senden, empfangen und Polling überwachen' },
-  { title: 'MQTT Broker', subtitle: 'Broker, ewerker/mqtt-proxy, Topics und Gateway-Fluss darstellen' },
   {
     title: 'Automatischer Hintergrundbetrieb',
     subtitle: 'Nachrichtenempfang auch im Hintergrund ohne angemeldete Nutzer, automatische Aktualisierung der Nodes und Dokumentation aller Vorgänge im Poll-Log.',
@@ -89,8 +87,6 @@ const screenshotCards = [
     lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/688b804d5_image.png',
     darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/72b184d67_image.png',
   },
-  { title: 'ACK & Deduplizierung', subtitle: 'Zustellstatus und intelligente Nachrichtenverarbeitung visualisieren' },
-  { title: 'Benachrichtigungen', subtitle: 'E-Mail und zukünftige Kanäle wie SMS, RCS und Push zeigen' },
 ];
 
 export default function Landing() {
