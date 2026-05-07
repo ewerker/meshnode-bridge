@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Radio, MessageSquare, Cpu, ShieldCheck, LogIn, Wifi, Mail, Network, Zap } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
+import { useTheme } from '@/lib/ThemeContext';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const topics = [
   {
@@ -36,7 +38,12 @@ const topics = [
 ];
 
 const screenshotCards = [
-  { title: 'Startseite', subtitle: 'Öffentliche Leistungsbeschreibung mit zentralem Login' },
+  {
+    title: 'Nachrichtenübersicht',
+    subtitle: 'Eingehende Nachrichten, Gruppen und DM via Radio oder Portal — dedupliziert, wenn sie über mehrere Wege geleitet werden.',
+    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/259106849_image.png',
+    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/d66f4c810_image.png',
+  },
   { title: 'Dashboard', subtitle: 'Nachrichten senden, empfangen und Polling überwachen' },
   { title: 'MQTT Broker', subtitle: 'Broker, ewerker/mqtt-proxy, Topics und Gateway-Fluss darstellen' },
   { title: 'Node-Übersicht', subtitle: 'Mesh-Nodes mit Signal, Batterie, GPS und Hardwaredaten' },
@@ -46,6 +53,7 @@ const screenshotCards = [
 
 export default function Landing() {
   const { navigateToLogin } = useAuth();
+  const { resolved } = useTheme();
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -68,13 +76,19 @@ export default function Landing() {
             In Kombination mit dem <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">W-2 MQTT-Proxy</a> können Nachrichten gesendet, empfangen, geroutet, an Personen weitergeleitet, in Gruppen umgeleitet, dedupliziert und Zustellbestätigungen verfolgt werden.
           </p>
 
-          <button
-            onClick={() => navigateToLogin()}
-            className="mt-10 inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-colors shadow-lg shadow-primary/20"
-          >
-            <LogIn className="w-5 h-5" />
-            Login
-          </button>
+          <div className="mt-10 flex items-center justify-center gap-3 flex-wrap">
+            <button
+              onClick={() => navigateToLogin()}
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-colors shadow-lg shadow-primary/20"
+            >
+              <LogIn className="w-5 h-5" />
+              Login
+            </button>
+            <div className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-secondary border border-border text-sm text-muted-foreground">
+              Tag / Nacht
+              <ThemeToggle />
+            </div>
+          </div>
         </section>
 
         <section className="max-w-6xl mx-auto px-4 pb-16">
@@ -101,21 +115,31 @@ export default function Landing() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {screenshotCards.map((shot, idx) => (
               <div key={shot.title} className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl shadow-black/10">
-                <div className="h-44 bg-gradient-to-br from-secondary via-card to-primary/20 p-4 flex flex-col justify-between">
-                  <div className="flex gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-destructive/70" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/70" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/70" />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-3 w-2/3 rounded bg-foreground/20" />
-                    <div className="h-3 w-1/2 rounded bg-primary/40" />
-                    <div className="grid grid-cols-3 gap-2 pt-3">
-                      <div className="h-12 rounded-lg bg-background/40 border border-border" />
-                      <div className="h-12 rounded-lg bg-background/40 border border-border" />
-                      <div className="h-12 rounded-lg bg-background/40 border border-border" />
+                <div className="h-44 bg-gradient-to-br from-secondary via-card to-primary/20 overflow-hidden">
+                  {shot.lightImage ? (
+                    <img
+                      src={resolved === 'dark' ? shot.lightImage : shot.darkImage}
+                      alt={shot.title}
+                      className="w-full h-full object-cover object-top"
+                    />
+                  ) : (
+                    <div className="h-full p-4 flex flex-col justify-between">
+                      <div className="flex gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-destructive/70" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/70" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/70" />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="h-3 w-2/3 rounded bg-foreground/20" />
+                        <div className="h-3 w-1/2 rounded bg-primary/40" />
+                        <div className="grid grid-cols-3 gap-2 pt-3">
+                          <div className="h-12 rounded-lg bg-background/40 border border-border" />
+                          <div className="h-12 rounded-lg bg-background/40 border border-border" />
+                          <div className="h-12 rounded-lg bg-background/40 border border-border" />
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
                 <div className="p-4 text-left">
                   <p className="text-xs text-primary font-semibold uppercase tracking-wider">Screenshot {idx + 1}</p>
