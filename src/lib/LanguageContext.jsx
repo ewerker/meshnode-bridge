@@ -3,6 +3,13 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 const LanguageContext = createContext();
 const LS_KEY = 'mesh_language';
 
+function getBrowserLanguage() {
+  if (typeof navigator === 'undefined') return 'de';
+  const browserLanguages = navigator.languages?.length ? navigator.languages : [navigator.language];
+  const matched = browserLanguages.find(lang => String(lang).toLowerCase().startsWith('en') || String(lang).toLowerCase().startsWith('de'));
+  return matched?.toLowerCase().startsWith('en') ? 'en' : 'de';
+}
+
 export const translations = {
   de: {
     common: {
@@ -247,7 +254,10 @@ export const translations = {
 };
 
 export function LanguageProvider({ children }) {
-  const [language, setLanguageState] = useState(() => localStorage.getItem(LS_KEY) || 'de');
+  const [language, setLanguageState] = useState(() => {
+    const savedLanguage = localStorage.getItem(LS_KEY);
+    return savedLanguage || getBrowserLanguage();
+  });
 
   useEffect(() => {
     document.documentElement.lang = language;
