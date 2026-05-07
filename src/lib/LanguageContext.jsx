@@ -54,7 +54,7 @@ export const translations = {
     },
     landing: {
       badge: 'Meshtastic MQTT Web Portal',
-      title: 'Meshtastic Web Portal — Meshtastic direkt im Browser.',
+      title: 'Multichannel - Meshtastic Portal',
       intro: 'Das Meshtastic Web Portal macht jeden Webbrowser zum virtuellen Meshtastic-Node. Über MQTT verbindet es sich in Echtzeit mit Ihrem Meshtastic-Netzwerk — auch ohne eigenes Funkgerät.',
       proxyIntroPrefix: 'In Kombination mit dem',
       proxyIntroSuffix: 'können Nachrichten gesendet, empfangen, geroutet, an Personen weitergeleitet, in Gruppen umgeleitet, dedupliziert und Zustellbestätigungen verfolgt werden.',
@@ -174,7 +174,7 @@ export const translations = {
     },
     landing: {
       badge: 'Meshtastic MQTT Web Portal',
-      title: 'Meshtastic Web Portal — Meshtastic directly in your browser.',
+      title: 'Multichannel - Meshtastic Portal',
       intro: 'The Meshtastic Web Portal turns every browser into a virtual Meshtastic node. Via MQTT it connects to your Meshtastic network in real time — even without your own radio device.',
       proxyIntroPrefix: 'Together with the',
       proxyIntroSuffix: 'messages can be sent, received, routed, forwarded to people, redirected into groups, deduplicated, and tracked with delivery confirmations.',
