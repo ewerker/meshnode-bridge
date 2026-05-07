@@ -61,7 +61,7 @@ export const translations = {
       capabilitiesTitle: 'Leistungsbereiche',
       capabilitiesText: 'Von MQTT-Integration über virtuelle Web-Nodes bis zu ACK-Tracking, Deduplizierung und Benachrichtigungen.',
       robustTitle: 'Technisch robust, intuitiv bedienbar',
-      robustText: 'Eine moderne, webbasierte Brücke zwischen Meshtastic — prinzipiell auch Meshcore — MQTT und alltäglicher Kommunikation: skalierbar, flexibel und ohne Gerätezwang. Nodes, Kanäle, Direktnachrichten, GPS/Karte, Akku, SNR und Zustellstatus werden zentral sichtbar.',
+      robustText: 'Eine moderne, webbasierte Brücke zwischen Meshtastic Nodes via MQTT und alltäglicher Kommunikation: skalierbar, flexibel und ohne Gerätezwang. Nodes, Kanäle, Direktnachrichten, GPS/Karte, Akku, SNR und Zustellstatus werden zentral sichtbar.',
       topics: [
         ['MQTT als Nervensystem', 'Das Portal kann Meshtastic-Geräte entfernter und unerschlossener Gebiete außerhalb der direkten Funkreichweite erreichen. Ganze Regionen lassen sich über Internetstrecken per MQTT überbrücken; entfernte Nodes — auch Nichtmitglieder — werden über „Tunnel” angebunden.'],
         ['Virtueller Meshtastic-Node', 'Das Portal kann als virtueller Meshtastic-Node genutzt werden. Nutzer ohne eigenes Gerät erhalten Pseudo-Node-IDs wie ?1234563. Diese IDs werden intern geroutet. So erreichen sich Webuser untereinander, sie erreichen „echte” Geräte und werden von echten Geräten erreicht.'],
@@ -181,7 +181,7 @@ export const translations = {
       capabilitiesTitle: 'Core capabilities',
       capabilitiesText: 'From MQTT integration and virtual web nodes to ACK tracking, deduplication, and notifications.',
       robustTitle: 'Technically robust, intuitive to use',
-      robustText: 'A modern web-based bridge between Meshtastic — and conceptually Meshcore as well — MQTT and everyday communication: scalable, flexible, and not tied to a physical device. Nodes, channels, direct messages, GPS/map, battery, SNR, and delivery status become centrally visible.',
+      robustText: 'A modern web-based bridge between Meshtastic nodes via MQTT and everyday communication: scalable, flexible, and not tied to a physical device. Nodes, channels, direct messages, GPS/map, battery, SNR, and delivery status become centrally visible.',
       topics: [
         ['MQTT as the nervous system', 'The portal can reach Meshtastic devices in remote and underserved areas outside direct radio range. Whole regions can be bridged over internet links via MQTT; remote nodes — including non-members — are connected through “tunnels”.'],
         ['Virtual Meshtastic node', 'The portal can be used as a virtual Meshtastic node. Users without their own device receive pseudo node IDs such as ?1234563. These IDs are routed internally, so web users can reach each other, reach “real” devices, and be reached by real devices.'],
