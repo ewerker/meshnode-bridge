@@ -148,13 +148,27 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
               onEdit(msg);
             }
           }}
-          className={`flex gap-3 p-3 rounded-xl border transition-all ${
-            msg.direction === 'outbound'
-              ? 'bg-primary/10 border-primary/30 cursor-pointer hover:border-primary/60 hover:bg-primary/15'
-              : 'bg-emerald-500/10 border-emerald-500/30 cursor-pointer hover:border-emerald-400/60 hover:bg-emerald-500/15'
-          }`}
+          className={(() => {
+            const isDM = msg.to_node && msg.to_node !== '^all';
+            // DM = kräftig, Gruppen = pastell. Empfang grün / Senden blau.
+            if (msg.direction === 'outbound') {
+              return isDM
+                ? 'flex gap-3 p-3 rounded-xl border transition-all bg-primary/15 border-primary/50 cursor-pointer hover:border-primary/70 hover:bg-primary/20'
+                : 'flex gap-3 p-3 rounded-xl border transition-all bg-primary/5 border-primary/20 cursor-pointer hover:border-primary/40 hover:bg-primary/10';
+            }
+            return isDM
+              ? 'flex gap-3 p-3 rounded-xl border transition-all bg-emerald-500/15 border-emerald-500/50 cursor-pointer hover:border-emerald-400/70 hover:bg-emerald-500/20'
+              : 'flex gap-3 p-3 rounded-xl border transition-all bg-emerald-500/5 border-emerald-500/20 cursor-pointer hover:border-emerald-400/40 hover:bg-emerald-500/10';
+          })()}
         >
-          <div className={`mt-0.5 flex flex-col items-center gap-1.5 p-2 rounded-lg ${msg.direction === 'outbound' ? 'bg-primary/20 border border-primary/40' : 'bg-emerald-500/20 border border-emerald-500/40'}`}>
+          <div className={(() => {
+            const isDM = msg.to_node && msg.to_node !== '^all';
+            const base = 'mt-0.5 flex flex-col items-center gap-1.5 p-2 rounded-lg border';
+            if (msg.direction === 'outbound') {
+              return `${base} ${isDM ? 'bg-primary/25 border-primary/50' : 'bg-primary/10 border-primary/30'}`;
+            }
+            return `${base} ${isDM ? 'bg-emerald-500/25 border-emerald-500/50' : 'bg-emerald-500/10 border-emerald-500/30'}`;
+          })()}>
             {msg.direction === 'outbound'
               ? <ArrowUpRight className="w-5 h-5 text-primary" />
               : <ArrowDownLeft className="w-5 h-5 text-emerald-400" />}
