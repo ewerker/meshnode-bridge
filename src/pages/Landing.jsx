@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Radio, MessageSquare, Cpu, ShieldCheck, LogIn, Wifi, Mail, Network, Zap, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
@@ -60,6 +61,7 @@ const screenshotCards = [
 export default function Landing() {
   const { navigateToLogin } = useAuth();
   const { resolved, setTheme } = useTheme();
+  const [previewShot, setPreviewShot] = useState(null);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -126,11 +128,21 @@ export default function Landing() {
               <div key={shot.title} className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl shadow-black/10">
                 <div className="h-44 bg-gradient-to-br from-secondary via-card to-primary/20 overflow-hidden">
                   {shot.lightImage ? (
-                    <img
-                      src={resolved === 'dark' ? shot.lightImage : shot.darkImage}
-                      alt={shot.title}
-                      className="w-full h-full object-cover object-top"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setPreviewShot(shot)}
+                      className="relative w-full h-full group cursor-zoom-in"
+                      aria-label={`${shot.title} vergrößern`}
+                    >
+                      <img
+                        src={resolved === 'dark' ? shot.lightImage : shot.darkImage}
+                        alt={shot.title}
+                        className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <span className="absolute inset-x-3 bottom-3 rounded-lg bg-background/85 border border-border px-3 py-1.5 text-xs text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                        Zum Vergrößern klicken
+                      </span>
+                    </button>
                   ) : (
                     <div className="h-full p-4 flex flex-col justify-between">
                       <div className="flex gap-1.5">
@@ -160,6 +172,33 @@ export default function Landing() {
           </div>
         </section>
       </main>
+
+      {previewShot && (
+        <div
+          className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm p-4 sm:p-8 flex items-center justify-center"
+          onClick={() => setPreviewShot(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setPreviewShot(null)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 border border-border text-foreground text-2xl leading-none"
+            aria-label="Schließen"
+          >
+            ×
+          </button>
+          <div className="max-w-6xl w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 text-left">
+              <h3 className="text-lg font-semibold">{previewShot.title}</h3>
+              <p className="text-sm text-muted-foreground">{previewShot.subtitle}</p>
+            </div>
+            <img
+              src={resolved === 'dark' ? previewShot.lightImage : previewShot.darkImage}
+              alt={previewShot.title}
+              className="w-full max-h-[78vh] object-contain rounded-2xl border border-border shadow-2xl shadow-black/40 bg-card"
+            />
+          </div>
+        </div>
+      )}
 
       <footer className="border-t border-border">
         <div className="max-w-6xl mx-auto px-4 py-5 flex justify-center text-sm text-muted-foreground">
