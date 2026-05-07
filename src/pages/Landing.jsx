@@ -44,6 +44,12 @@ const screenshotCards = [
     lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/259106849_image.png',
     darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/d66f4c810_image.png',
   },
+  {
+    title: 'Nachrichten versenden',
+    subtitle: 'Bequem senden mit oder ohne ACK-Anforderung, mehr Hops, gleichzeitiger Portal-Zustellung oder Weiterleitung an Accounts mit E-Mail-, SMS- und RCS-Anbindung.',
+    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/bf16da12b_image.png',
+    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/704eb2f97_image.png',
+  },
   { title: 'Dashboard', subtitle: 'Nachrichten senden, empfangen und Polling überwachen' },
   { title: 'MQTT Broker', subtitle: 'Broker, ewerker/mqtt-proxy, Topics und Gateway-Fluss darstellen' },
   { title: 'Node-Übersicht', subtitle: 'Mesh-Nodes mit Signal, Batterie, GPS und Hardwaredaten' },
@@ -118,7 +124,7 @@ export default function Landing() {
                 <div className="h-44 bg-gradient-to-br from-secondary via-card to-primary/20 overflow-hidden">
                   {shot.lightImage ? (
                     <img
-                      src={resolved === 'dark' ? shot.lightImage : shot.darkImage}
+                      src={resolved === 'dark' ? shot.darkImage : shot.lightImage}
                       alt={shot.title}
                       className="w-full h-full object-cover object-top"
                     />
