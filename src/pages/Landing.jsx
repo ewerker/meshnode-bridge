@@ -54,6 +54,12 @@ const screenshotCards = [
   { title: 'Dashboard', subtitle: 'Nachrichten senden, empfangen und Polling überwachen' },
   { title: 'MQTT Broker', subtitle: 'Broker, ewerker/mqtt-proxy, Topics und Gateway-Fluss darstellen' },
   {
+    title: 'Automatischer Hintergrundbetrieb',
+    subtitle: 'Nachrichtenempfang auch im Hintergrund ohne angemeldete Nutzer, automatische Aktualisierung der Nodes und Dokumentation aller Vorgänge im Poll-Log.',
+    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/6248ea2d2_image.png',
+    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/d3da7adf4_image.png',
+  },
+  {
     title: 'Alle Einstellungen auf einer Seite',
     subtitle: 'In 5 Minuten eingerichtet: Topic-Prefix, Region, Kanäle, Weiterleitung und E-Mail-Benachrichtigungen zentral konfigurieren — für die eigene Instanz.',
     lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/8663c8022_image.png',
