@@ -6,7 +6,7 @@ const topics = [
   {
     icon: Network,
     title: 'MQTT als Nervensystem',
-    text: 'Das Portal verbindet Meshtastic-Regionen über MQTT-Wildcard-Abonnements und erfasst relevante Nachrichten über Topics wie msh/<region>/proxy/+/+/#.',
+    text: 'Das Portal kann ganze Regionen bridgen und über MQTT-Wildcard-Abonnements relevante Nachrichten aus Topics wie msh/<region>/proxy/+/+/# erfassen.'
   },
   {
     icon: Radio,
@@ -31,7 +31,7 @@ const topics = [
   {
     icon: Mail,
     title: 'Omni-Channel-Erweiterung',
-    text: 'Eingehende Meshtastic-Nachrichten können per E-Mail weitergeleitet werden; E-Mail-Versand an MT-Empfänger, SMS, RCS und Push sind als Erweiterungen vorgesehen.',
+    text: 'E-Mail-Weiterleitung ist bereits möglich; Versand per E-Mail sowie SMS, RCS, Push, Telegram, WhatsApp, iMessage, KI-Bots und Autoresponder sind vorbereitet oder machbar.'
   },
 ];
 
@@ -57,11 +57,15 @@ export default function Landing() {
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight max-w-4xl mx-auto">
-            Meshtastic Nachrichten direkt im Browser senden und empfangen.
+            Meshtastic Web Portal — Meshtastic direkt im Browser.
           </h1>
 
           <p className="mt-6 text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Das Meshtastic Web Portal ist Ihre Brücke zum Meshtastic-Netzwerk: eine leistungsstarke webbasierte Schnittstelle über MQTT, die in Kombination mit einem robusten Broker und dem ewerker/mqtt-proxy Kommunikation nahtlos, skalierbar und universell zugänglich macht — auch ohne eigenes Funkgerät.
+            Das Meshtastic Web Portal macht jeden Webbrowser zum virtuellen Meshtastic-Node. Über MQTT verbindet es sich in Echtzeit mit Ihrem Meshtastic-Netzwerk — auch ohne eigenes Funkgerät.
+          </p>
+
+          <p className="mt-4 text-base text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            In Kombination mit dem <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">W-2 MQTT-Proxy</a> können Nachrichten gesendet, empfangen, geroutet, an Personen weitergeleitet, in Gruppen umgeleitet, dedupliziert und Zustellbestätigungen verfolgt werden.
           </p>
 
           <button
@@ -91,7 +95,7 @@ export default function Landing() {
           <div className="bg-card border border-border rounded-2xl p-6 mb-8 text-left">
             <h2 className="text-2xl font-bold mb-3">Technisch robust, intuitiv bedienbar</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Hinter der Oberfläche arbeitet eine modulare Backend-Architektur mit sauberen MQTT-Interaktionen, automatischem und manuellem Polling, intelligenter Datenverarbeitung und geschütztem Zugriff. So entsteht eine zuverlässige, zukunftssichere Lösung für Meshtastic-Kommunikation über Web, MQTT und kommende Benachrichtigungskanäle.
+              Eine moderne, webbasierte Brücke zwischen Meshtastic — prinzipiell auch Meshcore — MQTT und alltäglicher Kommunikation: skalierbar, flexibel und ohne Gerätezwang. Nodes, Kanäle, Direktnachrichten, GPS/Karte, Akku, SNR und Zustellstatus werden zentral sichtbar.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
