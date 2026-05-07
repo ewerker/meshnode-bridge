@@ -127,7 +127,7 @@ export default function Landing() {
                 <div className="h-44 bg-gradient-to-br from-secondary via-card to-primary/20 overflow-hidden">
                   {shot.lightImage ? (
                     <img
-                      src={resolved === 'dark' ? shot.darkImage : shot.lightImage}
+                      src={resolved === 'dark' ? shot.lightImage : shot.darkImage}
                       alt={shot.title}
                       className="w-full h-full object-cover object-top"
                     />
