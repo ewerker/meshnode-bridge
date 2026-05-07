@@ -91,7 +91,9 @@ export default function Landing() {
         <section className="max-w-6xl mx-auto px-4 pb-20">
           <div className="bg-card border border-border rounded-2xl p-6 mb-8 text-left">
             <h2 className="text-2xl font-bold mb-3">{t.landing.robustTitle}</h2>
-
+            <p className="text-muted-foreground leading-relaxed">
+              {t.landing.robustText}
+            </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {screenshotCards.map((shot, idx) => (
