@@ -4,6 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Battery, Wifi, Clock, Radio, Star, MapPin, Zap, Filter } from 'lucide-react';
 import { useTheme } from '@/lib/ThemeContext';
+import { useLanguage } from '@/lib/LanguageContext';
 import { formatDistanceToNow } from 'date-fns';
 
 // Fix Leaflet default icon issue with bundlers
@@ -104,6 +105,8 @@ const LAST_SEEN_OPTIONS = [
 
 export default function NodeMap({ nodes, ownNode }) {
   const { resolved } = useTheme();
+  const { language } = useLanguage();
+  const isDe = language === 'de';
   const isDark = resolved === 'dark';
   const [lastSeenFilter, setLastSeenFilter] = useState(0);
   const [favOnly, setFavOnly] = useState(false);
@@ -125,7 +128,7 @@ export default function NodeMap({ nodes, ownNode }) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
         <MapPin className="w-12 h-12 mb-3 opacity-30" />
-        <p className="text-sm">Keine Nodes mit GPS-Position vorhanden</p>
+        <p className="text-sm">{isDe ? 'Keine Nodes mit GPS-Position vorhanden' : 'No nodes with GPS position available'}</p>
       </div>
     );
   }
@@ -138,7 +141,7 @@ export default function NodeMap({ nodes, ownNode }) {
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Filter className="w-3.5 h-3.5" />
-          <span>Filter:</span>
+          <span>{isDe ? 'Filter:' : 'Filter:'}</span>
         </div>
 
         {/* Last seen */}
@@ -168,7 +171,7 @@ export default function NodeMap({ nodes, ownNode }) {
           }`}
         >
           <Star className={`w-3.5 h-3.5 ${favOnly ? 'fill-yellow-400' : ''}`} />
-          Favoriten
+          {isDe ? 'Favoriten' : 'Favorites'}
         </button>
 
         {/* Gateway toggle */}
@@ -181,7 +184,7 @@ export default function NodeMap({ nodes, ownNode }) {
           }`}
         >
           <Radio className="w-3.5 h-3.5" />
-          Nur Gateways
+          {isDe ? 'Nur Gateways' : 'Gateways only'}
         </button>
 
         <span className="text-xs text-muted-foreground ml-auto">
@@ -221,7 +224,7 @@ export default function NodeMap({ nodes, ownNode }) {
                     <div>
                       <div className="font-semibold text-gray-900 dark:text-white leading-tight">
                         {node.long_name || node.node_id}
-                        {isOwn && <span className="ml-1 text-xs text-cyan-500">(Eigener Node)</span>}
+                        {isOwn && <span className="ml-1 text-xs text-cyan-500">({isDe ? 'Eigener Node' : 'Own node'})</span>}
                       </div>
                       {node.short_name && (
                         <div className="text-xs text-gray-500">{node.short_name}</div>
@@ -246,14 +249,14 @@ export default function NodeMap({ nodes, ownNode }) {
                     {distText && (
                       <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
                         <MapPin className="w-3.5 h-3.5 text-emerald-500" />
-                        <span className="font-medium">Entfernung:</span>
+                        <span className="font-medium">{isDe ? 'Entfernung:' : 'Distance:'}</span>
                         <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{distText}</span>
                       </div>
                     )}
                     {node.battery_level !== null && node.battery_level !== undefined && (
                       <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
                         <Battery className="w-3.5 h-3.5" />
-                        <span className="font-medium">Akku:</span>
+                        <span className="font-medium">{isDe ? 'Akku:' : 'Battery:'}</span>
                         <span>{node.battery_level > 100 ? 'USB' : `${node.battery_level}%`}</span>
                         {node.voltage && <span className="text-gray-400">({node.voltage.toFixed(2)} V)</span>}
                       </div>
@@ -267,7 +270,7 @@ export default function NodeMap({ nodes, ownNode }) {
                     )}
                     {node.altitude !== null && node.altitude !== undefined && (
                       <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
-                        <span className="font-medium">Höhe:</span>
+                        <span className="font-medium">{isDe ? 'Höhe:' : 'Altitude:'}</span>
                         <span>{node.altitude} m</span>
                       </div>
                     )}
@@ -281,7 +284,7 @@ export default function NodeMap({ nodes, ownNode }) {
                     {node.last_heard && (
                       <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
                         <Clock className="w-3.5 h-3.5" />
-                        <span className="font-medium">Zuletzt:</span>
+                        <span className="font-medium">{isDe ? 'Zuletzt:' : 'Last seen:'}</span>
                         <span>{formatDistanceToNow(new Date(node.last_heard * 1000), { addSuffix: true })}</span>
                       </div>
                     )}

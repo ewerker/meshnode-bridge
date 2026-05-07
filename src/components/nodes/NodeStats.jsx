@@ -4,6 +4,7 @@ import SnrChart from './SnrChart';
 import UptimeChart from './UptimeChart';
 import LastSeenChart from './LastSeenChart';
 import StatCard from './StatCard';
+import { useLanguage } from '@/lib/LanguageContext';
 
 function haversineDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
@@ -15,6 +16,8 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 }
 
 export default function NodeStats({ nodes, ownNode }) {
+  const { language } = useLanguage();
+  const isDe = language === 'de';
   if (!nodes || nodes.length === 0) return null;
 
   const total = nodes.length;
@@ -55,23 +58,23 @@ export default function NodeStats({ nodes, ownNode }) {
     <div className="space-y-6">
       {/* Overview Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard icon={Cpu} label="Total Nodes" value={total} color="text-primary" />
+        <StatCard icon={Cpu} label={isDe ? 'Nodes gesamt' : 'Total Nodes'} value={total} color="text-primary" />
         <StatCard icon={Radio} label="Gateways" value={gateways} color="text-yellow-400" />
-        <StatCard icon={MapPin} label="Mit GPS" value={withPosition} color="text-emerald-400" />
-        <StatCard icon={Activity} label="Aktiv (1h)" value={recentlyActive} color="text-purple-400" />
+        <StatCard icon={MapPin} label={isDe ? 'Mit GPS' : 'With GPS'} value={withPosition} color="text-emerald-400" />
+        <StatCard icon={Activity} label={isDe ? 'Aktiv (1h)' : 'Active (1h)'} value={recentlyActive} color="text-purple-400" />
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard icon={BatteryCharging} label="Stromversorg." value={onUsb} color="text-emerald-400" />
-        <StatCard icon={Battery} label="Batterie" value={onBattery} color="text-orange-400" />
-        <StatCard icon={HelpCircle} label="Unbekannt" value={powerUnknown} color="text-muted-foreground" />
+        <StatCard icon={BatteryCharging} label={isDe ? 'Stromversorg.' : 'Powered'} value={onUsb} color="text-emerald-400" />
+        <StatCard icon={Battery} label={isDe ? 'Batterie' : 'Battery'} value={onBattery} color="text-orange-400" />
+        <StatCard icon={HelpCircle} label={isDe ? 'Unbekannt' : 'Unknown'} value={powerUnknown} color="text-muted-foreground" />
         <StatCard icon={Wifi} label="Avg SNR" value={avgSnr} color="text-primary" />
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard icon={Clock} label="Avg Uptime" value={`${avgUptimeHours}h`} color="text-yellow-400" />
-        <StatCard icon={MapPin} label="Avg Entfernung" value={avgDist} color="text-cyan-400" />
-        <StatCard icon={MapPin} label="Max Entfernung" value={maxDist} color="text-blue-400" />
+        <StatCard icon={MapPin} label={isDe ? 'Ø Entfernung' : 'Avg Distance'} value={avgDist} color="text-cyan-400" />
+        <StatCard icon={MapPin} label={isDe ? 'Max Entfernung' : 'Max Distance'} value={maxDist} color="text-blue-400" />
       </div>
 
       {/* Charts */}

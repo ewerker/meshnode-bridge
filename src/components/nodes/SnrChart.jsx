@@ -1,4 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const BUCKETS = [
   { label: 'Excellent (>10)', min: 10.01, max: Infinity, color: 'hsl(160, 60%, 45%)' },
@@ -9,6 +10,8 @@ const BUCKETS = [
 ];
 
 export default function SnrChart({ nodes }) {
+  const { language } = useLanguage();
+  const isDe = language === 'de';
   const withSnr = nodes.filter(n => n.snr !== null && n.snr !== undefined);
 
   const data = BUCKETS.map(b => ({
@@ -24,7 +27,7 @@ export default function SnrChart({ nodes }) {
 
   return (
     <div className="bg-card border border-border rounded-xl p-4">
-      <h3 className="text-sm font-semibold text-foreground mb-3">SNR Distribution</h3>
+      <h3 className="text-sm font-semibold text-foreground mb-3">{isDe ? 'SNR-Verteilung' : 'SNR Distribution'}</h3>
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ left: 0, right: 16, top: 0, bottom: 0 }}>

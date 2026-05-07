@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Download, Cpu } from 'lucide-react';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function NodePollProgress({ active, progress }) {
+  const { language } = useLanguage();
+  const isDe = language === 'de';
   if (!active) return null;
 
   const phase = progress?.phase || 'listening';
@@ -10,13 +13,13 @@ export default function NodePollProgress({ active, progress }) {
   const listening = phase === 'listening';
   
   let percent = 0;
-  let statusText = 'Daten werden vom Broker gelesen';
+  let statusText = isDe ? 'Daten werden vom Broker gelesen' : 'Reading data from broker';
   
   if (listening) {
     percent = 10;
   } else if (total > 0) {
     percent = Math.round((current / total) * 100);
-    statusText = `${current} von ${total} Nodes gespeichert (in 3er Batches)`;
+    statusText = isDe ? `${current} von ${total} Nodes gespeichert (in 3er Batches)` : `${current} of ${total} nodes saved (in batches of 3)`;
   }
 
   return (
@@ -30,7 +33,7 @@ export default function NodePollProgress({ active, progress }) {
           )}
           <div className="min-w-0">
             <p className="text-xs font-semibold text-primary">
-              {listening ? 'Node-Daten werden empfangen…' : 'Nodes werden verarbeitet…'}
+              {listening ? (isDe ? 'Node-Daten werden empfangen…' : 'Receiving node data…') : (isDe ? 'Nodes werden verarbeitet…' : 'Processing nodes…')}
             </p>
             <p className="text-[11px] text-muted-foreground">
               {statusText}

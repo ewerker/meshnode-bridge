@@ -1,4 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const NOW = () => Date.now() / 1000;
 
@@ -11,6 +12,8 @@ const BUCKETS = [
 ];
 
 export default function LastSeenChart({ nodes }) {
+  const { language } = useLanguage();
+  const isDe = language === 'de';
   const now = NOW();
   const withLastHeard = nodes.filter(n => n.last_heard);
   
@@ -32,7 +35,7 @@ export default function LastSeenChart({ nodes }) {
 
   return (
     <div className="bg-card border border-border rounded-xl p-4">
-      <h3 className="text-sm font-semibold text-foreground mb-3">Last Seen Distribution</h3>
+      <h3 className="text-sm font-semibold text-foreground mb-3">{isDe ? 'Zuletzt-gesehen-Verteilung' : 'Last Seen Distribution'}</h3>
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ left: 0, right: 16, top: 0, bottom: 0 }}>

@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Trash2, AlertTriangle, Send, Inbox, Cpu, Lock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function DangerZone({ nodeId, onChanged }) {
   const [busy, setBusy] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { language } = useLanguage();
+  const isDe = language === 'de';
 
   useEffect(() => {
     base44.auth.me().then(me => setIsAdmin(me?.role === 'admin')).catch(() => setIsAdmin(false));
@@ -24,11 +27,11 @@ export default function DangerZone({ nodeId, onChanged }) {
 
   const handleDelete = async (kind) => {
     if (!isAdmin) {
-      setFeedback({ type: 'error', msg: 'Nur Administratoren dürfen Daten löschen.' });
+      setFeedback({ type: 'error', msg: isDe ? 'Nur Administratoren dürfen Daten löschen.' : 'Only administrators may delete data.' });
       return;
     }
     if (!nodeId) {
-      setFeedback({ type: 'error', msg: 'Bitte zuerst Node-ID setzen und speichern.' });
+      setFeedback({ type: 'error', msg: isDe ? 'Bitte zuerst Node-ID setzen und speichern.' : 'Please set and save a Node ID first.' });
       return;
     }
     const labels = {
@@ -36,7 +39,7 @@ export default function DangerZone({ nodeId, onChanged }) {
       received: `alle EMPFANGENEN Nachrichten der Node-ID ${nodeId}`,
       nodes: `alle Nodes der Node-ID ${nodeId}`,
     };
-    if (!confirm(`Wirklich ${labels[kind]} löschen? Das kann nicht rückgängig gemacht werden.`)) return;
+    if (!confirm(isDe ? `Wirklich ${labels[kind]} löschen? Das kann nicht rückgängig gemacht werden.` : `Really delete ${labels[kind]}? This cannot be undone.`)) return;
 
     setBusy(kind);
     setFeedback(null);
@@ -52,10 +55,10 @@ export default function DangerZone({ nodeId, onChanged }) {
         const records = await base44.entities.MeshNode.filter({ gateway_node_id: nodeId }, '-last_heard', 1000);
         deleted = await deleteInBatches(records, (id) => base44.entities.MeshNode.delete(id));
       }
-      setFeedback({ type: 'success', msg: `${deleted} Eintrag/Einträge gelöscht.` });
+      setFeedback({ type: 'success', msg: isDe ? `${deleted} Eintrag/Einträge gelöscht.` : `${deleted} record(s) deleted.` });
       onChanged?.();
     } catch (err) {
-      setFeedback({ type: 'error', msg: err.message || 'Löschen fehlgeschlagen' });
+      setFeedback({ type: 'error', msg: err.message || (isDe ? 'Löschen fehlgeschlagen' : 'Delete failed') });
     } finally {
       setBusy(null);
     }
@@ -67,7 +70,7 @@ export default function DangerZone({ nodeId, onChanged }) {
       <button
         onClick={() => handleDelete(kind)}
         disabled={disabled}
-        title={!isAdmin ? 'Nur Administratoren dürfen löschen' : undefined}
+        title={!isAdmin ? (isDe ? 'Nur Administratoren dürfen löschen' : 'Only administrators may delete') : undefined}
         className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-xs font-medium transition-colors ${
           !isAdmin
             ? 'bg-secondary text-muted-foreground border-border cursor-not-allowed opacity-60'
@@ -90,18 +93,18 @@ export default function DangerZone({ nodeId, onChanged }) {
     <div className="border-t border-border pt-5">
       <label className="block text-xs font-medium text-destructive mb-2 uppercase tracking-wider">
         <AlertTriangle className="inline w-3 h-3 mr-1" />
-        Danger Zone
+        {isDe ? 'Gefahrenzone' : 'Danger Zone'}
       </label>
       <p className="text-xs text-muted-foreground mb-3">
-        Löscht nur Daten, die zur konfigurierten Node-ID <span className="font-mono text-foreground">{nodeId || '—'}</span> gehören.
+        {isDe ? 'Löscht nur Daten, die zur konfigurierten Node-ID' : 'Deletes only data belonging to the configured Node ID'} <span className="font-mono text-foreground">{nodeId || '—'}</span>.
         {!isAdmin && (
-          <span className="block mt-1 text-muted-foreground/80">Diese Aktionen sind nur für Administratoren verfügbar.</span>
+          <span className="block mt-1 text-muted-foreground/80">{isDe ? 'Diese Aktionen sind nur für Administratoren verfügbar.' : 'These actions are only available to administrators.'}</span>
         )}
       </p>
       <div className="flex flex-wrap gap-2">
-        <Btn kind="sent" icon={Send} label="Gesendete Messages löschen" />
-        <Btn kind="received" icon={Inbox} label="Empfangene Messages löschen" />
-        <Btn kind="nodes" icon={Cpu} label="Alle Nodes löschen" />
+        <Btn kind="sent" icon={Send} label={isDe ? 'Gesendete Messages löschen' : 'Delete sent messages'} />
+        <Btn kind="received" icon={Inbox} label={isDe ? 'Empfangene Messages löschen' : 'Delete received messages'} />
+        <Btn kind="nodes" icon={Cpu} label={isDe ? 'Alle Nodes löschen' : 'Delete all nodes'} />
       </div>
       {feedback && (
         <div className={`mt-3 text-xs px-3 py-2 rounded-lg ${feedback.type === 'success' ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-destructive/10 text-destructive border border-destructive/30'}`}>

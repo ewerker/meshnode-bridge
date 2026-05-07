@@ -1,9 +1,16 @@
-import { Radio, ArrowLeft, Wifi, Send, Download, Cpu, Settings, MessageSquare, Moon, RefreshCw, User, Users, Zap } from 'lucide-react';
+import { Radio, ArrowLeft, Wifi, Send, Download, Cpu, Settings, MessageSquare, Moon, RefreshCw, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ThemeToggle from '@/components/ThemeToggle';
+import LanguageToggle from '@/components/LanguageToggle';
 import AppFooter from '@/components/AppFooter';
+import { useLanguage } from '@/lib/LanguageContext';
+
+const featureIcons = [Send, Download, Zap, MessageSquare, Cpu, Wifi, Settings, Moon, RefreshCw];
+const featureColors = ['text-primary', 'text-emerald-400', 'text-yellow-400', 'text-orange-400', 'text-purple-400', 'text-primary', 'text-muted-foreground', 'text-indigo-400', 'text-emerald-400'];
 
 export default function About() {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-10">
@@ -14,120 +21,80 @@ export default function About() {
           <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center">
             <Radio className="w-5 h-5 text-primary" />
           </div>
-          <h1 className="font-bold text-foreground tracking-tight">About</h1>
-          <div className="ml-auto"><ThemeToggle /></div>
+          <h1 className="font-bold text-foreground tracking-tight">{t.about.title}</h1>
+          <div className="ml-auto flex items-center gap-2">
+            <LanguageToggle />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-        {/* Intro */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">What is this?</h2>
-          <p className="text-muted-foreground leading-relaxed">
-            This is a <span className="text-primary font-medium">web-based MQTT dashboard</span> for the 
-            <a href="https://meshtastic.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">Meshtastic</a> mesh network. 
-            It allows you to send and receive text messages to and from the Meshtastic radio mesh — directly from your browser, 
-            without needing a physical Meshtastic device connected to your computer.
-          </p>
+          <h2 className="text-xl font-bold text-foreground mb-3">{t.about.introTitle}</h2>
+          <p className="text-muted-foreground leading-relaxed">{t.about.intro}</p>
         </section>
 
-        {/* How it works */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">How does it work?</h2>
-          <p className="text-muted-foreground leading-relaxed mb-4">
-            Meshtastic nodes with MQTT uplink enabled publish messages to an MQTT broker. 
-            A JSON proxy translates between Meshtastic's native Protobuf format and JSON. 
-            This app connects to the broker to read and write those JSON messages — acting as a virtual node on the mesh.
-          </p>
+          <h2 className="text-xl font-bold text-foreground mb-3">{t.about.howTitle}</h2>
+          <p className="text-muted-foreground leading-relaxed mb-4">{t.about.how}</p>
           <div className="bg-card border border-border rounded-xl p-4 font-mono text-sm text-center text-muted-foreground">
-            <span className="text-primary">Browser</span>
-            <span className="mx-2">↔</span>
-            <span className="text-foreground">Backend</span>
-            <span className="mx-2">↔</span>
-            <span className="text-emerald-400">MQTT Broker</span>
-            <span className="mx-2">↔</span>
-            <span className="text-yellow-400">JSON Proxy</span>
-            <span className="mx-2">↔</span>
+            <span className="text-primary">Browser</span><span className="mx-2">↔</span>
+            <span className="text-foreground">Backend</span><span className="mx-2">↔</span>
+            <span className="text-emerald-400">MQTT Broker</span><span className="mx-2">↔</span>
+            <span className="text-yellow-400">JSON Proxy</span><span className="mx-2">↔</span>
             <span className="text-purple-400">Mesh Network</span>
           </div>
         </section>
 
-        {/* Features */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-4">Features</h2>
+          <h2 className="text-xl font-bold text-foreground mb-4">{t.about.featuresTitle}</h2>
           <div className="grid gap-3">
-            <Feature icon={Send} color="text-primary" title="Channel & DM Messages" description="Send text messages to group channels (0–7) or directly to specific nodes via DM mode. Bei DMs wird die Nachricht zusätzlich sofort als 'VIA PORTAL:' an den Empfänger gesendet — falls dieser per Web liest, sieht er sie sofort ohne MQTT-Umweg." />
-            <Feature icon={Download} color="text-emerald-400" title="Receive & Auto-Poll" description="Manually poll the broker or let auto-poll fetch new messages on page load, tab focus, and every 2 minutes." />
-            <Feature icon={Zap} color="text-yellow-400" title="Real-time Updates" description="New incoming messages appear instantly via live subscriptions — no manual refresh needed." />
-            <Feature icon={MessageSquare} color="text-orange-400" title="ACK Tracking" description="Request delivery acknowledgements (ACK/NAK/Implicit ACK) with configurable hop limits." />
-            <Feature icon={Cpu} color="text-purple-400" title="Node Directory" description="Fetch and browse all known nodes — with battery, SNR, RSSI, GPS position, uptime, and hardware info." />
-            <Feature icon={Wifi} color="text-primary" title="Flexible MQTT Topics" description="Configure custom topic prefixes, regions (EU_868, US, etc.), and per-channel names." />
-            <Feature icon={Settings} color="text-muted-foreground" title="Per-User Settings" description="Each user has their own Node ID, region, default channel, channel names, and topic prefix." />
-            <Feature icon={Moon} color="text-indigo-400" title="Dark / Light / Auto Theme" description="Switch between dark mode, light mode, or auto (follows your system preference). Choice is saved." />
-            <Feature icon={RefreshCw} color="text-emerald-400" title="Manual Poll Control" description="Choose listen duration (10s to 20min) when manually polling — useful for longer monitoring sessions." />
+            {t.about.features.map(([title, description], index) => (
+              <Feature key={title} icon={featureIcons[index]} color={featureColors[index]} title={title} description={description} />
+            ))}
           </div>
         </section>
 
-        {/* Setup */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">Quick Setup</h2>
+          <h2 className="text-xl font-bold text-foreground mb-3">{t.about.setupTitle}</h2>
           <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-            <li>Open <span className="text-primary">Settings</span> (gear icon in the dashboard header).</li>
-            <li>Enter your <span className="text-primary">Node ID</span> (e.g. <code className="text-xs bg-secondary px-1.5 py-0.5 rounded font-mono">!49b65bc8</code>).</li>
-            <li>Set the correct <span className="text-primary">Region</span> matching your Meshtastic firmware config.</li>
-            <li>Optionally set a custom <span className="text-primary">Topic Prefix</span> if your proxy uses a non-standard path.</li>
-            <li>Name your <span className="text-primary">Channels</span> (0–7) to match your Meshtastic channel configuration.</li>
-            <li>Save — you're ready to send and receive messages.</li>
+            {t.about.setup.map((item) => <li key={item}>{item}</li>)}
           </ol>
         </section>
 
-        {/* MQTT Proxy */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">MQTT JSON Proxy</h2>
+          <h2 className="text-xl font-bold text-foreground mb-3">{t.about.proxyTitle}</h2>
           <div className="bg-card border border-yellow-500/30 rounded-xl p-4">
             <p className="text-muted-foreground leading-relaxed mb-3">
-              <span className="text-yellow-500 font-semibold">Important:</span> This app requires a JSON proxy that translates 
-              Meshtastic's native Protobuf-encoded MQTT messages into JSON. The proxy runs alongside your MQTT broker and 
-              provides the readable topics this dashboard subscribes to.
+              <span className="text-yellow-500 font-semibold">{t.about.important}</span> {t.about.proxyImportant}
             </p>
             <p className="text-muted-foreground leading-relaxed mb-3">
-              <span className="text-primary font-semibold">Recommended proxy:</span> <a href="https://github.com/ewerker/mqtt-proxy/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">ewerker/mqtt-proxy</a> — 
-              the preferred device-side software for this dashboard. It runs on <span className="text-foreground">all major desktop and server operating systems</span> (Linux, macOS, Windows, BSD), 
-              so you can deploy it on a Raspberry Pi, NAS, VPS, or any always-on machine alongside your MQTT broker.
+              <span className="text-primary font-semibold">{t.about.recommended}</span>{' '}
+              <a href="https://github.com/ewerker/mqtt-proxy/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">ewerker/mqtt-proxy</a> — {t.about.proxyRecommended}
             </p>
             <p className="text-sm text-muted-foreground mb-3">
-              Default topic structure: <code className="text-xs bg-secondary px-1.5 py-0.5 rounded font-mono text-primary">msh/&lt;region&gt;/proxy/...</code>
+              {t.about.defaultTopic} <code className="text-xs bg-secondary px-1.5 py-0.5 rounded font-mono text-primary">msh/&lt;region&gt;/proxy/...</code>
             </p>
-            <a
-              href="https://github.com/ewerker/mqtt-proxy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-secondary hover:bg-secondary/80 border border-border rounded-lg text-sm text-primary font-medium transition-colors"
-            >
+            <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 bg-secondary hover:bg-secondary/80 border border-border rounded-lg text-sm text-primary font-medium transition-colors">
               → GitHub: ewerker/mqtt-proxy
             </a>
           </div>
         </section>
 
-        {/* Requirements */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">Requirements</h2>
+          <h2 className="text-xl font-bold text-foreground mb-3">{t.about.requirementsTitle}</h2>
           <ul className="list-disc list-inside space-y-1.5 text-muted-foreground">
-            <li>A running <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">ewerker/mqtt-proxy</a> instance (local or remote).</li>
-            <li>At least one Meshtastic node with <span className="text-primary">MQTT uplink</span> enabled (acting as gateway).</li>
-            <li>Access to the MQTT broker your gateway node publishes to.</li>
-            <li>Broker credentials (URL, username, password) configured by the app administrator.</li>
+            {t.about.requirements.map((item) => <li key={item}>{item}</li>)}
           </ul>
         </section>
 
-        {/* Dashboard UI Guide */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-3">Dashboard Overview</h2>
+          <h2 className="text-xl font-bold text-foreground mb-3">{t.about.dashboardTitle}</h2>
           <div className="space-y-2 text-muted-foreground text-sm">
-            <p><span className="text-primary font-medium">Send Message</span> — Choose between Channel mode (broadcast to a group) or DM mode (direct to a specific node). Set hop limit and ACK preference. Bei DMs: Die Nachricht wird über MQTT gesendet <em>und</em> gleichzeitig per Portal (mit Präfix <code className="text-xs bg-secondary px-1 rounded font-mono">VIA PORTAL:</code>) direkt an den Empfänger gesendet, sofern dieser eine konfigurierte Node-ID hat.</p>
-            <p><span className="text-primary font-medium">Manual Receive</span> — Actively listen on the broker for a configurable duration. Useful for extended monitoring.</p>
-            <p><span className="text-primary font-medium">Message History</span> — Shows all sent and received messages with direction indicators, channel info, SNR/RSSI data, gateway ID, and relative timestamps. Messages can be deleted individually.</p>
-            <p><span className="text-primary font-medium">Nodes page</span> — Fetches the full node list from the broker and displays hardware, battery, signal quality, GPS coordinates, and uptime in a sortable table.</p>
+            {t.about.dashboard.map(([title, description]) => (
+              <p key={title}><span className="text-primary font-medium">{title}</span> — {description}</p>
+            ))}
           </div>
         </section>
       </main>

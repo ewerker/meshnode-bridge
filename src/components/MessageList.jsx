@@ -2,6 +2,7 @@ import { ArrowUpRight, ArrowDownLeft, Radio, Trash2, Wifi, Star, Bell, RotateCw,
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
@@ -10,6 +11,8 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
   const [pageSize, setPageSize] = useState(20);
   const [page, setPage] = useState(1);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { language } = useLanguage();
+  const isDe = language === 'de';
 
   const filteredMessages = (() => {
     if (isAdmin) return messages || [];
@@ -78,8 +81,8 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
         <Radio className="w-12 h-12 mb-3 opacity-30" />
-        <p className="text-sm">No messages</p>
-        <p className="text-xs mt-1 opacity-60">Waiting for Meshtastic messages…</p>
+        <p className="text-sm">{isDe ? 'Keine Nachrichten' : 'No messages'}</p>
+        <p className="text-xs mt-1 opacity-60">{isDe ? 'Warte auf Meshtastic-Nachrichten…' : 'Waiting for Meshtastic messages…'}</p>
       </div>
     );
   }
@@ -176,10 +179,10 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (confirm('Diese Nachricht erneut senden?')) onResend(msg);
+                  if (confirm(isDe ? 'Diese Nachricht erneut senden?' : 'Send this message again?')) onResend(msg);
                 }}
                 className="p-1 rounded hover:bg-primary/30 text-primary/80 hover:text-primary transition-colors"
-                title="Erneut senden"
+                title={isDe ? 'Erneut senden' : 'Send again'}
               >
                 <RotateCw className="w-3.5 h-3.5" />
               </button>
@@ -188,7 +191,7 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
               <button
                 onClick={(e) => { e.stopPropagation(); onDelete(msg.id); }}
                 className="p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
-                title="Delete"
+                title={isDe ? 'Löschen' : 'Delete'}
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -197,7 +200,7 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
               <span className={`text-xs font-semibold uppercase tracking-wider ${msg.direction === 'outbound' ? 'text-primary' : 'text-emerald-400'}`}>
-                {msg.direction === 'outbound' ? '⬆ Sent' : '⬇ Received'}
+                {msg.direction === 'outbound' ? (isDe ? '⬆ Gesendet' : '⬆ Sent') : (isDe ? '⬇ Empfangen' : '⬇ Received')}
               </span>
               <span className="text-muted-foreground/60">·</span>
               {msg.direction === 'inbound' && (fromLabel || msg.from_node) && (
@@ -308,7 +311,7 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
       {filteredMessages.length > 0 && (
         <div className="flex items-center justify-between gap-3 pt-3 mt-2 border-t border-border flex-wrap">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>Per page:</span>
+            <span>{isDe ? 'Pro Seite:' : 'Per page:'}</span>
             <select
               value={pageSize}
               onChange={(e) => setPageSize(parseInt(e.target.value))}
@@ -317,7 +320,7 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
               {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
             <span className="ml-2">
-              {startIdx + 1}–{Math.min(startIdx + pageSize, filteredMessages.length)} of {filteredMessages.length}
+              {startIdx + 1}–{Math.min(startIdx + pageSize, filteredMessages.length)} {isDe ? 'von' : 'of'} {filteredMessages.length}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -326,17 +329,17 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
               disabled={currentPage === 1}
               className="px-3 py-1 text-xs rounded bg-secondary hover:bg-secondary/80 disabled:opacity-40 disabled:cursor-not-allowed text-foreground transition-colors"
             >
-              ← Prev
+              ← {isDe ? 'Zurück' : 'Prev'}
             </button>
             <span className="text-xs text-muted-foreground">
-              Page {currentPage} / {totalPages}
+              {isDe ? 'Seite' : 'Page'} {currentPage} / {totalPages}
             </span>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               className="px-3 py-1 text-xs rounded bg-secondary hover:bg-secondary/80 disabled:opacity-40 disabled:cursor-not-allowed text-foreground transition-colors"
             >
-              Next →
+              {isDe ? 'Weiter' : 'Next'} →
             </button>
           </div>
         </div>

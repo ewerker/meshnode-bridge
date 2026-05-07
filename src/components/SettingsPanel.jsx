@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Save, Radio, Hash, Globe, Link2 } from 'lucide-react';
 import DangerZone from '@/components/DangerZone';
 import ToggleSwitch from '@/components/ToggleSwitch';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const DEFAULT_CHANNELS = Array.from({ length: 8 }, (_, i) => ({ number: i, name: '' }));
 
@@ -20,6 +21,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [knownNodes, setKnownNodes] = useState([]);
+  const { language } = useLanguage();
+  const isDe = language === 'de';
 
   const REGIONS = ['EU_868', 'EU_433', 'US', 'ANZ', 'KR', 'TW', 'RU', 'IN', 'NZ_865', 'TH', 'LORA_24', 'UA_433', 'UA_868', 'MY_433', 'MY_919', 'SG_923'];
 
@@ -136,7 +139,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
       <div>
         <label className="block text-xs font-medium text-primary mb-2 uppercase tracking-wider">
           <Radio className="inline w-3 h-3 mr-1" />
-          My Node ID
+          {isDe ? 'Meine Node-ID' : 'My Node ID'}
         </label>
         <input
           type="text"
@@ -162,7 +165,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
         {user?.role === 'admin' ? (
           knownNodes.length > 0 ? (
             <div className="mt-2">
-              <p className="text-xs text-muted-foreground mb-1.5">Bekannte Gateway-Nodes (zum Übernehmen klicken):</p>
+              <p className="text-xs text-muted-foreground mb-1.5">{isDe ? 'Bekannte Gateway-Nodes (zum Übernehmen klicken):' : 'Known gateway nodes (click to use):'}</p>
               <div className="flex flex-wrap gap-1.5">
                 {knownNodes.map(n => (
                   <button
@@ -184,12 +187,12 @@ export default function SettingsPanel({ onSettingsChanged }) {
             </div>
           ) : (
             <p className="text-xs text-muted-foreground mt-1">
-              Noch keine Gateway-Nodes bekannt — trage deine Node-ID ein, um zum ersten Mal zu senden.
+              {isDe ? 'Noch keine Gateway-Nodes bekannt — trage deine Node-ID ein, um zum ersten Mal zu senden.' : 'No gateway nodes known yet — enter your Node ID to send for the first time.'}
             </p>
           )
         ) : (
           <p className="text-xs text-muted-foreground mt-1">
-            Die Node-ID kann nur von einem Administrator geändert werden.
+            {isDe ? 'Die Node-ID kann nur von einem Administrator geändert werden.' : 'The Node ID can only be changed by an administrator.'}
           </p>
         )}
       </div>
@@ -214,7 +217,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
         </p>
       </div>
 
-      {/* Region & Default Channel */}
+      {/* Region & {isDe ? 'Standard-Channel' : 'Default Channel'} */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">
@@ -231,7 +234,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">Default Channel</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">{isDe ? 'Standard-Channel' : 'Default Channel'}</label>
           <select
             value={defaultChannel}
             onChange={(e) => setDefaultChannel(parseInt(e.target.value))}
@@ -251,7 +254,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
       <div>
         <label className="block text-xs font-medium text-primary mb-2 uppercase tracking-wider">
           <Hash className="inline w-3 h-3 mr-1" />
-          Channel Names (0–7)
+          {isDe ? 'Channel-Namen (0–7)' : 'Channel Names (0–7)'}
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {channels.map(c => (
@@ -276,11 +279,11 @@ export default function SettingsPanel({ onSettingsChanged }) {
       {/* Weiterleitungsoptionen */}
       <div>
         <label className="block text-xs font-medium text-primary mb-2 uppercase tracking-wider">
-          Nachrichtenweiterleitung
+          {isDe ? 'Nachrichtenweiterleitung' : 'Message routing'}
         </label>
         {ownIsDummy && (
           <p className="text-xs text-emerald-400 mb-2">
-            Deine Node-ID beginnt mit „?" — Dummy-Node. MQTT-Versand ist deaktiviert; Nachrichten laufen ausschließlich übers Portal.
+            {isDe ? 'Deine Node-ID beginnt mit „?” — Dummy-Node. MQTT-Versand ist deaktiviert; Nachrichten laufen ausschließlich übers Portal.' : 'Your Node ID starts with “?” — dummy node. MQTT sending is disabled; messages run through the portal only.'}
           </p>
         )}
         <div className="flex flex-col gap-3">
@@ -297,8 +300,8 @@ export default function SettingsPanel({ onSettingsChanged }) {
               className="mt-0.5 w-4 h-4 accent-primary cursor-pointer disabled:cursor-not-allowed"
             />
             <div>
-              <span className="text-sm text-foreground">Über MQTT senden</span>
-              <p className="text-xs text-muted-foreground">Nachricht an das Radio weiterleiten (wenn Gateway online)</p>
+              <span className="text-sm text-foreground">{isDe ? 'Über MQTT senden' : 'Send via MQTT'}</span>
+              <p className="text-xs text-muted-foreground">{isDe ? 'Nachricht an das Radio weiterleiten (wenn Gateway online)' : 'Forward the message to the radio if the gateway is online'}</p>
             </div>
           </label>
           <label className={`flex items-start gap-3 group ${ownIsDummy ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
@@ -314,12 +317,12 @@ export default function SettingsPanel({ onSettingsChanged }) {
               className="mt-0.5 w-4 h-4 accent-primary cursor-pointer disabled:cursor-not-allowed"
             />
             <div>
-              <span className="text-sm text-foreground">Direkt im Portal senden</span>
-              <p className="text-xs text-muted-foreground">Nachricht sofort im Portal an den Empfänger senden, wenn dessen Node-ID bekannt ist</p>
+              <span className="text-sm text-foreground">{isDe ? 'Direkt im Portal senden' : 'Send directly in portal'}</span>
+              <p className="text-xs text-muted-foreground">{isDe ? 'Nachricht sofort im Portal an den Empfänger senden, wenn dessen Node-ID bekannt ist' : 'Send the message immediately in the portal when the recipient Node ID is known'}</p>
             </div>
           </label>
           {bothDisabled && (
-            <p className="text-xs text-destructive">Mindestens eine Option muss aktiviert sein.</p>
+            <p className="text-xs text-destructive">{isDe ? 'Mindestens eine Option muss aktiviert sein.' : 'At least one option must be enabled.'}</p>
           )}
         </div>
       </div>
@@ -327,36 +330,36 @@ export default function SettingsPanel({ onSettingsChanged }) {
       {/* E-Mail Benachrichtigungen */}
       <div>
         <label className="block text-xs font-medium text-primary mb-2 uppercase tracking-wider">
-          Nachrichten per E-Mail empfangen
+          {isDe ? 'Nachrichten per E-Mail empfangen' : 'Receive messages by email'}
         </label>
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-muted-foreground mb-1 uppercase tracking-wider">Direktnachrichten</label>
+            <label className="block text-xs text-muted-foreground mb-1 uppercase tracking-wider">{isDe ? 'Direktnachrichten' : 'Direct messages'}</label>
             <select
               value={emailDmNotifications}
               onChange={(e) => setEmailDmNotifications(e.target.value)}
               className={inputClass()}
             >
-              <option value="never">Nie</option>
-              <option value="always">Immer</option>
-              <option value="when_offline">Wenn abgemeldet</option>
+              <option value="never">{isDe ? 'Nie' : 'Never'}</option>
+              <option value="always">{isDe ? 'Immer' : 'Always'}</option>
+              <option value="when_offline">{isDe ? 'Wenn abgemeldet' : 'When signed out'}</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs text-muted-foreground mb-1 uppercase tracking-wider">Gruppennachrichten</label>
+            <label className="block text-xs text-muted-foreground mb-1 uppercase tracking-wider">{isDe ? 'Gruppennachrichten' : 'Group messages'}</label>
             <select
               value={emailGroupNotifications}
               onChange={(e) => setEmailGroupNotifications(e.target.value)}
               className={inputClass()}
             >
-              <option value="never">Nie</option>
-              <option value="always">Immer</option>
-              <option value="when_offline">Wenn abgemeldet</option>
+              <option value="never">{isDe ? 'Nie' : 'Never'}</option>
+              <option value="always">{isDe ? 'Immer' : 'Always'}</option>
+              <option value="when_offline">{isDe ? 'Wenn abgemeldet' : 'When signed out'}</option>
             </select>
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-2">
-          Vorbereitung: Der eigentliche E-Mail-Versand wird später ergänzt.
+          {isDe ? 'Vorbereitung: Der eigentliche E-Mail-Versand wird später ergänzt.' : 'Preparation: actual email delivery will be added later.'}
         </p>
       </div>
 
@@ -364,7 +367,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
       <div className="flex items-center justify-end gap-3">
         {!isAdmin && (
           <span className="text-xs text-muted-foreground">
-            Node-ID und Broker-Einstellungen können nur von einem Administrator geändert werden.
+            {isDe ? 'Node-ID und Broker-Einstellungen können nur von einem Administrator geändert werden.' : 'Node ID and broker settings can only be changed by an administrator.'}
           </span>
         )}
         <button
@@ -373,7 +376,7 @@ export default function SettingsPanel({ onSettingsChanged }) {
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground"
         >
           <Save className="w-4 h-4" />
-          {saved ? 'Saved ✓' : saving ? 'Saving…' : 'Save Settings'}
+          {saved ? (isDe ? 'Gespeichert ✓' : 'Saved ✓') : saving ? (isDe ? 'Speichern…' : 'Saving…') : (isDe ? 'Einstellungen speichern' : 'Save Settings')}
         </button>
       </div>
 

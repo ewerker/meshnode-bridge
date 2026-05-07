@@ -3,102 +3,36 @@ import { Link } from 'react-router-dom';
 import { Radio, MessageSquare, Cpu, ShieldCheck, LogIn, Wifi, Mail, Network, Zap, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { useTheme } from '@/lib/ThemeContext';
+import { useLanguage } from '@/lib/LanguageContext';
+import LanguageToggle from '@/components/LanguageToggle';
 
 
-const topics = [
-  {
-    icon: Network,
-    title: 'MQTT als Nervensystem',
-    text: 'Das Portal kann ganze Regionen bridgen und über MQTT-Wildcard-Abonnements relevante Nachrichten aus Topics wie msh/<region>/proxy/+/+/# erfassen.'
-  },
-  {
-    icon: Radio,
-    title: 'Webuser ohne Funkgerät',
-    text: 'Jeder Browser kann als virtueller Meshtastic-Node genutzt werden. Nutzer ohne eigenes Gerät erhalten Pseudo-Node-IDs wie ?abc123.',
-  },
-  {
-    icon: MessageSquare,
-    title: 'Nachrichten & Deduplizierung',
-    text: 'Portal-Mirror, Radio-Relay und packet_id werden intelligent abgeglichen, damit Nachrichten trotz mehrerer Empfangswege nur einmal sichtbar bleiben.',
-  },
-  {
-    icon: Zap,
-    title: 'ACK & Zustellstatus',
-    text: 'Mit want_ack und eindeutigen client_ref-IDs verfolgt das Portal ACK, NAK und Implicit ACK über dedizierte MQTT-Topics transparent nach.',
-  },
-  {
-    icon: Cpu,
-    title: 'Node-Entdeckung',
-    text: 'Node-Daten wie last_heard, SNR, battery_level, GPS, Hardware und Uptime werden per MQTT-Polling gesammelt und übersichtlich visualisiert.',
-  },
-  {
-    icon: Mail,
-    title: 'Omni-Channel-Erweiterung',
-    text: 'E-Mail-Weiterleitung ist bereits möglich; Versand per E-Mail sowie SMS, RCS, Push, Telegram, WhatsApp, iMessage, KI-Bots und Autoresponder sind vorbereitet oder machbar.'
-  },
-];
+const topicIcons = [Network, Radio, MessageSquare, Zap, Cpu, Mail];
 
-const screenshotCards = [
-  {
-    title: 'Nachrichtenübersicht',
-    subtitle: 'Eingehende Nachrichten, Gruppen und DM via Radio oder Portal — dedupliziert, wenn sie über mehrere Wege geleitet werden.',
-    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/259106849_image.png',
-    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/d66f4c810_image.png',
-  },
-  {
-    title: 'Nachrichten versenden',
-    subtitle: 'Bequem senden mit oder ohne ACK-Anforderung, mehr Hops, gleichzeitiger Portal-Zustellung oder Weiterleitung an Accounts mit E-Mail-, SMS- und RCS-Anbindung.',
-    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/bf16da12b_image.png',
-    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/704eb2f97_image.png',
-  },
-  {
-    title: 'Automatischer Hintergrundbetrieb',
-    subtitle: 'Nachrichtenempfang auch im Hintergrund ohne angemeldete Nutzer, automatische Aktualisierung der Nodes und Dokumentation aller Vorgänge im Poll-Log.',
-    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/6248ea2d2_image.png',
-    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/d3da7adf4_image.png',
-  },
-  {
-    title: 'Mehrsprachige Oberfläche',
-    subtitle: 'In Deutsch und Englisch umgesetzt: Inhalte, Hilfetexte und Funktionsbeschreibungen sind mehrsprachig verfügbar.',
-    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/b7c4de2e5_image.png',
-    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/4ac1df23b_image.png',
-  },
-  {
-    title: 'Alle Einstellungen auf einer Seite',
-    subtitle: 'In 5 Minuten eingerichtet: Topic-Prefix, Region, Kanäle, Weiterleitung und E-Mail-Benachrichtigungen zentral konfigurieren — für die eigene Instanz.',
-    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/8663c8022_image.png',
-    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/19fcbce6d_image.png',
-  },
-  {
-    title: 'Kompaktes responsives Design',
-    subtitle: 'Passend für PC, Mac und Linux, aber auch für Tablets und Smartphones optimiert — als App installierbar.',
-    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/174cda4c9_image.png',
-    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/c4d8af1b0_image.png',
-  },
-  {
-    title: 'Node Übersicht',
-    subtitle: 'Jeder kann grundsätzlich an alle Nodes des Netzwerks senden und nutzt dazu das Endgerät / Radio des Teilnehmers mit der besten Erreichbarkeit — in Gruppen auch mehrere.',
-    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/6ee25039a_image.png',
-    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/46fe7636a_image.png',
-  },
-  {
-    title: 'Kartenansicht',
-    subtitle: 'Eine Kartenansicht darf nicht fehlen: intelligente Filterung und Distanzmessung zeigen eigene und globale Nodes des Netzwerkes.',
-    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/26b5aebe5_Screenshot2026-05-07123008.png',
-    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/25428cb24_image.png',
-  },
-  {
-    title: 'Statistiken',
-    subtitle: 'Das Dashboard für Statistik lässt sich konfigurieren und zeigt eigene sowie Netzwerk-Statistiken übersichtlich an.',
-    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/688b804d5_image.png',
-    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/72b184d67_image.png',
-  },
+const screenshotImages = [
+  ['https://media.base44.com/images/public/69cb722a8da55dd42eb76464/259106849_image.png', 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/d66f4c810_image.png'],
+  ['https://media.base44.com/images/public/69cb722a8da55dd42eb76464/bf16da12b_image.png', 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/704eb2f97_image.png'],
+  ['https://media.base44.com/images/public/69cb722a8da55dd42eb76464/6248ea2d2_image.png', 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/d3da7adf4_image.png'],
+  ['https://media.base44.com/images/public/69cb722a8da55dd42eb76464/b7c4de2e5_image.png', 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/4ac1df23b_image.png'],
+  ['https://media.base44.com/images/public/69cb722a8da55dd42eb76464/8663c8022_image.png', 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/19fcbce6d_image.png'],
+  ['https://media.base44.com/images/public/69cb722a8da55dd42eb76464/174cda4c9_image.png', 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/c4d8af1b0_image.png'],
+  ['https://media.base44.com/images/public/69cb722a8da55dd42eb76464/6ee25039a_image.png', 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/46fe7636a_image.png'],
+  ['https://media.base44.com/images/public/69cb722a8da55dd42eb76464/26b5aebe5_Screenshot2026-05-07123008.png', 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/25428cb24_image.png'],
+  ['https://media.base44.com/images/public/69cb722a8da55dd42eb76464/688b804d5_image.png', 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/72b184d67_image.png'],
 ];
 
 export default function Landing() {
   const { navigateToLogin } = useAuth();
   const { resolved, setTheme } = useTheme();
+  const { t } = useLanguage();
   const [previewShot, setPreviewShot] = useState(null);
+  const topics = t.landing.topics.map(([title, text], index) => ({ icon: topicIcons[index], title, text }));
+  const screenshotCards = t.landing.screenshots.map(([title, subtitle], index) => ({
+    title,
+    subtitle,
+    lightImage: screenshotImages[index][0],
+    darkImage: screenshotImages[index][1],
+  }));
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -106,19 +40,19 @@ export default function Landing() {
         <section className="max-w-6xl mx-auto px-4 py-16 sm:py-24 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold mb-6">
             <Radio className="w-4 h-4" />
-            Meshtastic MQTT Web Portal
+            {t.landing.badge}
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight max-w-4xl mx-auto">
-            Meshtastic Web Portal — Meshtastic direkt im Browser.
+            {t.landing.title}
           </h1>
 
           <p className="mt-6 text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Das Meshtastic Web Portal macht jeden Webbrowser zum virtuellen Meshtastic-Node. Über MQTT verbindet es sich in Echtzeit mit Ihrem Meshtastic-Netzwerk — auch ohne eigenes Funkgerät.
+            {t.landing.intro}
           </p>
 
           <p className="mt-4 text-base text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            In Kombination mit dem <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">W-2 MQTT-Proxy</a> können Nachrichten gesendet, empfangen, geroutet, an Personen weitergeleitet, in Gruppen umgeleitet, dedupliziert und Zustellbestätigungen verfolgt werden.
+            {t.landing.proxyIntroPrefix} <a href="https://github.com/ewerker/mqtt-proxy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">W-2 MQTT-Proxy</a> {t.landing.proxyIntroSuffix}
           </p>
 
           <div className="mt-10 flex items-center justify-center gap-3 flex-wrap">
@@ -127,23 +61,24 @@ export default function Landing() {
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-colors shadow-lg shadow-primary/20"
             >
               <LogIn className="w-5 h-5" />
-              Login
+              {t.common.login}
             </button>
             <button
               onClick={() => setTheme(resolved === 'dark' ? 'light' : 'dark')}
               className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 border border-border text-sm text-foreground transition-colors"
             >
               {resolved === 'dark' ? <Sun className="w-4 h-4 text-primary" /> : <Moon className="w-4 h-4 text-primary" />}
-              {resolved === 'dark' ? 'Tag einschalten' : 'Nacht einschalten'}
+              {resolved === 'dark' ? t.theme.dayOn : t.theme.nightOn}
             </button>
+            <LanguageToggle />
           </div>
         </section>
 
         <section className="max-w-6xl mx-auto px-4 pb-16">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold">Leistungsbereiche</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold">{t.landing.capabilitiesTitle}</h2>
             <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
-              Von MQTT-Integration über virtuelle Web-Nodes bis zu ACK-Tracking, Deduplizierung und Benachrichtigungen.
+              {t.landing.capabilitiesText}
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -155,9 +90,9 @@ export default function Landing() {
 
         <section className="max-w-6xl mx-auto px-4 pb-20">
           <div className="bg-card border border-border rounded-2xl p-6 mb-8 text-left">
-            <h2 className="text-2xl font-bold mb-3">Technisch robust, intuitiv bedienbar</h2>
+            <h2 className="text-2xl font-bold mb-3">{t.landing.robustTitle}</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Eine moderne, webbasierte Brücke zwischen Meshtastic — prinzipiell auch Meshcore — MQTT und alltäglicher Kommunikation: skalierbar, flexibel und ohne Gerätezwang. Nodes, Kanäle, Direktnachrichten, GPS/Karte, Akku, SNR und Zustellstatus werden zentral sichtbar.
+              {t.landing.robustText}
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -169,7 +104,7 @@ export default function Landing() {
                       type="button"
                       onClick={() => setPreviewShot(shot)}
                       className="relative w-full h-full group cursor-zoom-in"
-                      aria-label={`${shot.title} vergrößern`}
+                      aria-label={`${shot.title} ${t.common.zoom}`}
                     >
                       <img
                         src={resolved === 'dark' ? shot.lightImage : shot.darkImage}
@@ -177,7 +112,7 @@ export default function Landing() {
                         className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
                       />
                       <span className="absolute inset-x-3 bottom-3 rounded-lg bg-background/85 border border-border px-3 py-1.5 text-xs text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                        Zum Vergrößern klicken
+                        {t.common.zoom}
                       </span>
                     </button>
                   ) : (
@@ -200,7 +135,7 @@ export default function Landing() {
                   )}
                 </div>
                 <div className="p-4 text-left">
-                  <p className="text-xs text-primary font-semibold uppercase tracking-wider">Screenshot {idx + 1}</p>
+                  <p className="text-xs text-primary font-semibold uppercase tracking-wider">{t.common.screenshot} {idx + 1}</p>
                   <h3 className="font-semibold mt-1">{shot.title}</h3>
                   <p className="text-sm text-muted-foreground mt-1">{shot.subtitle}</p>
                 </div>
@@ -219,7 +154,7 @@ export default function Landing() {
             type="button"
             onClick={() => setPreviewShot(null)}
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 border border-border text-foreground text-2xl leading-none"
-            aria-label="Schließen"
+            aria-label={t.common.close}
           >
             ×
           </button>
@@ -239,7 +174,7 @@ export default function Landing() {
 
       <footer className="border-t border-border">
         <div className="max-w-6xl mx-auto px-4 py-5 flex justify-center text-sm text-muted-foreground">
-          <Link to="/imprint" className="hover:text-foreground transition-colors">Impressum</Link>
+          <Link to="/imprint" className="hover:text-foreground transition-colors">{t.common.imprint}</Link>
         </div>
       </footer>
     </div>

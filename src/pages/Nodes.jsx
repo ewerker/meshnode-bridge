@@ -6,6 +6,8 @@ import NodeTable from '@/components/NodeTable';
 import NodeStats from '@/components/nodes/NodeStats';
 import NodeMap from '@/components/nodes/NodeMap';
 import ThemeToggle from '@/components/ThemeToggle';
+import LanguageToggle from '@/components/LanguageToggle';
+import { useLanguage } from '@/lib/LanguageContext';
 import NodePollProgress from '@/components/NodePollProgress';
 import ManualNodeDialog from '@/components/ManualNodeDialog';
 import AppFooter from '@/components/AppFooter';
@@ -23,6 +25,8 @@ export default function Nodes() {
   const [ownNode, setOwnNode] = useState(null);
   const [manualDialogOpen, setManualDialogOpen] = useState(false);
   const [editingNode, setEditingNode] = useState(null);
+  const { language, t } = useLanguage();
+  const isDe = language === 'de';
   const fetchNodes = useCallback(async (gw) => {
     setLoading(true);
     const me = gw || (await base44.auth.me()).node_id;
@@ -51,11 +55,11 @@ export default function Nodes() {
   const handlePollNodes = async () => {
     const fromNode = user?.node_id;
     if (!fromNode) {
-      setResult({ type: 'error', msg: 'Please set a Node ID in Settings first.' });
+      setResult({ type: 'error', msg: isDe ? 'Bitte zuerst eine Node-ID in den Einstellungen setzen.' : 'Please set a Node ID in Settings first.' });
       return;
     }
     if (fromNode.startsWith('?')) {
-      setResult({ type: 'error', msg: 'Portal-only Accounts können keine Nodes per MQTT fetchen.' });
+      setResult({ type: 'error', msg: isDe ? 'Portal-only Accounts können keine Nodes per MQTT abrufen.' : 'Portal-only accounts cannot fetch nodes via MQTT.' });
       return;
     }
     setPolling(true);
@@ -63,7 +67,7 @@ export default function Nodes() {
     setResult(null);
     setLogLines([]);
     try {
-      setLogLines(['Warte auf MQTT Daten...']);
+      setLogLines([isDe ? 'Warte auf MQTT-Daten…' : 'Waiting for MQTT data…']);
       // Manual poll: backend returns raw nodes (no persistence). Frontend then saves them
       // in small visible batches via meshNodeBatchUpsert (service-role inside backend, so
       // non-admin users do not hit the MeshNode RLS update restriction).
@@ -73,12 +77,12 @@ export default function Nodes() {
 
       if (allNodes.length === 0) {
         setPollProgress({ phase: 'done', current: 0, total: 0 });
-        setLogLines(['Keine Node-Daten vom Broker erhalten.']);
-        setResult({ type: 'error', msg: 'Keine Node-Daten vom Broker erhalten' });
+        setLogLines([isDe ? 'Keine Node-Daten vom Broker erhalten.' : 'No node data received from broker.']);
+        setResult({ type: 'error', msg: isDe ? 'Keine Node-Daten vom Broker erhalten' : 'No node data received from broker' });
         return;
       }
 
-      setLogLines([`${allNodes.length} Nodes empfangen. Speichere in 3er-Batches…`]);
+      setLogLines([isDe ? `${allNodes.length} Nodes empfangen. Speichere in 3er-Batches…` : `${allNodes.length} nodes received. Saving in batches of 3…`]);
       setPollProgress({ phase: 'updating', current: 0, total: allNodes.length });
 
       const BATCH = 3;
@@ -94,18 +98,18 @@ export default function Nodes() {
           errors += r.data?.errors || 0;
         } catch (e) {
           errors += batch.length;
-          setLogLines(prev => [`Fehler Batch ${i}-${i + batch.length}: ${e.message || e}`, ...prev].slice(0, 50));
+          setLogLines(prev => [isDe ? `Fehler Batch ${i}-${i + batch.length}: ${e.message || e}` : `Batch error ${i}-${i + batch.length}: ${e.message || e}`, ...prev].slice(0, 50));
         }
         setPollProgress({ phase: 'updating', current: Math.min(i + BATCH, allNodes.length), total: allNodes.length });
       }
 
       setPollProgress({ phase: 'done', current: allNodes.length, total: allNodes.length });
       const errText = errors ? `, ${errors} errors` : '';
-      setLogLines([`Fertig: ${allNodes.length} Nodes verarbeitet (${created} neu, ${updated} aktualisiert${errText}).`]);
-      setResult({ type: 'success', msg: `${allNodes.length} nodes read (${created} new, ${updated} updated${errText})` });
+      setLogLines([isDe ? `Fertig: ${allNodes.length} Nodes verarbeitet (${created} neu, ${updated} aktualisiert${errText}).` : `Done: ${allNodes.length} nodes processed (${created} new, ${updated} updated${errText}).`]);
+      setResult({ type: 'success', msg: isDe ? `${allNodes.length} Nodes gelesen (${created} neu, ${updated} aktualisiert${errText})` : `${allNodes.length} nodes read (${created} new, ${updated} updated${errText})` });
       fetchNodes();
     } catch (err) {
-      setResult({ type: 'error', msg: err.message || 'Error fetching nodes' });
+      setResult({ type: 'error', msg: err.message || (isDe ? 'Fehler beim Abrufen der Nodes' : 'Error fetching nodes') });
     } finally {
       setPolling(false);
     }
@@ -124,7 +128,7 @@ export default function Nodes() {
             </div>
             <div>
               <h1 className="font-bold text-foreground tracking-tight">Mesh Nodes</h1>
-              <p className="text-xs text-muted-foreground">{nodes.length} nodes {nodeScope === 'all' ? 'gesamt' : 'eigene'}</p>
+              <p className="text-xs text-muted-foreground">{nodes.length} {isDe ? 'Nodes' : 'nodes'} {nodeScope === 'all' ? (isDe ? 'gesamt' : 'total') : (isDe ? 'eigene' : 'own')}</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center justify-center xl:justify-end gap-2 sm:gap-3 w-full xl:w-auto">
@@ -140,7 +144,7 @@ export default function Nodes() {
                   nodeScope === 'own' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Eigene
+                {isDe ? 'Eigene' : 'Own'}
               </button>
               <button
                 onClick={() => setNodeScope('all')}
@@ -148,7 +152,7 @@ export default function Nodes() {
                   nodeScope === 'all' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Alle
+                {isDe ? 'Alle' : 'All'}
               </button>
             </div>
             <div className="flex bg-secondary rounded-lg p-0.5">
@@ -159,7 +163,7 @@ export default function Nodes() {
                 }`}
               >
                 <List className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Table</span>
+                <span className="hidden sm:inline">{isDe ? 'Tabelle' : 'Table'}</span>
               </button>
               <button
                 onClick={() => setView('map')}
@@ -168,7 +172,7 @@ export default function Nodes() {
                 }`}
               >
                 <Map className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Map</span>
+                <span className="hidden sm:inline">{isDe ? 'Karte' : 'Map'}</span>
               </button>
               <button
                 onClick={() => setView('stats')}
@@ -177,42 +181,43 @@ export default function Nodes() {
                 }`}
               >
                 <BarChart3 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Stats</span>
+                <span className="hidden sm:inline">{isDe ? 'Statistik' : 'Stats'}</span>
               </button>
             </div>
             <button
               onClick={() => { setEditingNode(null); setManualDialogOpen(true); }}
               disabled={!user?.node_id}
               className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 disabled:opacity-50 text-foreground transition-colors"
-              title="Manuelle Node anlegen"
+              title={isDe ? 'Manuelle Node anlegen' : 'Add manual node'}
             >
               <UserPlus className="w-4 h-4" />
             </button>
             <button
               onClick={handlePollNodes}
               disabled={polling || !user?.node_id || user.node_id.startsWith('?')}
-              title={user?.node_id?.startsWith('?') ? 'Portal-only Accounts können keine Nodes per MQTT fetchen' : 'Fetch Nodes'}
+              title={user?.node_id?.startsWith('?') ? (isDe ? 'Portal-only Accounts können keine Nodes per MQTT abrufen' : 'Portal-only accounts cannot fetch nodes via MQTT') : (isDe ? 'Nodes abrufen' : 'Fetch Nodes')}
               className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
             >
               {polling ? (
                 <>
                   <Download className="w-4 h-4 animate-pulse" />
-                  <span>Reading nodes…</span>
+                  <span>{isDe ? 'Nodes werden gelesen…' : 'Reading nodes…'}</span>
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4" />
-                  <span>Fetch Nodes</span>
+                  <span>{isDe ? 'Nodes abrufen' : 'Fetch Nodes'}</span>
                 </>
               )}
             </button>
             <button
               onClick={fetchNodes}
               className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-              title="Refresh"
+              title={t.common.refresh}
             >
               <RefreshCw className="w-4 h-4 text-muted-foreground" />
             </button>
+            <LanguageToggle />
             <ThemeToggle />
           </div>
         </div>

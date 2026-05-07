@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Send, Radio, Users, User, Bell, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import NodePicker from '@/components/NodePicker';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const ALL_CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7];
 const LS_CHANNEL = 'mesh_last_channel';
@@ -32,6 +33,8 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const [feedback, setFeedback] = useState(null);
   const [portalNodeIds, setPortalNodeIds] = useState(new Set());
   const [portalUsers, setPortalUsers] = useState([]);
+  const { language } = useLanguage();
+  const isDe = language === 'de';
 
   useEffect(() => {
     base44.functions.invoke('getPortalUsers', {}).then(res => {
@@ -147,7 +150,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (mode === 'dm' && dmNodeId.trim() && userSettings?.node_id && dmNodeId.trim() === userSettings.node_id) {
-      setFeedback({ type: 'error', msg: 'DM an die eigene Node-ID ist nicht möglich.' });
+      setFeedback({ type: 'error', msg: isDe ? 'DM an die eigene Node-ID ist nicht möglich.' : 'DM to your own Node ID is not possible.' });
       return;
     }
     setSending(true);
@@ -172,7 +175,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
       onMessageSent?.();
 
       if (!ref) {
-        setFeedback({ type: 'success', msg: `Sent (no ACK)` });
+        setFeedback({ type: 'success', msg: isDe ? 'Gesendet (ohne ACK)' : 'Sent (no ACK)' });
         return;
       }
 
@@ -186,7 +189,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
         setFeedback({ type: 'success', msg: `⏱ No ACK within timeout (${ref})` });
       }
     } catch (err) {
-      setFeedback({ type: 'error', msg: err.message || 'Error sending message' });
+      setFeedback({ type: 'error', msg: err.message || (isDe ? 'Fehler beim Senden der Nachricht' : 'Error sending message') });
     } finally {
       setSending(false);
     }
@@ -227,7 +230,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           </label>
           {CHANNELS.length === 0 ? (
             <div className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-muted-foreground">
-              Keine Channels verfügbar — bitte einen Administrator bitten, Channel-Namen zu konfigurieren.
+              {isDe ? 'Keine Channels verfügbar — bitte einen Administrator bitten, Channel-Namen zu konfigurieren.' : 'No channels available — please ask an administrator to configure channel names.'}
             </div>
           ) : (
             <select
@@ -244,7 +247,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           {(longFastGroupBlocked || noPortalGroupParticipant || portalOnlyAccount) && (
             <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-              <span>{longFastGroupBlocked ? 'LongFast ist für Portal-only Accounts gesperrt.' : noPortalGroupParticipant ? 'Keine Portal-Teilnehmer für diese Gruppe gefunden — Senden ist deaktiviert.' : 'Portal-only Accounts senden Gruppen intern im Portal, ohne ACK.'}</span>
+              <span>{longFastGroupBlocked ? (isDe ? 'LongFast ist für Portal-only Accounts gesperrt.' : 'LongFast is blocked for portal-only accounts.') : noPortalGroupParticipant ? (isDe ? 'Keine Portal-Teilnehmer für diese Gruppe gefunden — Senden ist deaktiviert.' : 'No portal participants found for this group — sending is disabled.') : (isDe ? 'Portal-only Accounts senden Gruppen intern im Portal, ohne ACK.' : 'Portal-only accounts send groups internally through the portal, without ACK.')}</span>
             </div>
           )}
         </div>
@@ -254,7 +257,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
       {mode === 'dm' && (
         <div>
           <label className="block text-xs font-medium text-primary mb-1 uppercase tracking-wider">
-            Recipient
+            {isDe ? 'Empfänger' : 'Recipient'}
           </label>
           <NodePicker key={recipientResetKey} value={dmNodeId} onChange={setDmNodeId} portalOnly={portalOnlyAccount} />
           {/* Portal-only warning */}
@@ -262,7 +265,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
             <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
               <span>
-                <strong>Hinweis:</strong> Nur „Portal senden" ist aktiv, aber der Empfänger hat kein Portal-Konto — die Nachricht würde verloren gehen.
+                <strong>{isDe ? 'Hinweis:' : 'Note:'}</strong> {isDe ? 'Nur „Portal senden” ist aktiv, aber der Empfänger hat kein Portal-Konto — die Nachricht würde verloren gehen.' : 'Only portal sending is active, but the recipient has no portal account — the message would be lost.'}
               </span>
             </div>
           )}
@@ -304,20 +307,20 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
           onChange={(e) => setText(e.target.value)}
           rows={3}
           className="flex-1 bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
-          placeholder="Enter message..."
+          placeholder={isDe ? 'Nachricht eingeben…' : 'Enter message…'}
           required
         />
         <div className="flex flex-col gap-2 min-w-[64px]">
           <button
             type="button"
             onClick={() => setWithBell(v => !v)}
-            title="Glockenzeichen (U+0007) an die Nachricht anhängen"
+            title={isDe ? 'Glockenzeichen (U+0007) an die Nachricht anhängen' : 'Append bell character (U+0007) to the message'}
             className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
               withBell ? 'bg-yellow-400/15 text-yellow-400 border-yellow-400/40' : 'bg-secondary text-muted-foreground border-border'
             }`}
           >
             <Bell className={`w-3.5 h-3.5 ${withBell ? 'fill-yellow-400' : ''}`} />
-            Bell
+            {isDe ? 'Glocke' : 'Bell'}
           </button>
           <button
             type="submit"
@@ -329,7 +332,7 @@ export default function SendMessageForm({ onMessageSent, userSettings, replyTo, 
             ) : (
               <>
                 <Send className="w-5 h-5" />
-                <span className="text-xs">Send</span>
+                <span className="text-xs">{isDe ? 'Senden' : 'Send'}</span>
               </>
             )}
           </button>

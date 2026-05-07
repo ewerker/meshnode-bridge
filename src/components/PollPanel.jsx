@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Download, Wifi } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import PollCountdown from '@/components/PollCountdown';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const LISTEN_OPTIONS = [
   { label: '10 sec', seconds: 10 },
@@ -22,6 +23,8 @@ export default function PollPanel({ onReceived, userSettings }) {
   });
   const [polling, setPolling] = useState(false);
   const [result, setResult] = useState(null);
+  const { language } = useLanguage();
+  const isDe = language === 'de';
 
   const handleListenChange = (val) => {
     const s = parseInt(val);
@@ -34,14 +37,14 @@ export default function PollPanel({ onReceived, userSettings }) {
 
   const runPoll = async (seconds) => {
     if (!nodeId) {
-      setResult({ type: 'error', msg: 'Please set your Node ID in Settings first.' });
+      setResult({ type: 'error', msg: isDe ? 'Bitte zuerst deine Node-ID in den Einstellungen setzen.' : 'Please set your Node ID in Settings first.' });
       return;
     }
     setPolling(true);
     setResult(null);
     try {
       const res = await base44.functions.invoke('mqttPoll', { region, listenSeconds: seconds, pollType: 'manual_poll' });
-      setResult({ type: 'success', msg: `${res.data.received} message(s) received, ${res.data.saved} saved.` });
+      setResult({ type: 'success', msg: isDe ? `${res.data.received} Nachricht(en) empfangen, ${res.data.saved} gespeichert.` : `${res.data.received} message(s) received, ${res.data.saved} saved.` });
       onReceived?.();
     } catch (err) {
       setResult({ type: 'error', msg: err.message });
@@ -58,7 +61,7 @@ export default function PollPanel({ onReceived, userSettings }) {
     <div className="space-y-3">
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">Listen time:</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">{isDe ? 'Empfangsdauer:' : 'Listen time:'}</span>
           <select
             value={listenSeconds}
             onChange={e => handleListenChange(e.target.value)}
@@ -76,12 +79,12 @@ export default function PollPanel({ onReceived, userSettings }) {
           {polling ? (
             <>
               <Wifi className="w-4 h-4 text-primary animate-pulse" />
-              <span>Listening…</span>
+              <span>{isDe ? 'Empfange…' : 'Listening…'}</span>
             </>
           ) : (
             <>
               <Download className="w-4 h-4" />
-              <span>Receive</span>
+              <span>{isDe ? 'Empfangen' : 'Receive'}</span>
             </>
           )}
         </button>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Cpu, Radio, Battery, MapPin, Clock, Wifi, ChevronUp, ChevronDown, Star, Search, X, Pencil, Trash2, UserPlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { base44 } from '@/api/base44Client';
+import { useLanguage } from '@/lib/LanguageContext';
 
 function formatUptime(seconds) {
   if (!seconds) return '—';
@@ -81,6 +82,8 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGa
   const [sortKey, setSortKey] = useState('last_heard');
   const [sortDir, setSortDir] = useState('desc');
   const [search, setSearch] = useState('');
+  const { language } = useLanguage();
+  const isDe = language === 'de';
   const columns = COLUMNS.filter(col => {
     if (!showGatewayOwner && col.key === 'gateway_node_id') return false;
     if (showGatewayOwner && col.key === '_fav') return false;
@@ -108,7 +111,7 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGa
 
   const handleDelete = async (e, node) => {
     e.stopPropagation();
-    if (!confirm(`Manuelle Node "${node.long_name || node.node_id}" löschen?`)) return;
+    if (!confirm(isDe ? `Manuelle Node "${node.long_name || node.node_id}" löschen?` : `Delete manual node "${node.long_name || node.node_id}"?`)) return;
     const res = await base44.functions.invoke('manualNodeCrud', { action: 'delete', id: node.id });
     if (res.data?.error) {
       alert(res.data.error);
@@ -130,8 +133,8 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGa
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
         <Cpu className="w-12 h-12 mb-3 opacity-30" />
-        <p className="text-sm">No nodes known</p>
-        <p className="text-xs mt-1 opacity-60">Click "Fetch Nodes" to retrieve nodes from the mesh</p>
+        <p className="text-sm">{isDe ? 'Keine Nodes bekannt' : 'No nodes known'}</p>
+        <p className="text-xs mt-1 opacity-60">{isDe ? 'Klicke auf „Nodes abrufen”, um Nodes aus dem Mesh zu laden' : 'Click “Fetch Nodes” to retrieve nodes from the mesh'}</p>
       </div>
     );
   }
@@ -164,14 +167,14 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGa
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by long/short name or node ID…"
+            placeholder={isDe ? 'Nach Lang-/Kurzname oder Node-ID suchen…' : 'Search by long/short name or node ID…'}
             className="w-full bg-secondary border border-border rounded-lg pl-9 pr-8 py-2 text-sm text-foreground focus:outline-none focus:border-primary placeholder:text-muted-foreground"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
-              title="Clear"
+              title={isDe ? 'Zurücksetzen' : 'Clear'}
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -186,7 +189,7 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGa
       {sorted.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
           <Search className="w-8 h-8 mb-2 opacity-30" />
-          <p className="text-sm">No nodes match "{search}"</p>
+          <p className="text-sm">{isDe ? `Keine Nodes passen zu "${search}"` : `No nodes match "${search}"`}</p>
         </div>
       ) : (
       <div className="overflow-x-auto">
@@ -215,7 +218,7 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGa
                   <button
                     onClick={(e) => handleToggleFav(e, node)}
                     className={`transition-colors ${node.is_favorite ? 'text-yellow-400' : 'text-muted-foreground/30 hover:text-yellow-400'}`}
-                    title={node.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+                    title={node.is_favorite ? (isDe ? 'Aus Favoriten entfernen' : 'Remove from favorites') : (isDe ? 'Zu Favoriten hinzufügen' : 'Add to favorites')}
                   >
                     <Star className={`w-3.5 h-3.5 ${node.is_favorite ? 'fill-yellow-400' : ''}`} />
                   </button>
@@ -225,7 +228,7 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGa
                 <div className="flex items-center gap-2">
                   {node.is_gateway && <Radio className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
                   {node.is_manual && (
-                    <span title="Manuell angelegt" className="flex-shrink-0">
+                    <span title={isDe ? 'Manuell angelegt' : 'Manually added'} className="flex-shrink-0">
                       <UserPlus className="w-3.5 h-3.5 text-emerald-400" />
                     </span>
                   )}
@@ -282,14 +285,14 @@ export default function NodeTable({ nodes, onFavoriteToggle, currentUser, showGa
                     <button
                       onClick={(e) => { e.stopPropagation(); onEditManual?.(node); }}
                       className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                      title="Bearbeiten"
+                      title={isDe ? 'Bearbeiten' : 'Edit'}
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={(e) => handleDelete(e, node)}
                       className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      title="Löschen"
+                      title={isDe ? 'Löschen' : 'Delete'}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

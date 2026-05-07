@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, X, Cpu, Star, User, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { base44 } from '@/api/base44Client';
+import { useLanguage } from '@/lib/LanguageContext';
 
 function formatLastHeard(ts) {
   if (!ts) return null;
@@ -16,6 +17,8 @@ export default function NodePicker({ value, onChange, onFavoriteToggle, portalOn
   const [filter, setFilter] = useState('');
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const { language } = useLanguage();
+  const isDe = language === 'de';
 
   useEffect(() => {
     (async () => {
@@ -128,7 +131,7 @@ export default function NodePicker({ value, onChange, onFavoriteToggle, portalOn
           className="w-full flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-muted-foreground hover:border-primary transition-colors text-left"
           >
           <Search className="w-4 h-4" />
-          {portalOnly ? 'Portal-Nutzer auswählen…' : isAdmin ? 'Search node…' : 'Portal-Nutzer auswählen…'}
+          {portalOnly ? (isDe ? 'Portal-Nutzer auswählen…' : 'Select portal user…') : isAdmin ? (isDe ? 'Node suchen…' : 'Search node…') : (isDe ? 'Portal-Nutzer auswählen…' : 'Select portal user…')}
         </button>
       )}
 
@@ -141,7 +144,7 @@ export default function NodePicker({ value, onChange, onFavoriteToggle, portalOn
               type="text"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              placeholder="Filter…"
+              placeholder={isDe ? 'Filtern…' : 'Filter…'}
               className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-muted-foreground"
               autoFocus
             />
@@ -155,13 +158,13 @@ export default function NodePicker({ value, onChange, onFavoriteToggle, portalOn
           <div className="overflow-y-auto">
             {sorted.length === 0 ? (
               <div className="px-3 py-4 text-xs text-muted-foreground text-center">
-                {isAdmin ? 'No nodes found' : 'Keine Portal-Nutzer gefunden'}
+                {isAdmin ? (isDe ? 'Keine Nodes gefunden' : 'No nodes found') : (isDe ? 'Keine Portal-Nutzer gefunden' : 'No portal users found')}
               </div>
             ) : (
               <>
                 {isAdmin && favNodes.length > 0 && !lowerFilter && (
                   <div className="px-3 py-1 text-xs text-yellow-400 font-semibold uppercase tracking-wider bg-yellow-400/5 border-b border-border">
-                    ★ Favorites
+                    ★ {isDe ? 'Favoriten' : 'Favorites'}
                   </div>
                 )}
                 {sorted.map((node, idx) => {
@@ -170,7 +173,7 @@ export default function NodePicker({ value, onChange, onFavoriteToggle, portalOn
                     <div key={node.id}>
                       {isFirstOther && (
                         <div className="px-3 py-1 text-xs text-muted-foreground font-semibold uppercase tracking-wider bg-muted/30 border-b border-border">
-                          All Nodes
+                          {isDe ? 'Alle Nodes' : 'All Nodes'}
                         </div>
                       )}
                       <button
@@ -190,10 +193,10 @@ export default function NodePicker({ value, onChange, onFavoriteToggle, portalOn
                               {node.long_name || node.short_name || node.node_id}
                             </span>
                             {isOwn(node) && (
-                              <span className="text-[10px] px-1 py-0.5 rounded bg-primary/15 text-primary font-semibold flex-shrink-0" title="In deinem Gateway-Scope bekannt">Eigen</span>
+                              <span className="text-[10px] px-1 py-0.5 rounded bg-primary/15 text-primary font-semibold flex-shrink-0" title={isDe ? 'In deinem Gateway-Scope bekannt' : 'Known in your gateway scope'}>{isDe ? 'Eigen' : 'Own'}</span>
                             )}
                             {!isOwn(node) && !isPortal(node.node_id) && (
-                              <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground font-semibold flex-shrink-0" title="Fremder Node — Zustellung evtl. nicht möglich">Fremd</span>
+                              <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground font-semibold flex-shrink-0" title={isDe ? 'Fremder Node — Zustellung evtl. nicht möglich' : 'Foreign node — delivery may not be possible'}>{isDe ? 'Fremd' : 'Foreign'}</span>
                             )}
                             {isPortal(node.node_id) && (
                               <span className="text-[10px] px-1 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-semibold flex-shrink-0">Portal</span>
@@ -221,7 +224,7 @@ export default function NodePicker({ value, onChange, onFavoriteToggle, portalOn
                             type="button"
                             onClick={(e) => handleToggleFav(e, node)}
                             className={`p-1 rounded transition-colors ${node.is_favorite ? 'text-yellow-400 hover:text-yellow-300' : 'text-muted-foreground hover:text-yellow-400'}`}
-                            title={node.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+                            title={node.is_favorite ? (isDe ? 'Aus Favoriten entfernen' : 'Remove from favorites') : (isDe ? 'Zu Favoriten hinzufügen' : 'Add to favorites')}
                           >
                             <Star className={`w-3.5 h-3.5 ${node.is_favorite ? 'fill-yellow-400' : ''}`} />
                           </button>

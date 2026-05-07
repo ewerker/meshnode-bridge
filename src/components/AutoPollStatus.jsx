@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Wifi, WifiOff, Clock, SkipForward } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function AutoPollStatus({ currentUser }) {
   const [status, setStatus] = useState(null);
+  const { language } = useLanguage();
+  const isDe = language === 'de';
 
   // Load poll status (latest entry) and subscribe to updates
   useEffect(() => {
@@ -41,8 +44,8 @@ export default function AutoPollStatus({ currentUser }) {
   return (
     <div
       title={skipped
-        ? `Auto-Poll pausiert${status.skip_reason ? ` · ${status.skip_reason}` : ''}`
-        : `Auto-Poll aktiv · ${status.last_received ?? 0} empfangen ${lastPolled}`}
+        ? `${isDe ? 'Auto-Poll pausiert' : 'Auto-poll paused'}${status.skip_reason ? ` · ${status.skip_reason}` : ''}`
+        : `${isDe ? 'Auto-Poll aktiv' : 'Auto-poll active'} · ${status.last_received ?? 0} ${isDe ? 'empfangen' : 'received'} ${lastPolled}`}
       className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-xs ${
       skipped
         ? 'bg-secondary border-border text-muted-foreground'
@@ -53,7 +56,7 @@ export default function AutoPollStatus({ currentUser }) {
       ) : (
         <Wifi className="w-3.5 h-3.5 flex-shrink-0 animate-pulse" />
       )}
-      <span>{skipped ? 'paused' : 'live'}</span>
+      <span>{skipped ? (isDe ? 'pausiert' : 'paused') : 'live'}</span>
     </div>
   );
 }

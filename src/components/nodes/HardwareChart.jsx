@@ -1,4 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const COLORS = [
   'hsl(186, 100%, 42%)', 'hsl(160, 60%, 45%)', 'hsl(30, 80%, 55%)',
@@ -7,6 +8,8 @@ const COLORS = [
 ];
 
 export default function HardwareChart({ nodes }) {
+  const { language } = useLanguage();
+  const isDe = language === 'de';
   const hwCount = {};
   nodes.forEach(n => {
     const hw = n.hw_model || 'Unknown';
@@ -19,7 +22,7 @@ export default function HardwareChart({ nodes }) {
 
   return (
     <div className="bg-card border border-border rounded-xl p-4">
-      <h3 className="text-sm font-semibold text-foreground mb-3">Hardware Models</h3>
+      <h3 className="text-sm font-semibold text-foreground mb-3">{isDe ? 'Hardware-Modelle' : 'Hardware Models'}</h3>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" margin={{ left: 0, right: 16, top: 0, bottom: 0 }}>

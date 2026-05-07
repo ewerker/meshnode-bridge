@@ -1,9 +1,14 @@
 import { ArrowLeft, Scale } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ThemeToggle from '@/components/ThemeToggle';
+import LanguageToggle from '@/components/LanguageToggle';
+import { useLanguage } from '@/lib/LanguageContext';
 import AppFooter from '@/components/AppFooter';
 
 export default function Imprint() {
+  const { language } = useLanguage();
+  const isDe = language === 'de';
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-10">
@@ -14,23 +19,23 @@ export default function Imprint() {
           <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center">
             <Scale className="w-5 h-5 text-primary" />
           </div>
-          <h1 className="font-bold text-foreground tracking-tight">Impressum & Haftungsausschluss</h1>
-          <div className="ml-auto"><ThemeToggle /></div>
+          <h1 className="font-bold text-foreground tracking-tight">{isDe ? 'Impressum & Haftungsausschluss' : 'Imprint & Disclaimer'}</h1>
+          <div className="ml-auto flex items-center gap-2"><LanguageToggle /><ThemeToggle /></div>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-8 space-y-8 flex-1 w-full">
         {/* Impressum */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-4">Impressum</h2>
+          <h2 className="text-xl font-bold text-foreground mb-4">{isDe ? 'Impressum' : 'Imprint'}</h2>
           <div className="bg-card border border-border rounded-xl p-5 space-y-3 text-muted-foreground">
             <p className="text-primary font-semibold text-lg">DoubleU2 (we-zwei)</p>
-            <p><span className="text-muted-foreground">Inhaber:</span> Frank Richter</p>
+            <p><span className="text-muted-foreground">{isDe ? 'Inhaber:' : 'Owner:'}</span> Frank Richter</p>
             <div>
-              <p className="text-muted-foreground text-sm mb-1">Anschrift</p>
+              <p className="text-muted-foreground text-sm mb-1">{isDe ? 'Anschrift' : 'Address'}</p>
               <p>Kräuterweg 9</p>
               <p>04683 Naunhof</p>
-              <p>Deutschland</p>
+              <p>{isDe ? 'Deutschland' : 'Germany'}</p>
             </div>
             <div>
               <p className="text-muted-foreground text-sm mb-1">Kontakt</p>

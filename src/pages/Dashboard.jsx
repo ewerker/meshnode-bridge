@@ -3,6 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { Radio, RefreshCw, Activity, Layers, Cpu, Settings, HelpCircle } from 'lucide-react';
 import SettingsPanel from '@/components/SettingsPanel';
 import ThemeToggle from '@/components/ThemeToggle';
+import LanguageToggle from '@/components/LanguageToggle';
+import { useLanguage } from '@/lib/LanguageContext';
 import { Link } from 'react-router-dom';
 import MessageList from '@/components/MessageList';
 import SendMessageForm from '@/components/SendMessageForm';
@@ -26,6 +28,7 @@ export default function Dashboard() {
   const [editRequest, setEditRequest] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [pollLogCount, setPollLogCount] = useState(0);
+  const { t } = useLanguage();
   const settingsRef = useRef(null);
 
   const fetchMessages = useCallback(async (gw) => {
@@ -186,7 +189,7 @@ export default function Dashboard() {
               <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
                 {currentUser?.node_id
                   ? <span className="font-mono text-primary">{currentUser.node_id}</span>
-                  : <span>Web ↔ MQTT ↔ Meshtastic Network</span>}
+                  : <span>{t.dashboard.networkFallback}</span>}
                 {currentUser?.email && (
                   <>
                     <span className="text-muted-foreground/50">·</span>
@@ -195,7 +198,7 @@ export default function Dashboard() {
                     </span>
                     {currentUser.role === 'admin' && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/15 text-primary uppercase tracking-wider font-semibold">
-                        admin
+                        {t.common.admin}
                       </span>
                     )}
                   </>
@@ -207,11 +210,11 @@ export default function Dashboard() {
             <div className="hidden sm:flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1.5">
                 <Activity className="w-3.5 h-3.5 text-primary" />
-                <span className="text-muted-foreground">{stats.sent} sent</span>
+                <span className="text-muted-foreground">{stats.sent} {t.common.sent}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Layers className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-muted-foreground">{stats.received} received</span>
+                <span className="text-muted-foreground">{stats.received} {t.common.received}</span>
               </div>
             </div>
             <Link
@@ -219,12 +222,12 @@ export default function Dashboard() {
               className="flex items-center gap-2 px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-lg text-sm font-medium transition-colors"
             >
               <Cpu className="w-4 h-4 text-primary" />
-              <span className="hidden sm:inline">Nodes</span>
+              <span className="hidden sm:inline">{t.common.nodes}</span>
             </Link>
             <Link
               to="/about"
               className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-              title="About"
+              title={t.common.about}
             >
               <HelpCircle className="w-4 h-4 text-muted-foreground" />
             </Link>
@@ -240,18 +243,19 @@ export default function Dashboard() {
                 });
               }}
               className={`p-2 rounded-lg transition-colors ${showSettings ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-secondary/80 text-muted-foreground'}`}
-              title="Settings"
+              title={t.common.settings}
             >
               <Settings className="w-4 h-4" />
             </button>
             <button
               onClick={() => { fetchMessages(); autoPoll(); }}
               className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-              title="Refresh"
+              title={t.common.refresh}
             >
               <RefreshCw className="w-4 h-4 text-muted-foreground" />
             </button>
             {!(currentUser?.node_id || '').startsWith('?') && <AutoPollStatus currentUser={currentUser} />}
+            <LanguageToggle />
             <ThemeToggle />
           </div>
         </div>
@@ -261,8 +265,8 @@ export default function Dashboard() {
         {isPolling && (
           <div className="bg-card rounded-2xl border border-primary/30 p-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-primary">Empfang beim Seitenladen läuft</p>
-              <p className="text-xs text-muted-foreground">Manual Receive ist danach wieder nutzbar.</p>
+              <p className="text-sm font-semibold text-primary">{t.dashboard.loadingReceiveTitle}</p>
+              <p className="text-xs text-muted-foreground">{t.dashboard.loadingReceiveText}</p>
             </div>
             <PollCountdown active={isPolling} seconds={10} />
           </div>
@@ -271,7 +275,7 @@ export default function Dashboard() {
           <section ref={settingsRef} className="bg-card rounded-2xl border border-border p-5 scroll-mt-24">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
               <Settings className="w-4 h-4" />
-              Settings
+              {t.dashboard.settings}
             </h2>
             <SettingsPanel onSettingsChanged={() => { loadUser(); fetchMessages(); setRefreshKey(k => k + 1); }} />
           </section>
@@ -279,13 +283,13 @@ export default function Dashboard() {
         <>
         {/* Manual Poll — hidden for dummy (?) accounts that are portal-only */}
         {!(currentUser?.node_id || '').startsWith('?') && (
-          <CollapsibleSection id="manual_receive" icon={Layers} title="Manual Receive">
+          <CollapsibleSection id="manual_receive" icon={Layers} title={t.dashboard.manualReceive}>
             <PollPanel onReceived={fetchMessages} userSettings={currentUser} />
           </CollapsibleSection>
         )}
 
         {/* Send Form */}
-        <CollapsibleSection id="send_message" icon={Radio} title="Send Message" headerColorClass="text-primary">
+        <CollapsibleSection id="send_message" icon={Radio} title={t.dashboard.sendMessage} headerColorClass="text-primary">
           <SendMessageForm onMessageSent={() => { fetchMessages(); autoPoll(); }} userSettings={currentUser} replyTo={replyTo} replyHopLimit={replyHopLimit} replyRequest={replyRequest} editRequest={editRequest} onReplyToClear={() => { setReplyTo(null); setReplyHopLimit(null); setReplyRequest(null); setEditRequest(null); }} />
         </CollapsibleSection>
 
@@ -294,7 +298,7 @@ export default function Dashboard() {
         <CollapsibleSection
           id="message_history"
           icon={Layers}
-          title={`Message History (${stats.total})`}
+          title={`${t.dashboard.messageHistory} (${stats.total})`}
           headerColorClass="text-foreground"
         >
           {loading ? (
@@ -323,7 +327,7 @@ export default function Dashboard() {
 
         {/* Auto-Poll Log (bottom) */}
         {!(currentUser?.node_id || '').startsWith('?') && (
-          <CollapsibleSection id="poll_log" icon={Activity} title={`Poll Log (${pollLogCount})`} defaultOpen={false}>
+          <CollapsibleSection id="poll_log" icon={Activity} title={`${t.dashboard.pollLog} (${pollLogCount})`} defaultOpen={false}>
             <PollLog onCountChange={setPollLogCount} />
           </CollapsibleSection>
         )}

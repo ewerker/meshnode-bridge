@@ -1,4 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const BUCKETS = [
   { label: '<1h', maxSec: 3600, color: 'hsl(0, 70%, 50%)' },
@@ -9,6 +10,8 @@ const BUCKETS = [
 ];
 
 export default function UptimeChart({ nodes }) {
+  const { language } = useLanguage();
+  const isDe = language === 'de';
   const withUptime = nodes.filter(n => n.uptime_seconds > 0);
 
   let prevMax = 0;
@@ -26,7 +29,7 @@ export default function UptimeChart({ nodes }) {
 
   return (
     <div className="bg-card border border-border rounded-xl p-4">
-      <h3 className="text-sm font-semibold text-foreground mb-3">Uptime Distribution</h3>
+      <h3 className="text-sm font-semibold text-foreground mb-3">{isDe ? 'Uptime-Verteilung' : 'Uptime Distribution'}</h3>
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ left: 0, right: 16, top: 0, bottom: 0 }}>
