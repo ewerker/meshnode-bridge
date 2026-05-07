@@ -59,6 +59,12 @@ const screenshotCards = [
     lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/6ee25039a_image.png',
     darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/46fe7636a_image.png',
   },
+  {
+    title: 'Statistiken',
+    subtitle: 'Das Dashboard für Statistik lässt sich konfigurieren und zeigt eigene sowie Netzwerk-Statistiken übersichtlich an.',
+    lightImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/688b804d5_image.png',
+    darkImage: 'https://media.base44.com/images/public/69cb722a8da55dd42eb76464/72b184d67_image.png',
+  },
   { title: 'ACK & Deduplizierung', subtitle: 'Zustellstatus und intelligente Nachrichtenverarbeitung visualisieren' },
   { title: 'Benachrichtigungen', subtitle: 'E-Mail und zukünftige Kanäle wie SMS, RCS und Push zeigen' },
 ];
