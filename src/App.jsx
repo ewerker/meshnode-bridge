@@ -9,12 +9,13 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import GlobalHeartbeat from '@/components/GlobalHeartbeat';
 // Add page imports here
 import Dashboard from './pages/Dashboard';
+import Landing from './pages/Landing';
 import Nodes from './pages/Nodes';
 import About from './pages/About';
 import Imprint from './pages/Imprint';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -25,15 +26,19 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
-    }
+  // Handle registration errors
+  if (authError?.type === 'user_not_registered') {
+    return <UserNotRegisteredError />;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/imprint" element={<Imprint />} />
+        <Route path="*" element={<Landing />} />
+      </Routes>
+    );
   }
 
   // Render the main app
