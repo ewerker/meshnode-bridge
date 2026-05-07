@@ -1,11 +1,47 @@
 import { Link } from 'react-router-dom';
-import { Radio, MessageSquare, Cpu, ShieldCheck, LogIn } from 'lucide-react';
+import { Radio, MessageSquare, Cpu, ShieldCheck, LogIn, Wifi, Mail, Network, Zap } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
+const topics = [
+  {
+    icon: Network,
+    title: 'MQTT als Nervensystem',
+    text: 'Das Portal verbindet Meshtastic-Regionen über MQTT-Wildcard-Abonnements und erfasst relevante Nachrichten über Topics wie msh/<region>/proxy/+/+/#.',
+  },
+  {
+    icon: Radio,
+    title: 'Webuser ohne Funkgerät',
+    text: 'Jeder Browser kann als virtueller Meshtastic-Node genutzt werden. Nutzer ohne eigenes Gerät erhalten Pseudo-Node-IDs wie ?abc123.',
+  },
+  {
+    icon: MessageSquare,
+    title: 'Nachrichten & Deduplizierung',
+    text: 'Portal-Mirror, Radio-Relay und packet_id werden intelligent abgeglichen, damit Nachrichten trotz mehrerer Empfangswege nur einmal sichtbar bleiben.',
+  },
+  {
+    icon: Zap,
+    title: 'ACK & Zustellstatus',
+    text: 'Mit want_ack und eindeutigen client_ref-IDs verfolgt das Portal ACK, NAK und Implicit ACK über dedizierte MQTT-Topics transparent nach.',
+  },
+  {
+    icon: Cpu,
+    title: 'Node-Entdeckung',
+    text: 'Node-Daten wie last_heard, SNR, battery_level, GPS, Hardware und Uptime werden per MQTT-Polling gesammelt und übersichtlich visualisiert.',
+  },
+  {
+    icon: Mail,
+    title: 'Omni-Channel-Erweiterung',
+    text: 'Eingehende Meshtastic-Nachrichten können per E-Mail weitergeleitet werden; E-Mail-Versand an MT-Empfänger, SMS, RCS und Push sind als Erweiterungen vorgesehen.',
+  },
+];
+
 const screenshotCards = [
+  { title: 'Startseite', subtitle: 'Öffentliche Leistungsbeschreibung mit zentralem Login' },
   { title: 'Dashboard', subtitle: 'Nachrichten senden, empfangen und Polling überwachen' },
+  { title: 'MQTT Broker', subtitle: 'Broker, ewerker/mqtt-proxy, Topics und Gateway-Fluss darstellen' },
   { title: 'Node-Übersicht', subtitle: 'Mesh-Nodes mit Signal, Batterie, GPS und Hardwaredaten' },
-  { title: 'Einstellungen', subtitle: 'Node-ID, Region, Channels und MQTT-Routing konfigurieren' },
+  { title: 'ACK & Deduplizierung', subtitle: 'Zustellstatus und intelligente Nachrichtenverarbeitung visualisieren' },
+  { title: 'Benachrichtigungen', subtitle: 'E-Mail und zukünftige Kanäle wie SMS, RCS und Push zeigen' },
 ];
 
 export default function Landing() {
@@ -25,7 +61,7 @@ export default function Landing() {
           </h1>
 
           <p className="mt-6 text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Dieses Portal verbindet den Browser über ein Backend mit einem MQTT-Broker und einem JSON-Proxy für Meshtastic. So können berechtigte Nutzer Nachrichten schreiben, empfangen, Nodes auswerten und Gateway-Status überwachen — ohne lokal angeschlossenes Funkgerät.
+            Das Meshtastic Web Portal ist Ihre Brücke zum Meshtastic-Netzwerk: eine leistungsstarke webbasierte Schnittstelle über MQTT, die in Kombination mit einem robusten Broker und dem ewerker/mqtt-proxy Kommunikation nahtlos, skalierbar und universell zugänglich macht — auch ohne eigenes Funkgerät.
           </p>
 
           <button
@@ -37,14 +73,28 @@ export default function Landing() {
           </button>
         </section>
 
-        <section className="max-w-6xl mx-auto px-4 pb-16 grid md:grid-cols-3 gap-4">
-          <Feature icon={MessageSquare} title="Nachrichten & DMs" text="Channel-Nachrichten, Direktnachrichten, Hop-Limit und ACK-Status in einer Oberfläche." />
-          <Feature icon={Cpu} title="Node-Verzeichnis" text="Bekannte Mesh-Nodes mit Signalwerten, Batterie, GPS, Uptime und Hardwaredaten anzeigen." />
-          <Feature icon={ShieldCheck} title="Geschützter Zugriff" text="Unangemeldete Besucher sehen nur diese Startseite; App-Funktionen benötigen Login." />
+        <section className="max-w-6xl mx-auto px-4 pb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold">Leistungsbereiche</h2>
+            <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
+              Von MQTT-Integration über virtuelle Web-Nodes bis zu ACK-Tracking, Deduplizierung und Benachrichtigungen.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {topics.map((topic) => (
+              <Feature key={topic.title} icon={topic.icon} title={topic.title} text={topic.text} />
+            ))}
+          </div>
         </section>
 
         <section className="max-w-6xl mx-auto px-4 pb-20">
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="bg-card border border-border rounded-2xl p-6 mb-8 text-left">
+            <h2 className="text-2xl font-bold mb-3">Technisch robust, intuitiv bedienbar</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Hinter der Oberfläche arbeitet eine modulare Backend-Architektur mit sauberen MQTT-Interaktionen, automatischem und manuellem Polling, intelligenter Datenverarbeitung und geschütztem Zugriff. So entsteht eine zuverlässige, zukunftssichere Lösung für Meshtastic-Kommunikation über Web, MQTT und kommende Benachrichtigungskanäle.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {screenshotCards.map((shot, idx) => (
               <div key={shot.title} className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl shadow-black/10">
                 <div className="h-44 bg-gradient-to-br from-secondary via-card to-primary/20 p-4 flex flex-col justify-between">
