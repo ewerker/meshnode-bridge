@@ -86,13 +86,16 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
   const formatMessageTime = (msg) => {
     const meshDate = msg.meshtastic_timestamp ? new Date(msg.meshtastic_timestamp * 1000) : null;
     const importDate = parseCreatedDate(msg.created_date);
+    const recordLabel = msg.direction === 'outbound'
+      ? (isDe ? 'gesendet' : 'sent')
+      : (isDe ? 'Import' : 'import');
 
     if (meshDate && importDate) {
-      return `${format(meshDate, 'dd.MM. HH:mm:ss')} (${isDe ? 'Import' : 'import'} ${format(importDate, 'dd.MM. HH:mm:ss')})`;
+      return `${format(meshDate, 'dd.MM. HH:mm:ss')} (${recordLabel} ${format(importDate, 'dd.MM. HH:mm:ss')})`;
     }
 
     if (meshDate) return format(meshDate, 'dd.MM. HH:mm:ss');
-    if (importDate) return `${isDe ? 'Import' : 'import'} ${format(importDate, 'dd.MM. HH:mm:ss')}`;
+    if (importDate) return `${recordLabel} ${format(importDate, 'dd.MM. HH:mm:ss')}`;
     return '';
   };
 
