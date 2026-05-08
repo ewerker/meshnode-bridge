@@ -86,16 +86,22 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
   const formatMessageTime = (msg) => {
     const meshDate = msg.meshtastic_timestamp ? new Date(msg.meshtastic_timestamp * 1000) : null;
     const importDate = parseCreatedDate(msg.created_date);
+    const timeFormat = 'dd.MM.yy HH:mm';
     const recordLabel = msg.direction === 'outbound'
       ? (isDe ? 'gesendet' : 'sent')
-      : (isDe ? 'Import' : 'import');
+      : (isDe ? 'empfangen' : 'received');
+    const importLabel = isDe ? 'importiert' : 'imported';
 
-    if (meshDate && importDate) {
-      return `${format(meshDate, 'dd.MM. HH:mm:ss')} (${recordLabel} ${format(importDate, 'dd.MM. HH:mm:ss')})`;
+    if (meshDate) {
+      const primaryTime = `${recordLabel} ${format(meshDate, timeFormat)}`;
+      const diffMinutes = importDate ? Math.abs(importDate.getTime() - meshDate.getTime()) / 60000 : 0;
+      if (msg.direction === 'inbound' && importDate && diffMinutes > 5) {
+        return `${primaryTime} (${importLabel} ${format(importDate, timeFormat)})`;
+      }
+      return primaryTime;
     }
 
-    if (meshDate) return format(meshDate, 'dd.MM. HH:mm:ss');
-    if (importDate) return `${recordLabel} ${format(importDate, 'dd.MM. HH:mm:ss')}`;
+    if (importDate) return `${recordLabel} ${format(importDate, timeFormat)}`;
     return '';
   };
 
