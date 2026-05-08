@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Radio, MessageSquare, Cpu, ShieldCheck, Mail, Network, Zap, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/lib/ThemeContext';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useAuth } from '@/lib/AuthContext';
 import LanguageToggle from '@/components/LanguageToggle';
 import ContactFormDialog from '@/components/ContactFormDialog';
 
@@ -24,6 +25,7 @@ const screenshotImages = [
 export default function Landing() {
   const { resolved, setTheme } = useTheme();
   const { t, language } = useLanguage();
+  const { navigateToLogin } = useAuth();
   const [previewShot, setPreviewShot] = useState(null);
   const [showContactForm, setShowContactForm] = useState(false);
   const topics = t.landing.topics.map(([title, text], index) => ({ icon: topicIcons[index], title, text }));
@@ -175,8 +177,16 @@ export default function Landing() {
       )}
 
       <footer className="border-t border-border">
-        <div className="max-w-6xl mx-auto px-4 py-5 flex justify-center text-sm text-muted-foreground">
+        <div className="max-w-6xl mx-auto px-4 py-5 flex items-center justify-center gap-3 text-sm text-muted-foreground">
           <Link to="/imprint" className="hover:text-foreground transition-colors">{t.common.imprint}</Link>
+          <span className="text-muted-foreground/40">·</span>
+          <button
+            type="button"
+            onClick={() => navigateToLogin()}
+            className="hover:text-foreground transition-colors"
+          >
+            {t.common.login}
+          </button>
         </div>
       </footer>
     </div>
