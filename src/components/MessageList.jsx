@@ -83,6 +83,16 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
     return isNaN(date.getTime()) ? null : date;
   };
 
+  const formatRelativeShort = (date) => {
+    const diffMinutes = Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
+    if (diffMinutes < 1) return isDe ? 'gerade eben' : 'just now';
+    if (diffMinutes < 60) return isDe ? `vor ${diffMinutes} min` : `${diffMinutes} min ago`;
+    const diffHours = Math.round(diffMinutes / 60);
+    if (diffHours < 24) return isDe ? `vor ${diffHours}h` : `${diffHours}h ago`;
+    const diffDays = Math.round(diffHours / 24);
+    return isDe ? `vor ${diffDays}d` : `${diffDays}d ago`;
+  };
+
   const formatMessageTime = (msg) => {
     const meshDate = msg.meshtastic_timestamp ? new Date(msg.meshtastic_timestamp * 1000) : null;
     const importDate = parseCreatedDate(msg.created_date);
@@ -98,10 +108,15 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
       if (msg.direction === 'inbound' && importDate && diffMinutes > 5) {
         return `${primaryTime} (${importLabel} ${format(importDate, timeFormat)})`;
       }
+      if (msg.direction === 'inbound') return `${primaryTime} (${formatRelativeShort(meshDate)})`;
       return primaryTime;
     }
 
-    if (importDate) return `${recordLabel} ${format(importDate, timeFormat)}`;
+    if (importDate) {
+      const primaryTime = `${recordLabel} ${format(importDate, timeFormat)}`;
+      if (msg.direction === 'inbound') return `${primaryTime} (${formatRelativeShort(importDate)})`;
+      return primaryTime;
+    }
     return '';
   };
 
