@@ -243,7 +243,7 @@ export default function MessageList({ messages, onDelete, channels, onReply, onR
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
               <span className={`text-xs font-semibold uppercase tracking-wider ${msg.direction === 'outbound' ? 'text-primary' : 'text-emerald-400'}`}>
-                {msg.direction === 'outbound' ? (isDe ? '⬆ Gesendet' : '⬆ Sent') : (isDe ? '⬇ Empfangen' : '⬇ Received')}
+                {msg.direction === 'outbound' ? (isDe ? 'Gesendet' : 'Sent') : (isDe ? 'Empfangen' : 'Received')}
               </span>
               <span className="text-muted-foreground/60">·</span>
               {msg.direction === 'inbound' && (fromLabel || msg.from_node) && (
