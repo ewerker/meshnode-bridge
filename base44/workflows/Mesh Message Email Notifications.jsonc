@@ -1,0 +1,37 @@
+{
+  "name": "Mesh Message Email Notifications",
+  "description": "Sendet E-Mail-Benachrichtigungen f\u00fcr neu empfangene Mesh-Nachrichten nach den Nutzereinstellungen.",
+  "trigger": {
+    "condition": "${ (.trigger.data.direction == \"inbound\") }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "MeshMessage"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "mesh_message_email_notifications",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sendMeshMessageEmailNotification",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "sendMeshMessageEmailNotification"
+  }
+}
