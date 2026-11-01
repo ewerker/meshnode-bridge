@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom';
 import ThemeToggle from '@/components/ThemeToggle';
 import LanguageToggle from '@/components/LanguageToggle';
 import AppFooter from '@/components/AppFooter';
+import ContactBlock from '@/components/ContactBlock';
 import { useLanguage } from '@/lib/LanguageContext';
 
 const featureIcons = [Send, Download, Zap, MessageSquare, Cpu, Wifi, Settings, Moon, RefreshCw];
 const featureColors = ['text-primary', 'text-emerald-400', 'text-yellow-400', 'text-orange-400', 'text-purple-400', 'text-primary', 'text-muted-foreground', 'text-indigo-400', 'text-emerald-400'];
 
 export default function About() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isDe = language === 'de';
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -95,6 +97,13 @@ export default function About() {
             {t.about.dashboard.map(([title, description]) => (
               <p key={title}><span className="text-primary font-medium">{title}</span> — {description}</p>
             ))}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-bold text-foreground mb-4">{isDe ? 'Kontakt' : 'Contact'}</h2>
+          <div className="bg-card border border-border rounded-xl p-5">
+            <ContactBlock />
           </div>
         </section>
       </main>

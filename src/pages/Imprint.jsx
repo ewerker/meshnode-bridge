@@ -4,6 +4,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import LanguageToggle from '@/components/LanguageToggle';
 import { useLanguage } from '@/lib/LanguageContext';
 import AppFooter from '@/components/AppFooter';
+import ContactBlock from '@/components/ContactBlock';
 
 export default function Imprint() {
   const { language } = useLanguage();
@@ -39,16 +40,7 @@ export default function Imprint() {
             </div>
             <div>
               <p className="text-muted-foreground text-sm mb-1">Kontakt</p>
-              <p>
-                <a href="tel:+4934293470571" className="text-primary hover:underline">+49 (0) 34293 470571</a>
-              </p>
-              <p>+49 (0) 34293 470572 (Fax)</p>
-              <p>
-                <a href="mailto:richter@w-2.de" className="text-primary hover:underline">richter@w-2.de</a>
-              </p>
-              <p>
-                🌐 <a href="https://w-2.de" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://w-2.de</a>
-              </p>
+              <ContactBlock />
             </div>
           </div>
         </section>
