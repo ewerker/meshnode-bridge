@@ -12,8 +12,8 @@ export default function ContactBlock() {
         <a href="tel:+4934293470572" className={linkClass}>+49 34293 470572</a>
       </p>
       <p>
-        <span className="text-muted-foreground">Notfälle:</span>{' '}
-        <a href="tel:+1778337468" className={linkClass}>+1778337468</a>
+        <span className="text-muted-foreground">Hotline:</span>{' '}
+        <a href="tel:+491778337468" className={linkClass}>+491778337468</a>
       </p>
       <p>
         <span className="text-muted-foreground">E-Mail:</span>{' '}
